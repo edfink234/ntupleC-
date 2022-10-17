@@ -140,6 +140,65 @@ void Event::__load_photons(TChain* entry)
 //    return (*mc_pt)[_index];
 }
 
+void Event::__load_electrons(TChain* entry)
+{
+    vector<double> *electron_pt= nullptr;
+    entry->SetBranchAddress("electron_pt",&electron_pt);
+    entry->GetBranch("electron_pt")->GetEntry();
+    
+    vector<double> *electron_e = nullptr;
+    entry->SetBranchAddress("electron_e",&electron_e);
+    entry->GetBranch("electron_e")->GetEntry();
+    
+    vector<vector<string>> *electron_syst_name = nullptr;
+    entry->SetBranchAddress("electron_syst_name",&electron_syst_name);
+    entry->GetBranch("electron_syst_name")->GetEntry();
+    
+    vector<vector<double>> *electron_syst_pt = nullptr;
+    entry->SetBranchAddress("electron_syst_pt",&electron_syst_pt);
+    entry->GetBranch("electron_syst_pt")->GetEntry();
+    
+    vector<vector<double>> *electron_syst_e = nullptr;
+    entry->SetBranchAddress("electron_syst_e",&electron_syst_e);
+    entry->GetBranch("electron_syst_e")->GetEntry();
+    
+    auto length = (*electron_pt).size();
+    
+    double pt, energy;
+    int index;
+    
+    for (decltype(length) i = 0; i < length; ++i)
+    {
+        if ((systematic.empty()) || (systematic=="nominal"))
+        {
+            pt = (*electron_pt)[i];
+            energy = (*electron_e)[i];
+        }
+        else
+        {
+            index = -1;
+            auto it = find(((*electron_syst_name)[i]).begin(), ((*electron_syst_name)[i]).end(), systematic);
+            
+            if (it==((*electron_syst_name)[i]).end())
+            {
+                continue;
+            }
+            index = it - ((*electron_syst_name)[i]).begin();
+            pt = (*electron_syst_pt)[i][index];
+            energy = (*electron_syst_e)[i][index];
+        }
+        if (pt < 0)
+        {
+            continue;
+        }
+        electrons.emplace_back(Electron(entry, i, pt, energy));
+    }
+    
+//    entry->GetBranch("mc_pt")->GetEntry();
+//    R__ASSERT((*mc_pt).size() > static_cast<size_t>(_index));
+//    return (*mc_pt)[_index];
+}
+
 
 //Event::Event() = default;
 //Event::~Event() = default;
