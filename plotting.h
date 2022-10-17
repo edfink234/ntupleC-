@@ -1,12 +1,17 @@
 #ifndef PLOTTINGH
 #define PLOTTINGH
 
+#include <iostream>
 #include <string>
 #include <vector>
 #include <tuple>
 #include <memory>
 #include "TH1F.h"
-
+#include "TH2F.h"
+#include "TFile.h"
+#include "TError.h"
+using std::get;
+using std::cout;
 
 using std::string;
 using std::vector;

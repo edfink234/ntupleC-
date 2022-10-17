@@ -1,5 +1,5 @@
 #include "plotting.h"
-using std::get;
+
 
 void _mkdir_recursive(TFile* out_file, const string& full_path)
 {
@@ -150,8 +150,8 @@ Plot2D::Plot2D(string name, string title, int xbins, int x_min, int x_max, int y
     __x_min{x_min},
     __x_max{x_max},
     __ybins{ybins},
-    __y_min{x_min},
-    __y_max{x_max},
+    __y_min{y_min},
+    __y_max{y_max},
     __x_label{get<x_label>(kwargs)},
     __y_label{get<y_label>(kwargs)}
 {
