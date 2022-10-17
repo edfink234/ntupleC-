@@ -459,6 +459,13 @@ Cluster::Cluster(TChain* entry, int index, const char* name, const char* title)
     
 }
 
+Cluster::Cluster(const Cluster& particle_temp)
+{
+    _entry.Reset();
+    _entry.Add(const_cast<TChain*>(&particle_temp._entry)); //😬
+    _index = particle_temp._index;
+}
+
 double Cluster::pt()
 {
     vector<double> *cluster_pt= nullptr;
@@ -508,6 +515,13 @@ Track::Track(TChain* entry, int index, const char* name, const char* title)
 :   PhysicsObject::PhysicsObject(entry, index, name, title)
 {
     
+}
+
+Track::Track(const Track& particle_temp)
+{
+    _entry.Reset();
+    _entry.Add(const_cast<TChain*>(&particle_temp._entry)); //😬
+    _index = particle_temp._index;
 }
 
 double Track::pt()

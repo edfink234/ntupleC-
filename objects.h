@@ -45,6 +45,7 @@ class TruthParticle : public PhysicsObject
 private:
     double Cluster_eta;
     int pdg_id;
+    friend class Event;
 protected:
     static const string PREFIX;
 public:
@@ -121,6 +122,7 @@ private:
     static const string PREFIX;
 public:
     Cluster();
+    Cluster(const Cluster&);
     Cluster(TChain*, int, const char* name = "", const char* title = "");
     double pt() override;
     double eta() override;
@@ -134,6 +136,7 @@ private:
     static const string PREFIX;
 public:
     Track();
+    Track(const Track&);
     Track(TChain*, int, const char* name = "", const char* title = "");
     double pt() override;
     double charge();
