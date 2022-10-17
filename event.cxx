@@ -66,21 +66,6 @@ Event::Event(TChain* entry, TChain* event_info_entry)
     
 }
 
-void Event::__load_truth_particles(TChain* entry)
-{
-    vector<double> *mc_pt= nullptr;
-    entry->SetBranchAddress("mc_pt",&mc_pt);
-    
-    entry->GetBranch("mc_pt")->GetEntry();
-    
-    auto length = (*mc_pt).size();
-    
-    for (decltype(length) i = 0; i < length; ++i)
-    {
-        truth_particles.emplace_back(TruthParticle(entry, i));
-    }
-}
-
 void Event::__load_photons(TChain* entry)
 {
     vector<double> *photon_pt= nullptr;
@@ -135,9 +120,6 @@ void Event::__load_photons(TChain* entry)
         photons.emplace_back(Photon(entry, i, pt, energy));
     }
     
-//    entry->GetBranch("mc_pt")->GetEntry();
-//    R__ASSERT((*mc_pt).size() > static_cast<size_t>(_index));
-//    return (*mc_pt)[_index];
 }
 
 void Event::__load_electrons(TChain* entry)
@@ -193,12 +175,175 @@ void Event::__load_electrons(TChain* entry)
         }
         electrons.emplace_back(Electron(entry, i, pt, energy));
     }
-    
-//    entry->GetBranch("mc_pt")->GetEntry();
-//    R__ASSERT((*mc_pt).size() > static_cast<size_t>(_index));
-//    return (*mc_pt)[_index];
+
 }
 
+void Event::__load_clusters(TChain* entry)
+{
+    vector<double> *cluster_pt= nullptr;
+    entry->SetBranchAddress("cluster_pt",&cluster_pt);
+    
+    entry->GetBranch("cluster_pt")->GetEntry();
+    
+    auto length = (*cluster_pt).size();
+    
+    for (decltype(length) i = 0; i < length; ++i)
+    {
+        clusters.emplace_back(Cluster(entry, i));
+    }
+}
+
+void Event::__load_tracks(TChain* entry)
+{
+    vector<double> *track_pt= nullptr;
+    entry->SetBranchAddress("track_pt",&track_pt);
+    
+    entry->GetBranch("track_pt")->GetEntry();
+    
+    auto length = (*track_pt).size();
+    
+    for (decltype(length) i = 0; i < length; ++i)
+    {
+        
+        if (!static_cast<TBranch*>(entry->GetListOfBranches()->FindObject("track_type")))
+        {
+            tracks.emplace_back(Track(entry,i));
+        }
+        else
+        {
+            pixel_tracks.emplace_back(Track(entry,i));
+        }
+        
+    }
+}
+
+void Event::__load_triggers(TChain* entry)
+{
+    if (!static_cast<TBranch*>(entry->GetListOfBranches()->FindObject("trigger_passed_triggers")))
+    {
+        vector<string> *trigger_passed_triggers = nullptr;
+        
+        entry->SetBranchAddress("trigger_passed_triggers",&trigger_passed_triggers);
+        
+        entry->GetBranch("trigger_passed_triggers")->GetEntry();
+        
+        auto length = (*trigger_passed_triggers).size();
+        
+        for (decltype(length) i = 0; i < length; ++i)
+        {
+            triggers.push_back((*trigger_passed_triggers)[i]);
+        }
+    }
+    
+}
+
+void Event::__load_truth_particles(TChain* entry)
+{
+    vector<double> *mc_pt= nullptr;
+    entry->SetBranchAddress("mc_pt",&mc_pt);
+    
+    entry->GetBranch("mc_pt")->GetEntry();
+    
+    auto length = (*mc_pt).size();
+    
+    for (decltype(length) i = 0; i < length; ++i)
+    {
+        truth_particles.emplace_back(TruthParticle(entry, i));
+    }
+}
+
+vector<TruthParticle> Event::find_truth_particles
+     (const vector<int>&& barcode,
+      const vector<int>&& parent_barcode,
+      const vector<int>&& pdg_id,
+      int* status_code)
+{
+    vector<TruthParticle> results;
+    if (cache_truth)
+    {
+        for (auto& tp : truth_particles)
+        {
+            if ((!barcode.empty()) && (find(barcode.begin(),barcode.end(),tp.barcode()) == barcode.end()))
+            {
+                continue;
+            }
+            if ((!parent_barcode.empty()) && (find(parent_barcode.begin(),parent_barcode.end(),tp.parent_barcode()) == parent_barcode.end()))
+            {
+                continue;
+            }
+            if ((!pdg_id.empty()) && (find(pdg_id.begin(),pdg_id.end(),abs(tp.pdg_id)) == pdg_id.end()))
+            {
+                continue;
+            }
+            if (status_code && (tp.status_code() != *status_code))
+            {
+                continue;
+            }
+            results.push_back(tp);
+        }
+    }
+    else
+    {
+        vector<int> *mc_pdg_id = nullptr;
+        entry.SetBranchAddress("mc_pdg_id",&mc_pdg_id);
+        
+        entry.GetBranch("mc_pdg_id")->GetEntry();
+        
+        auto length = (*mc_pdg_id).size();
+        
+        for (decltype(length) i = 0; i < length; ++i)
+        {
+            if (!barcode.empty())
+            {
+                vector<int> *mc_barcode = nullptr;
+                entry.SetBranchAddress("mc_barcode",&mc_barcode);
+                
+                entry.GetBranch("mc_barcode")->GetEntry();
+                if (find(barcode.begin(),barcode.end(),(*mc_barcode)[i]) == barcode.end())
+                {
+                    continue;
+                }
+            }
+            if (!parent_barcode.empty())
+            {
+                vector<int> *mc_parent_barcode = nullptr;
+                entry.SetBranchAddress("mc_parent_barcode",&mc_parent_barcode);
+                
+                entry.GetBranch("mc_parent_barcode")->GetEntry();
+                if (find(parent_barcode.begin(),parent_barcode.end(),(*mc_parent_barcode)[i]) == parent_barcode.end())
+                {
+                    continue;
+                }
+            }
+            if (!pdg_id.empty())
+            {
+                vector<int> *mc_pdg_id = nullptr;
+                entry.SetBranchAddress("mc_pdg_id",&mc_pdg_id);
+                
+                entry.GetBranch("mc_pdg_id")->GetEntry();
+                if (find(pdg_id.begin(),pdg_id.end(),(*mc_pdg_id)[i]) == pdg_id.end())
+                {
+                    continue;
+                }
+            }
+            if (status_code)
+            {
+                vector<int> *mc_status = nullptr;
+                entry.SetBranchAddress("mc_status",&mc_status);
+                
+                entry.GetBranch("mc_status")->GetEntry();
+                if ((*mc_status)[i] != *status_code)
+                {
+                    continue;
+                }
+            }
+            
+            results.push_back(TruthParticle(&entry,i));
+            
+        }
+    }
+    return results;
+}
 
 //Event::Event() = default;
 //Event::~Event() = default;
