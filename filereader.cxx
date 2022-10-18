@@ -4,12 +4,13 @@ FileReader::FileReader(vector<string>& files, const char* tree_name, Long64_t nu
 
 __files{move(files)},
 __skip_first_events{skip_first_events},
-__current_index{skip_first_events},
-__current_event{nullptr}
+__current_index{skip_first_events}
+//, __current_event{nullptr}
 
 {
+    
     __chain.Add(tree_name);
-    __event_info_chain.Add("full_event_info");
+    __event_info_chain.Add("/Users/edwardfinkelstein/mnt/droplet/user.kschmied.28655874._000025.LGNTuple.root?#full_event_info");
     for (auto& f: files)
     {
         __chain.Add(f.c_str());
@@ -67,7 +68,7 @@ bool FileReader::__passes_event_filters()
 }
 
 
-Event* FileReader::event()
+Event FileReader::event()
 {
     return __current_event;
 }

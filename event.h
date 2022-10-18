@@ -17,7 +17,7 @@ private:
     static string systematic;
     
     TChain entry;
-    int run_number;
+//    int run_number;
     int random_run_number;
     int event_number;
     vector<Photon> photons;
@@ -42,11 +42,11 @@ public:
     ~Event();
     vector<TruthParticle> find_truth_particles(const vector<int>&&,
                                                 const vector<int>&&, const vector<int>&&, int* status_code = nullptr);
-    
+    int run_number;
 //    Event();
 //    ~Event();
     Event(const Event&);
-//    Event& operator=(const Event&);
+    Event& operator=(const Event&);
     
 };
 
