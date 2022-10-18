@@ -100,6 +100,24 @@ Event::Event(const Event& other)
     muon_spectrometer_num_track_particles = other.muon_spectrometer_num_track_particles;
 }
 
+Event& Event::operator=(const Event& other)
+{
+    entry.Reset();
+    entry.Add(const_cast<TChain*>(&(other.entry))); //😬
+    run_number = other.run_number;
+    random_run_number = other.random_run_number;
+    event_number = other.event_number;
+    photons = other.photons;
+    electrons = other.electrons;
+    clusters = other.clusters;
+    tracks = other.tracks;
+    pixel_tracks = other.pixel_tracks;
+    truth_particles = other.truth_particles;
+    triggers = other.triggers;
+    muon_spectrometer_num_track_particles = other.muon_spectrometer_num_track_particles;
+    return *this;
+}
+
 
 void Event::__load_photons(TChain* entry)
 {

@@ -74,7 +74,7 @@ void run_analysis(string& input_filename, string systematic = "nominal", bool mc
     
     for (auto i: x)
     {
-        cout << i << '\n';
+//        cout << i.run_number  << '\n';
     }
     
     for (auto& plot: plots)
