@@ -2,6 +2,9 @@
 //#include <utility>
 #include "TFile.h"
 #include "plotting.h"
+#include "objects.h"
+#include "event.h"
+#include "filereader.h"
 
 
 
@@ -16,10 +19,11 @@ void run_analysis(string& input_filename, string systematic = "nominal", bool mc
     //union, for now
 //https://www.sololearn.com/compiler-playground/cop9eIyns3c3
     
+    
     plots.emplace(string("cutflow"), Plot(systematic+string("/cutflow"), string("cutflow"), 10, 0, 10));
     
     
-    
+//    cout << systematic << mc << input_filename;
     for (const string& cutname: CUTS)
     {
         plots.emplace(cutname+string("/photons/eta"),
@@ -66,6 +70,13 @@ void run_analysis(string& input_filename, string systematic = "nominal", bool mc
 
     }
     
+    Range x({input_filename});
+    
+    for (auto i: x)
+    {
+        cout << i << '\n';
+    }
+    
     for (auto& plot: plots)
     {
         plot.second.save();
@@ -79,7 +90,7 @@ void run_analysis(string& input_filename, string systematic = "nominal", bool mc
     
 }
 
-//struct stat buffer;
+struct stat buffer;
 
 void analyse_haa()
 {
@@ -91,11 +102,11 @@ void analyse_haa()
     
     
     //https://stackoverflow.com/a/12774387/18255427
-//    if ((stat (input_filename.c_str(), &buffer) != 0))
-//    {
-//        cout << "The MC file does not exist, please correct the path in analyse_haa.py\n";
-//        exit(1);
-//    }
+    if ((stat (input_filename.c_str(), &buffer) != 0))
+    {
+        cout << "The MC file does not exist, please correct the path in analyse_haa.py\n";
+        exit(1);
+    }
     
     const char* output_filename = "example_mc_haa_out_test1cpp.root";
     TFile* output_file = TFile::Open(output_filename, "RECREATE");
@@ -113,6 +124,7 @@ void analyse_haa()
     {
         run_analysis(input_filename, systematic.c_str(), true);
     }
+//    output_file->Close();
     
     
 }
