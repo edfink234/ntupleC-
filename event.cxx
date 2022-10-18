@@ -13,6 +13,9 @@ bool Event::load_tracks= true;
 bool Event::load_triggers= true;
 string Event::systematic= "";
 
+Event::Event() = default;
+Event::~Event(){entry.Reset();};
+
 Event::Event(TChain* entry, TChain* event_info_entry)
 : run_number{-1}, random_run_number{-1}, event_number{-1}
 {
@@ -65,6 +68,38 @@ Event::Event(TChain* entry, TChain* event_info_entry)
     }
     
 }
+//TChain entry;
+//int run_number;
+//int random_run_number;
+//int event_number;
+//vector<Photon> photons;
+//vector<Electron> electrons;
+//vector<Cluster> clusters;
+//vector<Track> tracks;
+//vector<Track> pixel_tracks;
+//vector<TruthParticle> truth_particles;
+//vector<string> triggers; // vector<vector<string>> triggers; //maybe?
+//int muon_spectrometer_num_track_particles;
+
+
+
+Event::Event(const Event& other)
+{
+    entry.Reset();
+    entry.Add(const_cast<TChain*>(&(other.entry))); //😬
+    run_number = other.run_number;
+    random_run_number = other.random_run_number;
+    event_number = other.event_number;
+    photons = other.photons;
+    electrons = other.electrons;
+    clusters = other.clusters;
+    tracks = other.tracks;
+    pixel_tracks = other.pixel_tracks;
+    truth_particles = other.truth_particles;
+    triggers = other.triggers;
+    muon_spectrometer_num_track_particles = other.muon_spectrometer_num_track_particles;
+}
+
 
 void Event::__load_photons(TChain* entry)
 {
