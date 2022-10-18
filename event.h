@@ -38,13 +38,14 @@ private:
     
 public:
     Event(TChain* entry, TChain* event_info_entry = nullptr);
-    
+    Event();
+    ~Event();
     vector<TruthParticle> find_truth_particles(const vector<int>&&,
                                                 const vector<int>&&, const vector<int>&&, int* status_code = nullptr);
     
 //    Event();
 //    ~Event();
-//    Event(const Event&);
+    Event(const Event&);
 //    Event& operator=(const Event&);
     
 };

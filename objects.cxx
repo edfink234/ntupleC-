@@ -1,6 +1,5 @@
 #include "objects.h"
 #include "TMath.h"
-#include <vector>
 #include <cassert>
 
 using std::to_string;
@@ -85,6 +84,17 @@ TruthParticle::TruthParticle(const TruthParticle& particle_temp)
     _entry.Add(const_cast<TChain*>(&particle_temp._entry)); //😬
     pdg_id = particle_temp.pdg_id;
     _index = particle_temp._index;
+    Cluster_eta = particle_temp.Cluster_eta;
+}
+
+TruthParticle& TruthParticle::operator=(const TruthParticle& particle_temp)
+{
+    _entry.Reset();
+    _entry.Add(const_cast<TChain*>(&particle_temp._entry)); //😬
+    pdg_id = particle_temp.pdg_id;
+    _index = particle_temp._index;
+    Cluster_eta = particle_temp.Cluster_eta;
+    return *this;
 }
 
 TruthParticle::~TruthParticle() = default;
@@ -211,7 +221,31 @@ Electron::Electron(TChain* entry, int index, double pt, double energy, const cha
     
 }
 
-int Electron::pdg_id()
+
+Electron::Electron(const Electron& other)
+{
+    _entry.Reset();
+    _entry.Add(const_cast<TChain*>(&other._entry)); //😬
+    pdg_id = other.pdg_id;
+    _index = other._index;
+    Cluster_eta = other.Cluster_eta;
+    _systematic_pt = other._systematic_pt;
+    _systematic_energy = other._systematic_energy;
+}
+
+Electron& Electron::operator=(const Electron& other)
+{
+    _entry.Reset();
+    _entry.Add(const_cast<TChain*>(&other._entry)); //😬
+    pdg_id = other.pdg_id;
+    _index = other._index;
+    Cluster_eta = other.Cluster_eta;
+    _systematic_pt = other._systematic_pt;
+    _systematic_energy = other._systematic_energy;
+    return *this;
+}
+
+int Electron::Pdg_id()
 {
     return charge()*PDG_ID;
 }
@@ -325,6 +359,29 @@ Photon::Photon(TChain* entry, int index, double pt, double energy, const char* n
   _systematic_energy{energy}
 {
     
+}
+
+Photon::Photon(const Photon& other)
+{
+    _entry.Reset();
+    _entry.Add(const_cast<TChain*>(&other._entry)); //😬
+    pdg_id = other.pdg_id;
+    _index = other._index;
+    Cluster_eta = other.Cluster_eta;
+    _systematic_pt = other._systematic_pt;
+    _systematic_energy = other._systematic_energy;
+}
+
+Photon& Photon::operator=(const Photon& other)
+{
+    _entry.Reset();
+    _entry.Add(const_cast<TChain*>(&other._entry)); //😬
+    pdg_id = other.pdg_id;
+    _index = other._index;
+    Cluster_eta = other.Cluster_eta;
+    _systematic_pt = other._systematic_pt;
+    _systematic_energy = other._systematic_energy;
+    return *this;
 }
 
 double Photon::pt()
@@ -466,6 +523,14 @@ Cluster::Cluster(const Cluster& particle_temp)
     _index = particle_temp._index;
 }
 
+Cluster& Cluster::operator=(const Cluster& other)
+{
+    _entry.Reset();
+    _entry.Add(const_cast<TChain*>(&other._entry)); //😬
+    _index = other._index;
+    return *this;
+}
+
 double Cluster::pt()
 {
     vector<double> *cluster_pt= nullptr;
@@ -522,6 +587,14 @@ Track::Track(const Track& particle_temp)
     _entry.Reset();
     _entry.Add(const_cast<TChain*>(&particle_temp._entry)); //😬
     _index = particle_temp._index;
+}
+
+Track& Track::operator=(const Track& other)
+{
+    _entry.Reset();
+    _entry.Add(const_cast<TChain*>(&other._entry)); //😬
+    _index = other._index;
+    return *this;
 }
 
 double Track::pt()
