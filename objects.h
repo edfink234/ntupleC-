@@ -2,6 +2,7 @@
 #define OBJECTSH
 
 #include <cmath>
+#include <vector>
 #include <string>
 #include "TLorentzVector.h"
 #include "TTree.h"
@@ -42,16 +43,16 @@ public:
 
 class TruthParticle : public PhysicsObject
 {
-private:
+protected:
     double Cluster_eta;
     int pdg_id;
-    friend class Event;
-protected:
     static const string PREFIX;
+    friend class Event;
 public:
     TruthParticle();
     TruthParticle(TChain*, int, const char* name = "", const char* title = "");
     TruthParticle(const TruthParticle&);
+    TruthParticle& operator=(const TruthParticle&);
     virtual ~TruthParticle();
     TLorentzVector Vector() override;
     int barcode();
@@ -80,7 +81,9 @@ private:
 public:
     Electron();
     Electron(TChain*, int, double pt=0, double energy = 0, const char* name = "", const char* title = "");
-    int pdg_id();
+    Electron(const Electron&);
+    Electron& operator=(const Electron&);
+    int Pdg_id();
     double pt() override;
     double e() override;
     double eta() override;
@@ -102,6 +105,8 @@ private:
 public:
     Photon();
     Photon(TChain*, int, double pt=0, double energy = 0, const char* name = "", const char* title = "");
+    Photon(const Photon&);
+    Photon& operator=(const Photon&);
     double pt() override;
     double e() override;
     double eta() override;
@@ -122,8 +127,9 @@ private:
     static const string PREFIX;
 public:
     Cluster();
-    Cluster(const Cluster&);
     Cluster(TChain*, int, const char* name = "", const char* title = "");
+    Cluster(const Cluster&);
+    Cluster& operator=(const Cluster&);
     double pt() override;
     double eta() override;
     double phi() override;
@@ -138,6 +144,7 @@ public:
     Track();
     Track(const Track&);
     Track(TChain*, int, const char* name = "", const char* title = "");
+    Track& operator=(const Track&);
     double pt() override;
     double charge();
     double eta() override;

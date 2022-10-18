@@ -8,7 +8,7 @@ void _mkdir_recursive(TFile* out_file, const string& full_path)
     while ((pos=full_path.find('/',pos))!=string::npos)
     {
         path = full_path.substr(0,pos++);
-        cout << path << '\n';
+//        cout << path << '\n';
         if (!(out_file->GetDirectory(path.c_str())))
         {
             out_file->mkdir(path.c_str());
@@ -58,10 +58,14 @@ Plot::Plot(string name, string title, int nbins, int x_min, int x_max, tuple<str
     }
     __hist->GetXaxis()->SetTitle(__x_label.c_str());
     __hist->GetYaxis()->SetTitle(__y_label.c_str());
-    cout << name << '\n';
+//    cout << name << '\n';
 }
 
-Plot::~Plot(){__hist.reset(nullptr);} //?
+Plot::~Plot()
+{
+    __hist.reset(nullptr);
+    
+} //?
 
 //https://stackoverflow.com/questions/16030081/copy-constructor-for-a-class-with-unique-ptr
 Plot::Plot(const Plot& other) : __hist(new TH1F(*other.__hist))
@@ -171,7 +175,7 @@ Plot2D::Plot2D(string name, string title, int xbins, int x_min, int x_max, int y
 
     __hist->GetXaxis()->SetTitle(__x_label.c_str());
     __hist->GetYaxis()->SetTitle(__y_label.c_str());
-    cout << name << '\n';
+//    cout << name << '\n';
 }
 
 Plot2D::~Plot2D(){__hist.reset(nullptr);} //?
