@@ -19,6 +19,7 @@ private:
     TChain __event_info_chain;
     Long64_t __num_events;
 public:
+    FileReader();
     FileReader(vector<string>&, const char* tree_name = "physics", Long64_t num_events = -1,
                int skip_first_events = 0);
     ~FileReader();
@@ -45,33 +46,45 @@ public:
     
      struct Iterator
      {
-         Iterator (int i, FileReader& f) : data{i}, f{&f} {}
+         
+         Iterator(int i) : data{i} {}
+         Iterator (int i, FileReader& f) : data{i}, F{f} {}
          Iterator& operator++()
          {
-             data++;
-             f->__chain.GetEntry(f->__current_index);
-             f->__event_info_chain.GetEntry(f->__current_index);
-             f->__current_index++;
-             if (f->__passes_event_filters())
-             {
-                 f->__current_event = Event(&(f->__chain), &(f->__event_info_chain));
-             }
+//             data++;
+             printf("%d\n", data++);
+          Long64_t entryNumberWithinCurrentTree = F.__chain.LoadTree(F.__current_index); // The result can be used with TBranch::GetEntry
+          if (entryNumberWithinCurrentTree < 0)
+          {
+              // something went wrong.
+              puts("something went wrong.");
+              F.__current_index++;
+              return *this;
+          }
+             F.__chain.GetEntry(F.__current_index);
+//             F.__event_info_chain.GetEntry(F.__current_index);
+             F.__current_index++;
+//             if (F.__passes_event_filters())
+//             {
+//                 F.__current_event = Event(&(F.__chain), &(F.__event_info_chain));
+//             }
              return *this;
          }
 
-         Event& operator*() const //{return data;}
-         {
-             return (f->__current_event);
-         }
+//         Event operator*() const //{return data;}
+//         {
+//             return (F.__current_event);
+//         }
+         int operator*() const {return data;}
          friend bool operator!=(const Iterator& a, const Iterator& b){return a.data != b.data;}
          private:
          int data;
-         FileReader *f;
+         FileReader F;
      };
 
 
     Iterator begin() {return Iterator(f.__skip_first_events, f);}
-    Iterator end() {return Iterator(f.__num_events, f);}
+    Iterator end() {return Iterator(f.__num_events);}
 };
 
 

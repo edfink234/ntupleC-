@@ -26,6 +26,8 @@ __current_index{skip_first_events}
     }
 }
 
+FileReader::FileReader() = default;
+
 FileReader::~FileReader()
 {
     __chain.Reset();
@@ -34,6 +36,7 @@ FileReader::~FileReader()
 
 FileReader::FileReader(const FileReader& other)
 {
+    puts("called");
     __files = other.__files;
     __skip_first_events = other.__skip_first_events;
     __current_index = other.__current_index;
