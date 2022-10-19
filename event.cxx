@@ -45,14 +45,14 @@ Event::Event(TChain* entry, TChain* event_info_entry)
     }
     if (load_reco)
     {
-        if (load_photons)
-        {
-            __load_photons(entry);
-        }
-        if (load_electrons)
-        {
-            __load_electrons(entry);
-        }
+//        if (load_photons)
+//        {
+//            __load_photons(entry);
+//        }
+//        if (load_electrons)
+//        {
+//            __load_electrons(entry);
+//        }
         if (load_clusters)
         {
             __load_clusters(entry);
