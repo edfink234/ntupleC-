@@ -35,7 +35,7 @@ private:
     string __x_label;
     string __y_label;
     vector<double> __bin_edges;
-    unique_ptr<TH1F> __hist;
+    std::unique_ptr<TH1F> __hist;
     
 public:
 //    string name;
@@ -71,7 +71,7 @@ private:
     int __y_max;
     string __x_label;
     string __y_label;
-    unique_ptr<TH2F> __hist;
+    std::unique_ptr<TH2F> __hist;
     
 public:
 //    string name;

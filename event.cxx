@@ -76,13 +76,13 @@ Event::Event(TChain* entry, TChain* event_info_entry)
 //int run_number;
 //int random_run_number;
 //int event_number;
-//vector<Photon> photons;
-//vector<Electron> electrons;
-//vector<Cluster> clusters;
-//vector<Track> tracks;
-//vector<Track> pixel_tracks;
-//vector<TruthParticle> truth_particles;
-//vector<string> triggers; // vector<vector<string>> triggers; //maybe?
+//std::vector<Photon> photons;
+//std::vector<Electron> electrons;
+//std::vector<Cluster> clusters;
+//std::vector<Track> tracks;
+//std::vector<Track> pixel_tracks;
+//std::vector<TruthParticle> truth_particles;
+//std::vector<string> triggers; // std::vector<std::vector<string>> triggers; //maybe?
 //int muon_spectrometer_num_track_particles;
 
 
@@ -125,23 +125,23 @@ Event& Event::operator=(const Event& other)
 
 void Event::__load_photons(TChain* entry)
 {
-    vector<double> *photon_pt= nullptr;
-    entry->SetBranchAddress("photon_pt",&photon_pt);
+    std::vector<double> *photon_pt= nullptr;
+//    entry->SetBranchAddress("photon_pt",&photon_pt);
 //    entry->GetBranch("photon_pt")->GetEntry();
 //    
-//    vector<double> *photon_e = nullptr;
+//    std::vector<double> *photon_e = nullptr;
 //    entry->SetBranchAddress("photon_e",&photon_e);
 //    //entry->GetBranch("photon_e")->GetEntry();
 //    
-//    vector<vector<string>> *photon_syst_name = nullptr;
+//    std::vector<std::vector<string>> *photon_syst_name = nullptr;
 //    entry->SetBranchAddress("photon_syst_name",&photon_syst_name);
 //    //entry->GetBranch("photon_syst_name")->GetEntry();
 //    
-//    vector<vector<double>> *photon_syst_pt = nullptr;
+//    std::vector<std::vector<double>> *photon_syst_pt = nullptr;
 //    entry->SetBranchAddress("photon_syst_pt",&photon_syst_pt);
 //    //entry->GetBranch("photon_syst_pt")->GetEntry();
 //    
-//    vector<vector<double>> *photon_syst_e = nullptr;
+//    std::vector<std::vector<double>> *photon_syst_e = nullptr;
 //    entry->SetBranchAddress("photon_syst_e",&photon_syst_e);
 //    //entry->GetBranch("photon_syst_e")->GetEntry();
 //    
@@ -181,23 +181,23 @@ void Event::__load_photons(TChain* entry)
 
 void Event::__load_electrons(TChain* entry)
 {
-//    vector<double> *electron_pt= nullptr;
+//    std::vector<double> *electron_pt= nullptr;
 //    entry->SetBranchAddress("electron_pt",&electron_pt);
 //   //entry->GetBranch("electron_pt")->GetEntry();
 //    
-//    vector<double> *electron_e = nullptr;
+//    std::vector<double> *electron_e = nullptr;
 //    entry->SetBranchAddress("electron_e",&electron_e);
 //   //entry->GetBranch("electron_e")->GetEntry();
 //
-//    vector<vector<string>> *electron_syst_name = nullptr;
+//    std::vector<std::vector<string>> *electron_syst_name = nullptr;
 //    entry->SetBranchAddress("electron_syst_name",&electron_syst_name);
 //   //entry->GetBranch("electron_syst_name")->GetEntry();
 //
-//    vector<vector<double>> *electron_syst_pt = nullptr;
+//    std::vector<std::vector<double>> *electron_syst_pt = nullptr;
 //    entry->SetBranchAddress("electron_syst_pt",&electron_syst_pt);
 //   //entry->GetBranch("electron_syst_pt")->GetEntry();
 //
-//    vector<vector<double>> *electron_syst_e = nullptr;
+//    std::vector<std::vector<double>> *electron_syst_e = nullptr;
 //    entry->SetBranchAddress("electron_syst_e",&electron_syst_e);
 //   //entry->GetBranch("electron_syst_e")->GetEntry();
 
@@ -237,7 +237,7 @@ void Event::__load_electrons(TChain* entry)
 
 void Event::__load_clusters(TChain* entry)
 {
-    vector<double> *cluster_pt= nullptr;
+    std::vector<double> *cluster_pt= nullptr;
     entry->SetBranchAddress("cluster_pt",&cluster_pt);
     
    //entry->GetBranch("cluster_pt")->GetEntry();
@@ -252,7 +252,7 @@ void Event::__load_clusters(TChain* entry)
 
 void Event::__load_tracks(TChain* entry)
 {
-    vector<double> *track_pt= nullptr;
+    std::vector<double> *track_pt= nullptr;
     entry->SetBranchAddress("track_pt",&track_pt);
     
    //entry->GetBranch("track_pt")->GetEntry();
@@ -276,16 +276,17 @@ void Event::__load_tracks(TChain* entry)
 
 void Event::__load_triggers(TChain* entry)
 {
-    if (!static_cast<TBranch*>(entry->GetListOfBranches()->FindObject("trigger_passed_triggers")))
+    puts("__load_triggers");
+    if (entry->GetListOfBranches()->FindObject("trigger_passed_triggers"))
     {
-        vector<string> *trigger_passed_triggers = nullptr;
+        std::vector<string> *trigger_passed_triggers = nullptr;
         
         entry->SetBranchAddress("trigger_passed_triggers",&trigger_passed_triggers);
         
-       //entry->GetBranch("trigger_passed_triggers")->GetEntry();
+       entry->GetBranch("trigger_passed_triggers")->GetEntry();
         
         auto length = (*trigger_passed_triggers).size();
-        
+        printf("Length = %lu\n",length);
         for (decltype(length) i = 0; i < length; ++i)
         {
             triggers.push_back((*trigger_passed_triggers)[i]);
@@ -296,7 +297,7 @@ void Event::__load_triggers(TChain* entry)
 
 void Event::__load_truth_particles(TChain* entry)
 {
-    vector<double> *mc_pt= nullptr;
+    std::vector<double> *mc_pt= nullptr;
     entry->SetBranchAddress("mc_pt",&mc_pt);
     
    //entry->GetBranch("mc_pt")->GetEntry();
@@ -309,13 +310,13 @@ void Event::__load_truth_particles(TChain* entry)
     }
 }
 
-vector<TruthParticle> Event::find_truth_particles
-     (const vector<int>&& barcode,
-      const vector<int>&& parent_barcode,
-      const vector<int>&& pdg_id,
+std::vector<TruthParticle> Event::find_truth_particles
+     (const std::vector<int>&& barcode,
+      const std::vector<int>&& parent_barcode,
+      const std::vector<int>&& pdg_id,
       int* status_code)
 {
-    vector<TruthParticle> results;
+    std::vector<TruthParticle> results;
     if (cache_truth)
     {
         for (auto& tp : truth_particles)
@@ -341,7 +342,7 @@ vector<TruthParticle> Event::find_truth_particles
     }
     else
     {
-        vector<int> *mc_pdg_id = nullptr;
+        std::vector<int> *mc_pdg_id = nullptr;
         entry.SetBranchAddress("mc_pdg_id",&mc_pdg_id);
         
         entry.GetBranch("mc_pdg_id")->GetEntry();
@@ -352,7 +353,7 @@ vector<TruthParticle> Event::find_truth_particles
         {
             if (!barcode.empty())
             {
-                vector<int> *mc_barcode = nullptr;
+                std::vector<int> *mc_barcode = nullptr;
                 entry.SetBranchAddress("mc_barcode",&mc_barcode);
                 
                 entry.GetBranch("mc_barcode")->GetEntry();
@@ -363,7 +364,7 @@ vector<TruthParticle> Event::find_truth_particles
             }
             if (!parent_barcode.empty())
             {
-                vector<int> *mc_parent_barcode = nullptr;
+                std::vector<int> *mc_parent_barcode = nullptr;
                 entry.SetBranchAddress("mc_parent_barcode",&mc_parent_barcode);
                 
                 entry.GetBranch("mc_parent_barcode")->GetEntry();
@@ -374,7 +375,7 @@ vector<TruthParticle> Event::find_truth_particles
             }
             if (!pdg_id.empty())
             {
-                vector<int> *mc_pdg_id = nullptr;
+                std::vector<int> *mc_pdg_id = nullptr;
                 entry.SetBranchAddress("mc_pdg_id",&mc_pdg_id);
                 
                 entry.GetBranch("mc_pdg_id")->GetEntry();
@@ -385,7 +386,7 @@ vector<TruthParticle> Event::find_truth_particles
             }
             if (status_code)
             {
-                vector<int> *mc_status = nullptr;
+                std::vector<int> *mc_status = nullptr;
                 entry.SetBranchAddress("mc_status",&mc_status);
                 
                 entry.GetBranch("mc_status")->GetEntry();
