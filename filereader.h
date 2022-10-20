@@ -1,7 +1,8 @@
 #ifndef FILEREADERH
 #define FILEREADERH
-
+#include <memory>
 #include "event.h"
+
 
 using FT = bool(TChain&);
 
@@ -14,6 +15,7 @@ private:
     int __current_index;
 //    Event* __current_event;
     Event __current_event;
+//    shared_ptr<Event> __current_event;
     vector<FT*> __event_filters;
     TChain __chain;
     TChain __event_info_chain;
@@ -51,8 +53,8 @@ public:
          Iterator (int i, FileReader& f) : data{i}, F{f} {}
          Iterator& operator++()
          {
-//             data++;
-             printf("%d\n", data++);
+             data++;
+//             printf("%d\n", data++);
           Long64_t entryNumberWithinCurrentTree = F.__chain.LoadTree(F.__current_index); // The result can be used with TBranch::GetEntry
           if (entryNumberWithinCurrentTree < 0)
           {
@@ -62,21 +64,21 @@ public:
               return *this;
           }
              F.__chain.GetEntry(F.__current_index);
-//             F.__event_info_chain.GetEntry(F.__current_index);
+             F.__event_info_chain.GetEntry(F.__current_index);
              F.__current_index++;
-//             if (F.__passes_event_filters())
-//             {
-//                 F.__current_event = Event(&(F.__chain), &(F.__event_info_chain));
-//             }
+             if (F.__passes_event_filters())
+             {
+                 //Very slow!!!
+                 Event Temp(&(F.__chain), &(F.__event_info_chain));
+                 F.__current_event = Temp;
+             }
              return *this;
          }
 
-//         Event operator*() const //{return data;}
-//         {
-//             return (F.__current_event);
-//         }
-         int operator*() const {return data;}
-         friend bool operator!=(const Iterator& a, const Iterator& b){return a.data != b.data;}
+         Event operator*() {return F.__current_event;}
+         friend bool operator!=(const Iterator& a, const Iterator& b){
+//             printf("%d %d\n",a.data,b.data);
+             return a.data != b.data;}
          private:
          int data;
          FileReader F;
@@ -84,7 +86,8 @@ public:
 
 
     Iterator begin() {return Iterator(f.__skip_first_events, f);}
-    Iterator end() {return Iterator(f.__num_events);}
+    Iterator end() {return Iterator(20);}
+//    Iterator end() {return Iterator(f.__num_events);}
 };
 
 
