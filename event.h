@@ -15,13 +15,13 @@ private:
 //    int run_number;
 //    int random_run_number;
 //    int event_number;
-//    vector<Photon> photons;
-//    vector<Electron> electrons;
-//    vector<Cluster> clusters;
-//    vector<Track> tracks;
-//    vector<Track> pixel_tracks;
-//    vector<TruthParticle> truth_particles;
-//    vector<string> triggers; // vector<vector<string>> triggers; //maybe?
+//    std::vector<Photon> photons;
+//    std::vector<Electron> electrons;
+//    std::vector<Cluster> clusters;
+//    std::vector<Track> tracks;
+//    std::vector<Track> pixel_tracks;
+//    std::vector<TruthParticle> truth_particles;
+//    std::vector<string> triggers; // std::vector<std::vector<string>> triggers; //maybe?
 //    int muon_spectrometer_num_track_particles;
     
     void __load_photons(TChain* entry);
@@ -35,10 +35,10 @@ public:
     Event(TChain* entry, TChain* event_info_entry = nullptr);
     Event();
     ~Event();
-    vector<TruthParticle> find_truth_particles
-    (const vector<int>&& barcode = {},
-     const vector<int>&& parent_barcode = {},
-     const vector<int>&& pdg_id = {},
+    std::vector<TruthParticle> find_truth_particles
+    (const std::vector<int>&& barcode = {},
+     const std::vector<int>&& parent_barcode = {},
+     const std::vector<int>&& pdg_id = {},
      int* status_code = nullptr);
 //    int run_number;
 //    Event();
@@ -60,13 +60,13 @@ public:
     int run_number;
     int random_run_number;
     int event_number;
-    vector<Photon> photons;
-    vector<Electron> electrons;
-    vector<Cluster> clusters;
-    vector<Track> tracks;
-    vector<Track> pixel_tracks;
-    vector<TruthParticle> truth_particles;
-    vector<string> triggers; // vector<vector<string>> triggers; //maybe?
+    std::vector<Photon> photons;
+    std::vector<Electron> electrons;
+    std::vector<Cluster> clusters;
+    std::vector<Track> tracks;
+    std::vector<Track> pixel_tracks;
+    std::vector<TruthParticle> truth_particles;
+    std::vector<string> triggers; // std::vector<std::vector<string>> triggers; //maybe?
     int muon_spectrometer_num_track_particles;
 };
 

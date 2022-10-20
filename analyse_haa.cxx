@@ -9,9 +9,9 @@
 
 
 
-const vector<string> CUTS = {"truth","reco","reco_2y"};
-unordered_map<string,Plot> plots;
-unordered_map<string,PlotGroup> plot_groups;
+const std::vector<string> CUTS = {"truth","reco","reco_2y"};
+std::unordered_map<string,Plot> plots;
+std::unordered_map<string,PlotGroup> plot_groups;
 
 
 void run_analysis(string& input_filename, string systematic = "nominal", bool mc = false)
@@ -89,14 +89,14 @@ void run_analysis(string& input_filename, string systematic = "nominal", bool mc
 //        cout << mc << endl;
         if (mc)
         {
-            vector<TruthParticle>&& truth_higgs = i.find_truth_particles({},{},{35});
+            std::vector<TruthParticle>&& truth_higgs = i.find_truth_particles({},{},{35});
             if (!(truth_higgs.empty()))
             {
                 cout << "found!";
-                vector<TruthParticle>&& truth_axions = i.find_truth_particles({},{truth_higgs[0].barcode()}, {36});
+                std::vector<TruthParticle>&& truth_axions = i.find_truth_particles({},{truth_higgs[0].barcode()}, {36});
             }
             int temp = 1;
-//            vector<TruthParticle>&& truth_photons = i.find_truth_particles({},{},{22},&temp);
+//            std::vector<TruthParticle>&& truth_photons = i.find_truth_particles({},{},{22},&temp);
 //            
 //            cout << "Size = " << truth_photons.size() << endl;
 //            for (auto i: truth_photons)
@@ -120,7 +120,7 @@ void run_analysis(string& input_filename, string systematic = "nominal", bool mc
     
 }
 
-struct stat buffer;
+//struct stat buffer;
 
 void analyse_haa()
 {
@@ -134,11 +134,11 @@ void analyse_haa()
     
     
     //https://stackoverflow.com/a/12774387/18255427
-    if ((stat (input_filename.c_str(), &buffer) != 0))
-    {
-        cout << "The MC file does not exist, please correct the path in analyse_haa.py\n";
-        exit(1);
-    }
+//    if ((stat (input_filename.c_str(), &buffer) != 0))
+//    {
+//        cout << "The MC file does not exist, please correct the path in analyse_haa.py\n";
+//        exit(1);
+//    }
     
     const char* output_filename = "example_mc_haa_out_test1cpp.root";
     TFile* output_file = TFile::Open(output_filename, "RECREATE");
@@ -151,7 +151,7 @@ void analyse_haa()
 //
 //    TFile output_file(output_file, "RECREATE");
     
-    vector<string> systematics = {"nominal"};
+    std::vector<string> systematics = {"nominal"};
     
     for (string& systematic: systematics)
     {

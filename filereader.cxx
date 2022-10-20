@@ -1,7 +1,7 @@
 #include "filereader.h"
 
 
-FileReader::FileReader(vector<string>& files, const char* tree_name, Long64_t num_events, int skip_first_events) :
+FileReader::FileReader(std::vector<string>& files, const char* tree_name, Long64_t num_events, int skip_first_events) :
 
 __files{move(files)},
 __skip_first_events{skip_first_events},
@@ -87,3 +87,49 @@ Long64_t FileReader::num_events()
 {
     return __num_events;
 }
+
+Range::Range(std::vector<string>&& files,
+       const char* tree_name,
+       Long64_t num_events, int skip_first_events) :
+f(files,tree_name, num_events, skip_first_events)
+{}
+
+Range::Iterator::Iterator(int i) : data{i} {}
+
+Range::Iterator::Iterator(int i, FileReader& f) : data{i}, F{f} {}
+
+Range::Iterator& Range::Iterator::operator++()
+{
+    data++;
+ Long64_t entryNumberWithinCurrentTree = F.__chain.LoadTree(F.__current_index);
+ if (entryNumberWithinCurrentTree < 0)
+ {
+     // something went wrong.
+     puts("something went wrong.");
+     F.__current_index++;
+     return *this;
+ }
+    F.__chain.GetEntry(F.__current_index);
+    F.__event_info_chain.GetEntry(F.__current_index);
+    F.__current_index++;
+    if (F.__passes_event_filters())
+    {
+
+        Event Temp(&(F.__chain), &(F.__event_info_chain));
+        F.__current_event = Temp;
+    }
+    return *this;
+}
+
+Event Range::Iterator::operator*() {return F.__current_event;}
+
+
+bool operator!=(const Range::Iterator& a, const Range::Iterator& b)
+{
+    return a.data != b.data;
+}
+
+Range::Iterator Range::begin() {return Iterator(f.__skip_first_events, f);}
+Range::Iterator Range::end() {return Iterator(20);}
+
+
