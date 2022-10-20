@@ -2,24 +2,27 @@
 #define EVENTH
 
 #include "objects.h"
+#include "TInterpreter.h"
+
+
 
 
 class Event
 {
 private:
     
-    TChain entry;
-    int run_number;
-    int random_run_number;
-    int event_number;
-    vector<Photon> photons;
-    vector<Electron> electrons;
-    vector<Cluster> clusters;
-    vector<Track> tracks;
-    vector<Track> pixel_tracks;
-    vector<TruthParticle> truth_particles;
-    vector<string> triggers; // vector<vector<string>> triggers; //maybe?
-    int muon_spectrometer_num_track_particles;
+//    TChain entry;
+//    int run_number;
+//    int random_run_number;
+//    int event_number;
+//    vector<Photon> photons;
+//    vector<Electron> electrons;
+//    vector<Cluster> clusters;
+//    vector<Track> tracks;
+//    vector<Track> pixel_tracks;
+//    vector<TruthParticle> truth_particles;
+//    vector<string> triggers; // vector<vector<string>> triggers; //maybe?
+//    int muon_spectrometer_num_track_particles;
     
     void __load_photons(TChain* entry);
     void __load_electrons(TChain* entry);
@@ -52,6 +55,19 @@ public:
     static bool load_tracks;
     static bool load_triggers;
     static string systematic;
+    
+    TChain entry;
+    int run_number;
+    int random_run_number;
+    int event_number;
+    vector<Photon> photons;
+    vector<Electron> electrons;
+    vector<Cluster> clusters;
+    vector<Track> tracks;
+    vector<Track> pixel_tracks;
+    vector<TruthParticle> truth_particles;
+    vector<string> triggers; // vector<vector<string>> triggers; //maybe?
+    int muon_spectrometer_num_track_particles;
 };
 
 

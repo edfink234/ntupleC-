@@ -19,22 +19,25 @@ Event::~Event(){entry.Reset();};
 Event::Event(TChain* entry, TChain* event_info_entry)
 : run_number{-1}, random_run_number{-1}, event_number{-1}
 {
+    
+//    static int count = 0;
     this->entry.Add(entry);
     if (event_info_entry)
     {
         UInt_t m_RunNumber;
         event_info_entry->SetBranchAddress("m_RunNumber",&m_RunNumber);
-        event_info_entry->GetBranch("m_RunNumber")->GetEntry();
+//        event_info_entry->GetBranch("m_RunNumber")->GetEntry();
         run_number = m_RunNumber;
-        
+//        if (count>4)
+//        printf("run_number = %d\n",run_number);
         UInt_t m_RandomRunNumber;
         event_info_entry->SetBranchAddress("m_RandomRunNumber",&m_RandomRunNumber);
-        event_info_entry->GetBranch("m_RandomRunNumber")->GetEntry();
+//        event_info_entry->GetBranch("m_RandomRunNumber")->GetEntry();
         random_run_number = m_RandomRunNumber;
         
         UInt_t ei_event_number;
         entry->SetBranchAddress("ei_event_number",&ei_event_number);
-        entry->GetBranch("ei_event_number")->GetEntry();
+       //entry->GetBranch("ei_event_number")->GetEntry();
         event_number = ei_event_number;
         
         
@@ -45,14 +48,14 @@ Event::Event(TChain* entry, TChain* event_info_entry)
     }
     if (load_reco)
     {
-//        if (load_photons)
-//        {
-//            __load_photons(entry);
-//        }
-//        if (load_electrons)
-//        {
-//            __load_electrons(entry);
-//        }
+        if (load_photons)
+        {
+            __load_photons(entry);
+        }
+        if (load_electrons)
+        {
+            __load_electrons(entry);
+        }
         if (load_clusters)
         {
             __load_clusters(entry);
@@ -66,6 +69,7 @@ Event::Event(TChain* entry, TChain* event_info_entry)
             __load_triggers(entry);
         }
     }
+//    ++count;
     
 }
 //TChain entry;
@@ -123,111 +127,111 @@ void Event::__load_photons(TChain* entry)
 {
     vector<double> *photon_pt= nullptr;
     entry->SetBranchAddress("photon_pt",&photon_pt);
-    entry->GetBranch("photon_pt")->GetEntry();
-    
-    vector<double> *photon_e = nullptr;
-    entry->SetBranchAddress("photon_e",&photon_e);
-    entry->GetBranch("photon_e")->GetEntry();
-    
-    vector<vector<string>> *photon_syst_name = nullptr;
-    entry->SetBranchAddress("photon_syst_name",&photon_syst_name);
-    entry->GetBranch("photon_syst_name")->GetEntry();
-    
-    vector<vector<double>> *photon_syst_pt = nullptr;
-    entry->SetBranchAddress("photon_syst_pt",&photon_syst_pt);
-    entry->GetBranch("photon_syst_pt")->GetEntry();
-    
-    vector<vector<double>> *photon_syst_e = nullptr;
-    entry->SetBranchAddress("photon_syst_e",&photon_syst_e);
-    entry->GetBranch("photon_syst_e")->GetEntry();
-    
-    auto length = (*photon_pt).size();
-    
-    double pt, energy;
-    int index;
-    
-    for (decltype(length) i = 0; i < length; ++i)
-    {
-        if ((systematic.empty()) || (systematic=="nominal"))
-        {
-            pt = (*photon_pt)[i];
-            energy = (*photon_e)[i];
-        }
-        else
-        {
-            index = -1;
-            auto it = find(((*photon_syst_name)[i]).begin(), ((*photon_syst_name)[i]).end(), systematic);
-            
-            if (it==((*photon_syst_name)[i]).end())
-            {
-                continue;
-            }
-            index = it - ((*photon_syst_name)[i]).begin();
-            pt = (*photon_syst_pt)[i][index];
-            energy = (*photon_syst_e)[i][index];
-        }
-        if (pt < 0)
-        {
-            continue;
-        }
-        photons.emplace_back(Photon(entry, i, pt, energy));
-    }
+//    entry->GetBranch("photon_pt")->GetEntry();
+//    
+//    vector<double> *photon_e = nullptr;
+//    entry->SetBranchAddress("photon_e",&photon_e);
+//    //entry->GetBranch("photon_e")->GetEntry();
+//    
+//    vector<vector<string>> *photon_syst_name = nullptr;
+//    entry->SetBranchAddress("photon_syst_name",&photon_syst_name);
+//    //entry->GetBranch("photon_syst_name")->GetEntry();
+//    
+//    vector<vector<double>> *photon_syst_pt = nullptr;
+//    entry->SetBranchAddress("photon_syst_pt",&photon_syst_pt);
+//    //entry->GetBranch("photon_syst_pt")->GetEntry();
+//    
+//    vector<vector<double>> *photon_syst_e = nullptr;
+//    entry->SetBranchAddress("photon_syst_e",&photon_syst_e);
+//    //entry->GetBranch("photon_syst_e")->GetEntry();
+//    
+//    auto length = (*photon_pt).size();
+//    
+//    double pt, energy;
+//    int index;
+//    
+//    for (decltype(length) i = 0; i < length; ++i)
+//    {
+//        if ((systematic.empty()) || (systematic=="nominal"))
+//        {
+//            pt = (*photon_pt)[i];
+//            energy = (*photon_e)[i];
+//        }
+//        else
+//        {
+//            index = -1;
+//            auto it = find(((*photon_syst_name)[i]).begin(), ((*photon_syst_name)[i]).end(), systematic);
+//            
+//            if (it==((*photon_syst_name)[i]).end())
+//            {
+//                continue;
+//            }
+//            index = it - ((*photon_syst_name)[i]).begin();
+//            pt = (*photon_syst_pt)[i][index];
+//            energy = (*photon_syst_e)[i][index];
+//        }
+//        if (pt < 0)
+//        {
+//            continue;
+//        }
+//        photons.emplace_back(Photon(entry, i, pt, energy));
+//    }
     
 }
 
 void Event::__load_electrons(TChain* entry)
 {
-    vector<double> *electron_pt= nullptr;
-    entry->SetBranchAddress("electron_pt",&electron_pt);
-    entry->GetBranch("electron_pt")->GetEntry();
-    
-    vector<double> *electron_e = nullptr;
-    entry->SetBranchAddress("electron_e",&electron_e);
-    entry->GetBranch("electron_e")->GetEntry();
-    
-    vector<vector<string>> *electron_syst_name = nullptr;
-    entry->SetBranchAddress("electron_syst_name",&electron_syst_name);
-    entry->GetBranch("electron_syst_name")->GetEntry();
-    
-    vector<vector<double>> *electron_syst_pt = nullptr;
-    entry->SetBranchAddress("electron_syst_pt",&electron_syst_pt);
-    entry->GetBranch("electron_syst_pt")->GetEntry();
-    
-    vector<vector<double>> *electron_syst_e = nullptr;
-    entry->SetBranchAddress("electron_syst_e",&electron_syst_e);
-    entry->GetBranch("electron_syst_e")->GetEntry();
-    
-    auto length = (*electron_pt).size();
-    
-    double pt, energy;
-    int index;
-    
-    for (decltype(length) i = 0; i < length; ++i)
-    {
-        if ((systematic.empty()) || (systematic=="nominal"))
-        {
-            pt = (*electron_pt)[i];
-            energy = (*electron_e)[i];
-        }
-        else
-        {
-            index = -1;
-            auto it = find(((*electron_syst_name)[i]).begin(), ((*electron_syst_name)[i]).end(), systematic);
-            
-            if (it==((*electron_syst_name)[i]).end())
-            {
-                continue;
-            }
-            index = it - ((*electron_syst_name)[i]).begin();
-            pt = (*electron_syst_pt)[i][index];
-            energy = (*electron_syst_e)[i][index];
-        }
-        if (pt < 0)
-        {
-            continue;
-        }
-        electrons.emplace_back(Electron(entry, i, pt, energy));
-    }
+//    vector<double> *electron_pt= nullptr;
+//    entry->SetBranchAddress("electron_pt",&electron_pt);
+//   //entry->GetBranch("electron_pt")->GetEntry();
+//    
+//    vector<double> *electron_e = nullptr;
+//    entry->SetBranchAddress("electron_e",&electron_e);
+//   //entry->GetBranch("electron_e")->GetEntry();
+//
+//    vector<vector<string>> *electron_syst_name = nullptr;
+//    entry->SetBranchAddress("electron_syst_name",&electron_syst_name);
+//   //entry->GetBranch("electron_syst_name")->GetEntry();
+//
+//    vector<vector<double>> *electron_syst_pt = nullptr;
+//    entry->SetBranchAddress("electron_syst_pt",&electron_syst_pt);
+//   //entry->GetBranch("electron_syst_pt")->GetEntry();
+//
+//    vector<vector<double>> *electron_syst_e = nullptr;
+//    entry->SetBranchAddress("electron_syst_e",&electron_syst_e);
+//   //entry->GetBranch("electron_syst_e")->GetEntry();
+
+//    auto length = (*electron_pt).size();
+//
+//    double pt, energy;
+//    int index;
+//
+//    for (decltype(length) i = 0; i < length; ++i)
+//    {
+//        if ((systematic.empty()) || (systematic=="nominal"))
+//        {
+//            pt = (*electron_pt)[i];
+//            energy = (*electron_e)[i];
+//        }
+//        else
+//        {
+//            index = -1;
+//            auto it = find(((*electron_syst_name)[i]).begin(), ((*electron_syst_name)[i]).end(), systematic);
+//
+//            if (it==((*electron_syst_name)[i]).end())
+//            {
+//                continue;
+//            }
+//            index = it - ((*electron_syst_name)[i]).begin();
+//            pt = (*electron_syst_pt)[i][index];
+//            energy = (*electron_syst_e)[i][index];
+//        }
+//        if (pt < 0)
+//        {
+//            continue;
+//        }
+//        electrons.emplace_back(Electron(entry, i, pt, energy));
+//    }
 
 }
 
@@ -236,7 +240,7 @@ void Event::__load_clusters(TChain* entry)
     vector<double> *cluster_pt= nullptr;
     entry->SetBranchAddress("cluster_pt",&cluster_pt);
     
-    entry->GetBranch("cluster_pt")->GetEntry();
+   //entry->GetBranch("cluster_pt")->GetEntry();
     
     auto length = (*cluster_pt).size();
     
@@ -251,7 +255,7 @@ void Event::__load_tracks(TChain* entry)
     vector<double> *track_pt= nullptr;
     entry->SetBranchAddress("track_pt",&track_pt);
     
-    entry->GetBranch("track_pt")->GetEntry();
+   //entry->GetBranch("track_pt")->GetEntry();
     
     auto length = (*track_pt).size();
     
@@ -278,7 +282,7 @@ void Event::__load_triggers(TChain* entry)
         
         entry->SetBranchAddress("trigger_passed_triggers",&trigger_passed_triggers);
         
-        entry->GetBranch("trigger_passed_triggers")->GetEntry();
+       //entry->GetBranch("trigger_passed_triggers")->GetEntry();
         
         auto length = (*trigger_passed_triggers).size();
         
@@ -295,7 +299,7 @@ void Event::__load_truth_particles(TChain* entry)
     vector<double> *mc_pt= nullptr;
     entry->SetBranchAddress("mc_pt",&mc_pt);
     
-    entry->GetBranch("mc_pt")->GetEntry();
+   //entry->GetBranch("mc_pt")->GetEntry();
     
     auto length = (*mc_pt).size();
     

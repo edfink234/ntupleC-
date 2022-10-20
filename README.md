@@ -4,6 +4,10 @@ To run, have all .h and .cxx files in the same directory, then run the following
 
 
 
+gInterpreter->GenerateDictionary("vector<vector<string> >", "vector");
+
+
+
 .L plotting.cxx+
 
 

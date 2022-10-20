@@ -4,6 +4,7 @@
 #include "event.h"
 
 
+
 using FT = bool(TChain&);
 
 class FileReader
@@ -40,8 +41,12 @@ class Range {
     FileReader f;
 public:
 
-     Range(vector<string>&& files, const char* tree_name = "/Users/edwardfinkelstein/mnt/droplet/user.kschmied.28655874._000025.LGNTuple.root?#physics", Long64_t num_events = -1,
-           int skip_first_events = 0)
+     Range(vector<string>&& files,
+           const char* tree_name =
+           "../user.kschmied.28655874._000025.LGNTuple.root?#physics",
+//           "/Users/edwardfinkelstein/mnt/droplet/user.kschmied.28655874._000025.LGNTuple.root?#physics",
+           Long64_t num_events = -1, int skip_first_events = 0)
+//    Range(vector<string>&& files, const char* tree_name = "physics", Long64_t num_events = -1, int skip_first_events = 0)
     :
     f(files,tree_name, num_events, skip_first_events)
     {}
@@ -50,7 +55,8 @@ public:
      {
          
          Iterator(int i) : data{i} {}
-         Iterator (int i, FileReader& f) : data{i}, F{f} {}
+         Iterator (int i, FileReader& f) : data{i}, F{f}
+         {}
          Iterator& operator++()
          {
              data++;
