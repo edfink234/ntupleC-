@@ -5,6 +5,7 @@
 #include "objects.h"
 #include "event.h"
 #include "filereader.h"
+#include "TInterpreter.h"
 
 
 
@@ -77,26 +78,33 @@ void run_analysis(string& input_filename, string systematic = "nominal", bool mc
     
 //    cout << mc;
     using std::endl;
+    
     for (auto &&i: x)
     {
-        cout << 0 << endl;
-//        cout << i.run_number  << '\n';
+//        cout << 0 << endl;
+        
+        cout << "event_number " << i.event_number  << '\n';
+        
         int weight = 1;
 //        cout << mc << endl;
         if (mc)
         {
             vector<TruthParticle>&& truth_higgs = i.find_truth_particles({},{},{35});
-            if !(truth_higgs.empty())
+            if (!(truth_higgs.empty()))
             {
                 cout << "found!";
-                vector<TruthParticle>&& truth_axions = i.find_truth_particles({},{},{35});
+                vector<TruthParticle>&& truth_axions = i.find_truth_particles({},{truth_higgs[0].barcode()}, {36});
             }
-//            cout << truth_higgs.size() << endl;
-//            for (auto i: truth_higgs)
+            int temp = 1;
+//            vector<TruthParticle>&& truth_photons = i.find_truth_particles({},{},{22},&temp);
+//            
+//            cout << "Size = " << truth_photons.size() << endl;
+//            for (auto i: truth_photons)
 //            {
 //                cout << string(i) << '\n';
 //            }
         }
+//        exit(1);
     }
     
     for (auto& plot: plots)
@@ -116,9 +124,11 @@ struct stat buffer;
 
 void analyse_haa()
 {
+
     cout << "Run over MC\n";
 //    string input_filename("/home/common/Haa/ntuples/MC/background_v14/user.kschmied.361106.PowhegPythia8EvtGen_AZNLOCTEQ6L1_Zee_v14_LGNTuple.root/user.kschmied.28655874._000025.LGNTuple.root");
-    string input_filename("/Users/edwardfinkelstein/mnt/droplet/user.kschmied.28655874._000025.LGNTuple.root");
+//    string input_filename("/Users/edwardfinkelstein/mnt/droplet/user.kschmied.28655874._000025.LGNTuple.root");
+    string input_filename("../user.kschmied.28655874._000025.LGNTuple.root");
     
     
     
@@ -142,6 +152,7 @@ void analyse_haa()
 //    TFile output_file(output_file, "RECREATE");
     
     vector<string> systematics = {"nominal"};
+    
     for (string& systematic: systematics)
     {
         run_analysis(input_filename, systematic.c_str(), true);
