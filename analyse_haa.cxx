@@ -71,10 +71,32 @@ void run_analysis(string& input_filename, string systematic = "nominal", bool mc
     }
     
     Range x({input_filename});
+    Event::systematic = systematic;
+    Event::load_tracks = true;
+    int num_passed_events = 0;
     
-    for (auto i: x)
+//    cout << mc;
+    using std::endl;
+    for (auto &&i: x)
     {
+        cout << 0 << endl;
 //        cout << i.run_number  << '\n';
+        int weight = 1;
+//        cout << mc << endl;
+        if (mc)
+        {
+            vector<TruthParticle>&& truth_higgs = i.find_truth_particles({},{},{35});
+            if !(truth_higgs.empty())
+            {
+                cout << "found!";
+                vector<TruthParticle>&& truth_axions = i.find_truth_particles({},{},{35});
+            }
+//            cout << truth_higgs.size() << endl;
+//            for (auto i: truth_higgs)
+//            {
+//                cout << string(i) << '\n';
+//            }
+        }
     }
     
     for (auto& plot: plots)

@@ -7,17 +7,9 @@
 class Event
 {
 private:
-    static bool cache_truth;
-    static bool load_reco;
-    static bool load_photons;
-    static bool load_electrons;
-    static bool load_clusters;
-    static bool load_tracks;
-    static bool load_triggers;
-    static string systematic;
     
     TChain entry;
-//    int run_number;
+    int run_number;
     int random_run_number;
     int event_number;
     vector<Photon> photons;
@@ -40,14 +32,26 @@ public:
     Event(TChain* entry, TChain* event_info_entry = nullptr);
     Event();
     ~Event();
-    vector<TruthParticle> find_truth_particles(const vector<int>&&,
-                                                const vector<int>&&, const vector<int>&&, int* status_code = nullptr);
-    int run_number;
+    vector<TruthParticle> find_truth_particles
+    (const vector<int>&& barcode = {},
+     const vector<int>&& parent_barcode = {},
+     const vector<int>&& pdg_id = {},
+     int* status_code = nullptr);
+//    int run_number;
 //    Event();
 //    ~Event();
     Event(const Event&);
     Event& operator=(const Event&);
     
+    
+    static bool cache_truth;
+    static bool load_reco;
+    static bool load_photons;
+    static bool load_electrons;
+    static bool load_clusters;
+    static bool load_tracks;
+    static bool load_triggers;
+    static string systematic;
 };
 
 
