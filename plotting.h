@@ -35,7 +35,7 @@ private:
     string __x_label;
     string __y_label;
     vector<double> __bin_edges;
-    std::unique_ptr<TH1F> __hist;
+    std::shared_ptr<TH1F> __hist;
     
 public:
 //    string name;
