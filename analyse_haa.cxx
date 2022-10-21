@@ -1,11 +1,12 @@
 #include <unordered_map>
 //#include <utility>
+
 #include "TFile.h"
 #include "plotting.h"
 #include "objects.h"
 #include "event.h"
 #include "filereader.h"
-#include "TInterpreter.h"
+#include "TH1F.h"
 
 
 
@@ -20,11 +21,12 @@ void run_analysis(string& input_filename, string systematic = "nominal", bool mc
     //union, for now
 //https://www.sololearn.com/compiler-playground/cop9eIyns3c3
     
-    
-    plots.emplace(string("cutflow"), Plot(systematic+string("/cutflow"), string("cutflow"), 10, 0, 10));
-    
-    
-//    cout << systematic << mc << input_filename;
+//    Plot x(systematic+string("/cutflow"), string("cutflow"), 10, 0, 10);
+//    Plot x(systematic+string("/cutflow"), string("cutflow"), 10, 0, 10);
+
+    plots.emplace(string("cutflow"),Plot(systematic+string("/cutflow"), string("cutflow"), 10, 0, 10));
+    exit(1);
+    //    cout << systematic << mc << input_filename;
     for (const string& cutname: CUTS)
     {
         plots.emplace(cutname+string("/photons/eta"),
@@ -59,6 +61,8 @@ void run_analysis(string& input_filename, string systematic = "nominal", bool mc
             string("pT / GeV"), 100, 0, 100)
         }));
         
+        
+        
 //        PlotGroup({
 //                    Plot(systematic+string(1,'/')+cutname
 //                    +string("/leptons/pt"),
@@ -71,41 +75,41 @@ void run_analysis(string& input_filename, string systematic = "nominal", bool mc
 
     }
     
-    Range x({input_filename});
+//    Range x({input_filename});
     Event::systematic = systematic;
     Event::load_tracks = true;
     int num_passed_events = 0;
     
 //    cout << mc;
     using std::endl;
-    
-    for (auto &&i: x)
-    {
-//        cout << 0 << endl;
-        
-        cout << "event_number " << i.event_number  << '\n';
-        
-        int weight = 1;
-//        cout << mc << endl;
-        if (mc)
-        {
-            std::vector<TruthParticle>&& truth_higgs = i.find_truth_particles({},{},{35});
-            if (!(truth_higgs.empty()))
-            {
-                cout << "found!";
-                std::vector<TruthParticle>&& truth_axions = i.find_truth_particles({},{truth_higgs[0].barcode()}, {36});
-            }
-            int temp = 1;
-//            std::vector<TruthParticle>&& truth_photons = i.find_truth_particles({},{},{22},&temp);
-//            
-//            cout << "Size = " << truth_photons.size() << endl;
-//            for (auto i: truth_photons)
+
+//    for (auto &&i: x)
+//    {
+////        cout << 0 << endl;
+//
+//        cout << "event_number " << i.event_number  << '\n';
+//
+//        int weight = 1;
+////        cout << mc << endl;
+//        if (mc)
+//        {
+//            std::vector<TruthParticle>&& truth_higgs = i.find_truth_particles({},{},{35});
+//            if (!(truth_higgs.empty()))
 //            {
-//                cout << string(i) << '\n';
+//                cout << "found!";
+//                std::vector<TruthParticle>&& truth_axions = i.find_truth_particles({},{truth_higgs[0].barcode()}, {36});
 //            }
-        }
-//        exit(1);
-    }
+//            int temp = 1;
+////            std::vector<TruthParticle>&& truth_photons = i.find_truth_particles({},{},{22},&temp);
+////
+////            cout << "Size = " << truth_photons.size() << endl;
+////            for (auto i: truth_photons)
+////            {
+////                cout << string(i) << '\n';
+////            }
+//        }
+////        exit(1);
+//    }
     
     for (auto& plot: plots)
     {
@@ -124,7 +128,6 @@ void run_analysis(string& input_filename, string systematic = "nominal", bool mc
 
 void analyse_haa()
 {
-
     cout << "Run over MC\n";
 //    string input_filename("/home/common/Haa/ntuples/MC/background_v14/user.kschmied.361106.PowhegPythia8EvtGen_AZNLOCTEQ6L1_Zee_v14_LGNTuple.root/user.kschmied.28655874._000025.LGNTuple.root");
 //    string input_filename("/Users/edwardfinkelstein/mnt/droplet/user.kschmied.28655874._000025.LGNTuple.root");

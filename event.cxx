@@ -48,26 +48,26 @@ Event::Event(TChain* entry, TChain* event_info_entry)
     }
     if (load_reco)
     {
-        if (load_photons)
-        {
-            __load_photons(entry);
-        }
-        if (load_electrons)
-        {
-            __load_electrons(entry);
-        }
-        if (load_clusters)
-        {
-            __load_clusters(entry);
-        }
-        if (load_tracks)
-        {
-            __load_tracks(entry);
-        }
-        if (load_triggers)
-        {
-            __load_triggers(entry);
-        }
+//        if (load_photons)
+//        {
+//            __load_photons(entry);
+//        }
+//        if (load_electrons)
+//        {
+//            __load_electrons(entry);
+//        }
+//        if (load_clusters)
+//        {
+//            __load_clusters(entry);
+//        }
+//        if (load_tracks)
+//        {
+//            __load_tracks(entry);
+//        }
+//        if (load_triggers)
+//        {
+//            __load_triggers(entry);
+//        }
     }
 //    ++count;
     

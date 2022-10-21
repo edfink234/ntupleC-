@@ -1,4 +1,5 @@
 #include "plotting.h"
+#include "TH1F.h"
 
 
 void _mkdir_recursive(TFile* out_file, const string& full_path)
@@ -37,6 +38,7 @@ Plot::Plot(string name, string title, int nbins, int x_min, int x_max, tuple<str
     __y_label{get<y_label>(kwargs)},
     __bin_edges{get<bin_edges>(kwargs)}
 {
+    puts("parametrized ctor called");
     size_t temp;
     if ((temp = name.find_last_of('/')) != std::string::npos)
     {
@@ -61,15 +63,18 @@ Plot::Plot(string name, string title, int nbins, int x_min, int x_max, tuple<str
 //    cout << name << '\n';
 }
 
-Plot::~Plot()
+Plot::~Plot()// = default;
 {
-    __hist.reset(nullptr);
-    
+    puts("dtor called");
+//    __hist.reset();
+
 } //?
 
 //https://stackoverflow.com/questions/16030081/copy-constructor-for-a-class-with-unique-ptr
-Plot::Plot(const Plot& other) : __hist(new TH1F(*other.__hist))
+Plot::Plot(const Plot& other) //: __hist(new TH1F(*other.__hist))
 {
+    puts("copy ctor called");
+    __hist = other.__hist;
     name = other.name;
     path = other.path;
     title = other.title;
@@ -83,9 +88,15 @@ Plot::Plot(const Plot& other) : __hist(new TH1F(*other.__hist))
 }
 
 Plot::Plot() = default;
+//{
+//    puts("default ctor called");
+//    __hist.reset(new TH1F);
+//
+//}
 
 Plot& Plot::operator=(const Plot& other)
 {
+    puts("assignment operator called");
     name = other.name;
     path = other.path;
     title = other.title;
@@ -95,7 +106,7 @@ Plot& Plot::operator=(const Plot& other)
     __x_label = other.__x_label;
     __y_label = other.__y_label;
     __bin_edges = other.__bin_edges;
-    __hist.reset(new TH1F(*other.__hist));
+    __hist = other.__hist;
     return *this;
 }
 
@@ -132,7 +143,7 @@ void Plot::draw()
 
 void Plot::del()
 {
-    __hist.reset(nullptr);
+    __hist.reset();
 }
 
 TH1F Plot::hist()
