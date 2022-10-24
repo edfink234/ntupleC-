@@ -38,7 +38,14 @@ Plot::Plot(string name, string title, int nbins, int x_min, int x_max, tuple<str
     __y_label{get<y_label>(kwargs)},
     __bin_edges{get<bin_edges>(kwargs)}
 {
-    puts("parametrized ctor called");
+//    puts("parametrized ctor called");
+    
+    static bool created = false;
+    if (!created)
+    {
+        TH1::AddDirectory(kFALSE);
+        created=true;
+    }
     size_t temp;
     if ((temp = name.find_last_of('/')) != std::string::npos)
     {
@@ -53,27 +60,30 @@ Plot::Plot(string name, string title, int nbins, int x_min, int x_max, tuple<str
     {
 //    https://stackoverflow.com/questions/3093451/is-it-safe-to-pass-a-vector-as-an-array
         __hist.reset(new TH1F(name.c_str(), title.c_str(), __bin_edges.size()-1, &__bin_edges[0] ));
+//        __hist = new TH1F(name.c_str(), title.c_str(), __bin_edges.size()-1, &__bin_edges[0] );
     }
     else
     {
         __hist.reset(new TH1F(name.c_str(), title.c_str(),__nbins, __x_min, __x_max));
+//        __hist = new TH1F(name.c_str(), title.c_str(),__nbins, __x_min, __x_max);
     }
     __hist->GetXaxis()->SetTitle(__x_label.c_str());
     __hist->GetYaxis()->SetTitle(__y_label.c_str());
 //    cout << name << '\n';
 }
 
-Plot::~Plot()// = default;
-{
-    puts("dtor called");
+Plot::~Plot() = default;
+//{
+//    puts("dtor called");
+//    del();
 //    __hist.reset();
 
-} //?
+//} //?
 
 //https://stackoverflow.com/questions/16030081/copy-constructor-for-a-class-with-unique-ptr
 Plot::Plot(const Plot& other) //: __hist(new TH1F(*other.__hist))
 {
-    puts("copy ctor called");
+//    puts("copy ctor called");
     __hist = other.__hist;
     name = other.name;
     path = other.path;
@@ -91,7 +101,7 @@ Plot::Plot() = default;
 //{
 //    puts("default ctor called");
 //    __hist.reset(new TH1F);
-//
+
 //}
 
 Plot& Plot::operator=(const Plot& other)
@@ -126,7 +136,9 @@ void Plot::save(TFile* out_file)
 {
     if (!out_file)
     {
-        out_file = __hist->GetDirectory()->GetFile();
+        puts("called here");
+//        cout << __hist->GetDirectory()->GetFile()->GetName();
+//        out_file = __hist->GetDirectory()->GetFile();
     }
     if (path != '/')
     {
@@ -144,6 +156,7 @@ void Plot::draw()
 void Plot::del()
 {
     __hist.reset();
+//    delete __hist;
 }
 
 TH1F Plot::hist()
@@ -155,7 +168,7 @@ TH1F Plot::hist()
 //                *      Plot2D      *
 //                ********************
 
-
+//FIXME:
 Plot2D::Plot2D(string name, string title, int xbins, int x_min, int x_max, int ybins, int y_min, int y_max, tuple<string, string, vector<double>>&& kwargs)
 :
     name{name},
@@ -272,6 +285,7 @@ TH2F Plot2D::hist()
 //                *      PlotGroup      *
 //                ***********************
 
+//FIXME:
 PlotGroup::PlotGroup() = default;
 PlotGroup::~PlotGroup() = default;
 
@@ -327,6 +341,7 @@ vector<Plot> PlotGroup::hists()
 //                *      PlotGroup2D      *
 //                *************************
 
+//FIXME: 
 PlotGroup2D::PlotGroup2D(vector<Plot2D>&& hists)
 {
     __hists = hists;

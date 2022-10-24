@@ -18,9 +18,10 @@ protected:
     TChain _entry;
     static const string PREFIX;
     int _index;
+    int _entry_number;
 public:
     PhysicsObject();
-    PhysicsObject(TChain*, int,  const char* name = "", const char* title = "");
+    PhysicsObject(TChain*, int, int entry_number = 0, const char* name = "", const char* title = "");
     virtual ~PhysicsObject() = 0;
     virtual TLorentzVector Vector(); //renamed jic it clashes w/ std::vector
     
@@ -50,7 +51,7 @@ protected:
     friend class Event;
 public:
     TruthParticle();
-    TruthParticle(TChain*, int, const char* name = "", const char* title = "");
+    TruthParticle(TChain*, int, int entry_number = 0, const char* name = "", const char* title = "");
     TruthParticle(const TruthParticle&);
     TruthParticle& operator=(const TruthParticle&);
     virtual ~TruthParticle();
@@ -80,7 +81,7 @@ private:
     double _systematic_energy;
 public:
     Electron();
-    Electron(TChain*, int, double pt=0, double energy = 0, const char* name = "", const char* title = "");
+    Electron(TChain*, int, double pt=0, double energy = 0, int entry_number = 0, const char* name = "", const char* title = "");
     Electron(const Electron&);
     Electron& operator=(const Electron&);
     int Pdg_id();
@@ -104,7 +105,7 @@ private:
     double _systematic_energy;
 public:
     Photon();
-    Photon(TChain*, int, double pt=0, double energy = 0, const char* name = "", const char* title = "");
+    Photon(TChain*, int, double pt=0, double energy = 0, int entry_number = 0, const char* name = "", const char* title = "");
     Photon(const Photon&);
     Photon& operator=(const Photon&);
     double pt() override;
@@ -127,7 +128,7 @@ private:
     static const string PREFIX;
 public:
     Cluster();
-    Cluster(TChain*, int, const char* name = "", const char* title = "");
+    Cluster(TChain*, int, int entry_number = 0, const char* name = "", const char* title = "");
     Cluster(const Cluster&);
     Cluster& operator=(const Cluster&);
     double pt() override;
@@ -143,7 +144,7 @@ private:
 public:
     Track();
     Track(const Track&);
-    Track(TChain*, int, const char* name = "", const char* title = "");
+    Track(TChain*, int, int entry_number = 0, const char* name = "", const char* title = "");
     Track& operator=(const Track&);
     double pt() override;
     double charge();
