@@ -10,7 +10,7 @@ using FT = bool(TChain&);
 class FileReader
 {
 private:
-    friend class Range;
+    friend class FileReaderRange;
     std::vector<string> __files;
     int __skip_first_events;
     int __current_index;
@@ -36,13 +36,14 @@ public:
 
 };
 
-class Range {
+class FileReaderRange {
     FileReader f;
 public:
 
-     Range(std::vector<string>&& files,
+     FileReaderRange(std::vector<string>&& files,
            const char* tree_name =
-           "../user.kschmied.28655874._000025.LGNTuple.root?#physics",
+//           "../user.kschmied.28655874._000025.LGNTuple.root?#physics",
+           "physics",
            Long64_t num_events = -1, int skip_first_events = 0);
 
     
@@ -68,64 +69,7 @@ public:
 };
 
 
-//class Range {
-//    FileReader f;
-//public:
-//
-//     Range(std::vector<string>&& files,
-//           const char* tree_name =
-//           "../user.kschmied.28655874._000025.LGNTuple.root?#physics",
-////           "/Users/edwardfinkelstein/mnt/droplet/user.kschmied.28655874._000025.LGNTuple.root?#physics",
-//           Long64_t num_events = -1, int skip_first_events = 0)
-////    Range(std::vector<string>&& files, const char* tree_name = "physics", Long64_t num_events = -1, int skip_first_events = 0)
-//    :
-//    f(files,tree_name, num_events, skip_first_events)
-//    {}
-//
-//     struct Iterator
-//     {
-//
-//         Iterator(int i) : data{i} {}
-//         Iterator (int i, FileReader& f) : data{i}, F{f}
-//         {}
-//         Iterator& operator++()
-//         {
-//             data++;
-////             printf("%d\n", data++);
-//          Long64_t entryNumberWithinCurrentTree = F.__chain.LoadTree(F.__current_index); // The result can be used with TBranch::GetEntry
-//          if (entryNumberWithinCurrentTree < 0)
-//          {
-//              // something went wrong.
-//              puts("something went wrong.");
-//              F.__current_index++;
-//              return *this;
-//          }
-//             F.__chain.GetEntry(F.__current_index);
-//             F.__event_info_chain.GetEntry(F.__current_index);
-//             F.__current_index++;
-//             if (F.__passes_event_filters())
-//             {
-//                 //Very slow!!!
-//                 Event Temp(&(F.__chain), &(F.__event_info_chain));
-//                 F.__current_event = Temp;
-//             }
-//             return *this;
-//         }
-//
-//         Event operator*() {return F.__current_event;}
-//         friend bool operator!=(const Iterator& a, const Iterator& b){
-////             printf("%d %d\n",a.data,b.data);
-//             return a.data != b.data;}
-//         private:
-//         int data;
-//         FileReader F;
-//     };
-//
-//
-//    Iterator begin() {return Iterator(f.__skip_first_events, f);}
-//    Iterator end() {return Iterator(20);}
-////    Iterator end() {return Iterator(f.__num_events);}
-//};
+
 
 
 

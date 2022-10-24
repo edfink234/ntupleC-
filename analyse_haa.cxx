@@ -1,12 +1,16 @@
 #include <unordered_map>
-//#include <utility>
-
+#include <cmath>
+#include <algorithm>
+//https://root-forum.cern.ch/t/problem-in-accessing-vector-vector-float/27983/2
+#include "LinkDef.h"
 #include "TFile.h"
 #include "plotting.h"
 #include "objects.h"
 #include "event.h"
 #include "filereader.h"
 #include "TH1F.h"
+#include "TInterpreter.h"
+#include "RtypesCore.h"
 
 
 
@@ -15,30 +19,119 @@ std::unordered_map<string,Plot> plots;
 std::unordered_map<string,PlotGroup> plot_groups;
 
 
+double dR(TruthParticle& lepton1, TruthParticle& lepton2)
+{
+    return
+    pow(
+        ((lepton1.eta() - lepton2.eta())*(lepton1.eta() - lepton2.eta())
+    
+         + (lepton1.phi() - lepton2.phi())*(lepton1.phi() - lepton2.phi())),0.5);
+}
+
+bool lepton_selection(vector<TruthParticle>& leptons)
+{
+    return
+    (
+     (leptons.size() == 2)
+    &&
+    (dR(leptons[0],leptons[1]) > 0.01)
+    &&
+    (leptons[0].charge() == -1*leptons[1].charge())
+    &&
+    ((((leptons[0].e()+leptons[1].e())*(leptons[0].e()+leptons[1].e())) -
+    ((leptons[0].pt()+leptons[1].pt())*(leptons[0].pt()+leptons[1].pt()))) >= 6561e6)
+    &&
+    ((((leptons[0].e()+leptons[1].e())*(leptons[0].e()+leptons[1].e())) -
+    ((leptons[0].pt()+leptons[1].pt())*(leptons[0].pt()+leptons[1].pt()))) <= 10201e6)
+    &&
+    ((leptons[0].pt() > 20e3 && leptons[1].pt() > 27e3)
+     ||
+    (leptons[1].pt() > 20e3 && leptons[0].pt() > 27e3))
+     );
+    
+}
+
+bool photon_selection(Photon& photon)
+{
+    return ((photon.id_()) && (photon.pt() > 10000)
+    && (abs(photon.eta()) < 2.37)
+            && (!((1.37 < abs(photon.eta())) && (1.52 > abs(photon.eta())))));
+}
+
+bool track_selection(Track& track)
+{
+    return ((track.pt() > 1000) && (abs(track.eta()) < 2.5));
+}
+
+void fill_signal_hists(std::vector<TruthParticle>& particles, string cutname, double weight = 1, string particleType = "photons")
+{
+    
+    if (particleType=="leptons")
+    {
+        for (auto lepton: particles)
+        {
+            plot_groups[cutname+string("/leptons/pt")].fill(lepton.pt()/1e3,weight);
+            plots[cutname+string("/leptons/eta")].fill(lepton.eta(),weight);
+        }
+        return;
+    }
+
+    
+    for (auto photon: particles)
+    {
+
+
+        
+        plot_groups.at(cutname+string("/photons/pt")).fill(photon.pt()/1e3,weight);
+        plots.at(cutname+string("/photons/eta")).fill(photon.eta(),weight);
+
+    }
+}
+
+//void fill_signal_hists(std::vector<Photon>& particles, string cutname, double weight = 1, string particleType = "photons")
+//{
+//
+//    if (particleType=="leptons")
+//    {
+//        for (auto lepton: particles)
+//        {
+//            plot_groups[cutname+string("/leptons/pt")].fill(lepton.pt()/1e3,weight);
+//            plots[cutname+string("/leptons/eta")].fill(lepton.eta(),weight);
+//        }
+//        return;
+//    }
+//
+//    for (auto photon: particles)
+//    {
+//        plot_groups.at(cutname+string("/photons/pt")).fill(photon.pt()/1e3,weight);
+//        plots.at(cutname+string("/photons/eta")).fill(photon.eta(),weight);
+//    }
+//}
+
+
 void run_analysis(string& input_filename, string systematic = "nominal", bool mc = false)
 {
 //https://en.cppreference.com/w/cpp/utility/variant
-    //union, for now
+    //or union
 //https://www.sololearn.com/compiler-playground/cop9eIyns3c3
     
-//    Plot x(systematic+string("/cutflow"), string("cutflow"), 10, 0, 10);
-//    Plot x(systematic+string("/cutflow"), string("cutflow"), 10, 0, 10);
 
-    plots.emplace(string("cutflow"),Plot(systematic+string("/cutflow"), string("cutflow"), 10, 0, 10));
-    exit(1);
-    //    cout << systematic << mc << input_filename;
+    
+    plots.emplace("cutflow",Plot(systematic+string("/cutflow"), string("cutflow"), 10, 0, 10));
+    
+
     for (const string& cutname: CUTS)
     {
         plots.emplace(cutname+string("/photons/eta"),
             Plot(systematic+string(1,'/')+cutname
             +string("/photons/eta"),
             string("eta"), 40, -6, 6));
-        
+
         plots.emplace(cutname+string("/leptons/eta"),
             Plot(systematic+string(1,'/')+cutname
             +string("/leptons/eta"),
             string("eta"), 40, -6, 6));
-        
+
         plot_groups.emplace(
         cutname+string("/photons/pt"),
         PlotGroup({
@@ -60,107 +153,102 @@ void run_analysis(string& input_filename, string systematic = "nominal", bool mc
             +string("/leptons/pt_tight"),
             string("pT / GeV"), 100, 0, 100)
         }));
-        
-        
-        
-//        PlotGroup({
-//                    Plot(systematic+string(1,'/')+cutname
-//                    +string("/leptons/pt"),
-//                    string("pT / GeV"), 20, 0, 200),
-//                    Plot(systematic+string(1,'/')+cutname
-//                    +string("/leptons/pt_tight"),
-//                    string("pT / GeV"), 100, 0, 100)
-//        });
-        
 
     }
     
-//    Range x({input_filename});
+    FileReaderRange reader({input_filename});
     Event::systematic = systematic;
     Event::load_tracks = true;
     int num_passed_events = 0;
     
-//    cout << mc;
-    using std::endl;
 
-//    for (auto &&i: x)
-//    {
-////        cout << 0 << endl;
-//
-//        cout << "event_number " << i.event_number  << '\n';
-//
-//        int weight = 1;
-////        cout << mc << endl;
-//        if (mc)
-//        {
-//            std::vector<TruthParticle>&& truth_higgs = i.find_truth_particles({},{},{35});
-//            if (!(truth_higgs.empty()))
+
+    for (auto &&event: reader)
+    {
+
+        cout << "entry_number " << event.entry_number  << '\n';
+        
+        int weight = 1;
+        if (mc)
+        {
+            std::vector<TruthParticle>&& truth_higgs = event.find_truth_particles({},{},{35});
+            if (!(truth_higgs.empty()))
+            {
+                cout << "found!";
+                std::vector<TruthParticle>&& truth_axions = event.find_truth_particles({},{truth_higgs[0].barcode()}, {36});
+            }
+            int temp = 1;
+            std::vector<TruthParticle>&& truth_photons = event.find_truth_particles({},{},{22},&temp);
+
+//            for (auto i: truth_photons)
 //            {
-//                cout << "found!";
-//                std::vector<TruthParticle>&& truth_axions = i.find_truth_particles({},{truth_higgs[0].barcode()}, {36});
+//                cout << string(i) << '\n';
 //            }
-//            int temp = 1;
-////            std::vector<TruthParticle>&& truth_photons = i.find_truth_particles({},{},{22},&temp);
-////
-////            cout << "Size = " << truth_photons.size() << endl;
-////            for (auto i: truth_photons)
-////            {
-////                cout << string(i) << '\n';
-////            }
-//        }
-////        exit(1);
-//    }
-    
-    for (auto& plot: plots)
-    {
-        plot.second.save();
+            
+            
+            fill_signal_hists(truth_photons,"truth");
+
+            
+            std::vector<TruthParticle>&& truth_leptons = event.find_truth_particles({},{},{11, 12, 13, 14, 15, 16, 17, 18},&temp);
+            if (lepton_selection(truth_leptons))
+            {
+                fill_signal_hists(truth_leptons, "truth",1,"leptons");
+            }
+            
+        }
+        
+        
+        vector<TruthParticle> photons;
+//        vector<Photon> photons;
+        
+        std::copy_if (event.photons.begin(), event.photons.end(), std::back_inserter(photons), photon_selection );
+        
+        fill_signal_hists(photons, "reco", weight);
+
+        if (event.photons.size() == 2)
+        {
+            fill_signal_hists(photons,"reco_2y",weight);
+            num_passed_events++;
+        }
+        
     }
-    
-    for (auto& plot_group: plot_groups)
-    {
-        plot_group.second.save();
-    }
-    
     
 }
 
-//struct stat buffer;
 
 void analyse_haa()
 {
     cout << "Run over MC\n";
-//    string input_filename("/home/common/Haa/ntuples/MC/background_v14/user.kschmied.361106.PowhegPythia8EvtGen_AZNLOCTEQ6L1_Zee_v14_LGNTuple.root/user.kschmied.28655874._000025.LGNTuple.root");
-//    string input_filename("/Users/edwardfinkelstein/mnt/droplet/user.kschmied.28655874._000025.LGNTuple.root");
+
     string input_filename("../user.kschmied.28655874._000025.LGNTuple.root");
     
-    
-    
-    
-    //https://stackoverflow.com/a/12774387/18255427
-//    if ((stat (input_filename.c_str(), &buffer) != 0))
-//    {
-//        cout << "The MC file does not exist, please correct the path in analyse_haa.py\n";
-//        exit(1);
-//    }
     
     const char* output_filename = "example_mc_haa_out_test1cpp.root";
     TFile* output_file = TFile::Open(output_filename, "RECREATE");
     if (!output_file) {
-       std::cout << "Error opening file" << std::endl;
+        std::cout << "Error opening file\n";
        exit(-1);
     }
     
 
-//
-//    TFile output_file(output_file, "RECREATE");
-    
     std::vector<string> systematics = {"nominal"};
     
     for (string& systematic: systematics)
     {
         run_analysis(input_filename, systematic.c_str(), true);
     }
-//    output_file->Close();
+    
+    for (auto& plot: plots)
+    {
+        plot.second.save(output_file);
+    }
+
+    for (auto& plot_group: plot_groups)
+    {
+        plot_group.second.save(output_file);
+    }
+    
+    output_file->Close();
     
     
 }

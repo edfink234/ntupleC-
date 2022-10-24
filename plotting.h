@@ -36,7 +36,7 @@ private:
     string __y_label;
     vector<double> __bin_edges;
     std::shared_ptr<TH1F> __hist;
-    
+//    TH1F* __hist;
 public:
 //    string name;
     Plot();
@@ -56,6 +56,7 @@ public:
     TH1F hist();
 };
 
+//FIXME:
 class Plot2D
 {
 private:
@@ -92,6 +93,7 @@ public:
     TH2F hist();
 };
 
+//FIXME:
 class PlotGroup //1D
 {
 private:
@@ -110,6 +112,7 @@ public:
     vector<Plot> hists();
 };
 
+//FIXME: 
 class PlotGroup2D //2D
 {
 private:

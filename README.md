@@ -1,39 +1,28 @@
 C++ version of ntuple software
 
-To run, have all .h and .cxx files in the same directory, then run the following in the root command line:
+To run, have all .h and .cxx files in the same directory, then run:
 
 
 
-gInterpreter->GenerateDictionary("vector<vector<string> >", "vector");
-
-
-
-.L plotting.cxx
-
-
-
-.L objects.cxx
-
-
-.L event.cxx
-
-
-.L filereader.cxx
-
-
-.L analyse_haa.cxx
-
-
-analyse_haa()
+rootcling -v4 -f mydict.cxx  -rmf libmydict.rootmap -rml libmydict.so  LinkDef.h
 
 
 
 
-
-
-Alternatively, one can compile like a regular c++ program:
-
+g++ -shared -o libmydict.so mydict.cxx `root-config --cflags --libs`
 
 
 
-clang++ -g -o analyse_haa analyse_haa.cxx plotting.cxx objects.cxx event.cxx filereader.cxx $(root-config --libs --cflags)
+After the dictionary is created for vector vector, then compile
+
+
+
+clang++ -g -o analyse_haa analyse_haa.cxx plotting.cxx objects.cxx mydict.cxx event.cxx filereader.cxx $(root-config --libs --cflags)
+
+
+
+And run
+
+
+
+./analyse_haa

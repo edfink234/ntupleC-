@@ -12,6 +12,7 @@ class Event
 private:
     
 //    TChain entry;
+//    int entry_number;
 //    int run_number;
 //    int random_run_number;
 //    int event_number;
@@ -24,15 +25,15 @@ private:
 //    std::vector<string> triggers; // std::vector<std::vector<string>> triggers; //maybe?
 //    int muon_spectrometer_num_track_particles;
     
-    void __load_photons(TChain* entry);
-    void __load_electrons(TChain* entry);
-    void __load_clusters(TChain* entry);
-    void __load_tracks(TChain* entry);
-    void __load_truth_particles(TChain* entry);
-    void __load_triggers(TChain* entry);
+    void __load_photons(TChain* entry, int entry_number);
+    void __load_electrons(TChain* entry, int entry_number);
+    void __load_clusters(TChain* entry, int entry_number);
+    void __load_tracks(TChain* entry, int entry_number);
+    void __load_truth_particles(TChain* entry, int entry_number);
+    void __load_triggers(TChain* entry, int entry_number);
     
 public:
-    Event(TChain* entry, TChain* event_info_entry = nullptr);
+    Event(TChain* entry, TChain* event_info_entry = nullptr, int entry_number = 0);
     Event();
     ~Event();
     std::vector<TruthParticle> find_truth_particles
@@ -57,6 +58,7 @@ public:
     static string systematic;
     
     TChain entry;
+    int entry_number;
     int run_number;
     int random_run_number;
     int event_number;
@@ -66,7 +68,7 @@ public:
     std::vector<Track> tracks;
     std::vector<Track> pixel_tracks;
     std::vector<TruthParticle> truth_particles;
-    std::vector<string> triggers; // std::vector<std::vector<string>> triggers; //maybe?
+    std::vector<string> triggers; 
     int muon_spectrometer_num_track_particles;
 };
 
