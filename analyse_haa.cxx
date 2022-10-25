@@ -13,7 +13,7 @@
 #include "RtypesCore.h"
 
 
-
+//debugging: https://drake.mit.edu/profiling.html
 const std::vector<string> CUTS = {"truth","reco","reco_2y"};
 std::unordered_map<string,Plot> plots;
 std::unordered_map<string,PlotGroup> plot_groups;
@@ -163,49 +163,51 @@ void run_analysis(string& input_filename, string systematic = "nominal", bool mc
     
 
 
-    for (auto &&event: reader)
+    for (auto &&f: reader)
     {
 
-        cout << "entry_number " << event.entry_number  << '\n';
-        
+        cout << "entry_number " << f.__current_event.entry_number  << '\n';
+//
         int weight = 1;
         if (mc)
         {
-            std::vector<TruthParticle>&& truth_higgs = event.find_truth_particles({},{},{35});
+            std::vector<TruthParticle>&& truth_higgs = f.find_truth_particles({},{},{35});
             if (!(truth_higgs.empty()))
             {
                 cout << "found!";
-                std::vector<TruthParticle>&& truth_axions = event.find_truth_particles({},{truth_higgs[0].barcode()}, {36});
+                std::vector<TruthParticle>&& truth_axions = f.find_truth_particles({},{truth_higgs[0].barcode()}, {36});
             }
             int temp = 1;
-            std::vector<TruthParticle>&& truth_photons = event.find_truth_particles({},{},{22},&temp);
-
+            std::vector<TruthParticle>&& truth_photons = f.find_truth_particles({},{},{22},&temp);
+//
 //            for (auto i: truth_photons)
 //            {
 //                cout << string(i) << '\n';
 //            }
-            
-            
+//
+//
             fill_signal_hists(truth_photons,"truth");
-
+//
+//
+            std::vector<TruthParticle>&& truth_leptons = f.find_truth_particles({},{},{11, 12, 13, 14, 15, 16, 17, 18},&temp);
             
-            std::vector<TruthParticle>&& truth_leptons = event.find_truth_particles({},{},{11, 12, 13, 14, 15, 16, 17, 18},&temp);
+            
             if (lepton_selection(truth_leptons))
             {
                 fill_signal_hists(truth_leptons, "truth",1,"leptons");
             }
-            
+//
         }
-        
-        
+//
+//
         vector<TruthParticle> photons;
 //        vector<Photon> photons;
-        
-        std::copy_if (event.photons.begin(), event.photons.end(), std::back_inserter(photons), photon_selection );
-        
-        fill_signal_hists(photons, "reco", weight);
 
-        if (event.photons.size() == 2)
+        std::copy_if (f.__current_event.photons.begin(), f.__current_event.photons.end(), std::back_inserter(photons), photon_selection );
+
+        fill_signal_hists(photons, "reco", weight);
+//
+        if (photons.size() == 2)
         {
             fill_signal_hists(photons,"reco_2y",weight);
             num_passed_events++;
