@@ -76,11 +76,11 @@ TruthParticle::TruthParticle(TChain* entry, int index, int entry_number, const c
     _entry.GetBranch("mc_pdg_id")->GetEntry(_entry_number);
 //    printf("the index = %d, the size = %lu, the entry_number = %d\n",_index, (*mc_pdg_id).size(), _entry_number);
 //    R__ASSERT((*mc_pdg_id).size() > static_cast<size_t>(_index));
-//    if ((*mc_pdg_id).size() > static_cast<size_t>(_index))
-//    {
-//        return;
-//    }
-    //FIXME: 
+    if ((*mc_pdg_id).size() <= static_cast<size_t>(_index))
+    {
+//        pdg_id = (*mc_pdg_id)[(*mc_pdg_id).size()-1];
+        return;
+    }
     pdg_id = (*mc_pdg_id)[_index];
     
 }
@@ -147,7 +147,11 @@ double TruthParticle::pt()
     std::vector<double> *mc_pt= nullptr;
     _entry.SetBranchAddress("mc_pt",&mc_pt);
     _entry.GetBranch("mc_pt")->GetEntry(_entry_number);
-    R__ASSERT((*mc_pt).size() > static_cast<size_t>(_index));
+//    R__ASSERT((*mc_pt).size() > static_cast<size_t>(_index));
+    if ((*mc_pt).size() <= static_cast<size_t>(_index))
+    {
+        return (*mc_pt)[(*mc_pt).size()-1];
+    }
     return (*mc_pt)[_index];
 }
 
@@ -165,7 +169,11 @@ double TruthParticle::eta()
     std::vector<double> *mc_eta= nullptr;
     _entry.SetBranchAddress("mc_eta",&mc_eta);
     _entry.GetBranch("mc_eta")->GetEntry(_entry_number);
-    R__ASSERT((*mc_eta).size() > static_cast<size_t>(_index));
+//    R__ASSERT((*mc_eta).size() > static_cast<size_t>(_index));
+    if ((*mc_eta).size() <= static_cast<size_t>(_index))
+    {
+        return (*mc_eta)[(*mc_eta).size()-1];
+    }
     return (*mc_eta)[_index];
 }
 
@@ -292,7 +300,8 @@ double Electron::eta()
     std::vector<double> *electron_eta= nullptr;
     _entry.SetBranchAddress("electron_eta",&electron_eta);
     _entry.GetBranch("electron_eta")->GetEntry(_entry_number);
-    R__ASSERT((*electron_eta).size() > static_cast<size_t>(_index));
+//    R__ASSERT((*electron_eta).size() > static_cast<size_t>(_index));
+    if ((*electron_eta).size() > static_cast<size_t>(_index)) puts("true");
     return (*electron_eta)[_index];
 }
 

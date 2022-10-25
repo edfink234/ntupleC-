@@ -14,13 +14,27 @@ private:
     std::vector<string> __files;
     int __skip_first_events;
     int __current_index;
-//    Event* __current_event;
-    Event __current_event;
-//    shared_ptr<Event> __current_event;
+//    Event __current_event;
     std::vector<FT*> __event_filters;
     TChain __chain;
     TChain __event_info_chain;
     Long64_t __num_events;
+    bool __has_event_info_chain;
+    
+    void __load_photon_addresses();
+    void __load_electron_addresses();
+    void __load_cluster_addresses();
+    void __load_track_addresses();
+    void __load_truth_particle_addresses();
+    void __load_trigger_addresses();
+
+    void __load_photons();
+    void __load_electrons();
+    void __load_clusters();
+    void __load_tracks();
+    void __load_truth_particles();
+    void __load_triggers();
+    
 public:
     FileReader();
     FileReader(std::vector<string>& files, const char* tree_name = "physics", Long64_t num_events = -1, int skip_first_events = 0);
@@ -29,10 +43,15 @@ public:
     template <typename T>
     void add_event_filter(T&);
     bool __passes_event_filters();
-//    Event* event();
-    Event event();
     int current_index();
     Long64_t num_events();
+    Event __current_event;
+    
+    std::vector<TruthParticle> find_truth_particles
+    (const std::vector<int>&& barcode = {},
+     const std::vector<int>&& parent_barcode = {},
+     const std::vector<int>&& pdg_id = {},
+     int* status_code = nullptr);
 
 };
 
@@ -54,7 +73,8 @@ public:
          Iterator (int i, FileReader& f);
          Iterator& operator++();
 
-         Event operator*();
+         FileReader& operator*();
+//         Event operator*(); 
          
          private:
          friend bool operator!=(const Iterator& a, const Iterator& b);

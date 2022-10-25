@@ -48,7 +48,7 @@ protected:
     double Cluster_eta;
     int pdg_id;
     static const string PREFIX;
-    friend class Event;
+    friend class FileReader;
 public:
     TruthParticle();
     TruthParticle(TChain*, int, int entry_number = 0, const char* name = "", const char* title = "");
