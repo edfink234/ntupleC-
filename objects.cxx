@@ -43,13 +43,19 @@ double PhysicsObject::delta_r(TruthParticle& particle_b)
 
 PhysicsObject::operator string() //const
 {
-    using s = string; //alias
+//    using s = string; //alias
     
     return
+//    (
+//    s("Particle(pT=")+to_string(pt())
+//    +s(", eta=") + to_string(eta())
+//    +s(", phi=") + to_string(phi())
+//    );
+    
     (
-    s("Particle(pT=")+to_string(pt())
-    +s(", eta=") + to_string(eta())
-    +s(", phi=") + to_string(phi())
+    "Particle(pT="+to_string(pt())
+    +", eta=" + to_string(eta())
+    +", phi=" + to_string(phi())
     );
 }
 
@@ -246,15 +252,14 @@ double TruthParticle::m()
 
 TruthParticle::operator string() 
 {
-    using s = string; //alias
     
     return
     (
-    s("TruthParticle(pdg_id=")+to_string(pdg_id)
-    +s(", pT=") + to_string(pt())
-    +s(", charge=") + to_string(charge())
-    +s(", eta=") + to_string(eta())
-    +s(", phi=") + to_string(phi())
+    "TruthParticle(pdg_id="+to_string(pdg_id)
+    +", pT=" + to_string(pt())
+    +", charge=" + to_string(charge())
+    +", eta=" + to_string(eta())
+    +", phi=" + to_string(phi())
     );
 }
 
@@ -432,15 +437,15 @@ double Electron::z0()
 
 Electron::operator string()
 {
-    using s = string; //alias
+
     
     return
     (
-    s("TruthParticle(pdg_id=")+to_string(PDG_ID)
-    +s(", pT=") + to_string(pt())
-    +s(", charge=") + to_string(charge())
-    +s(", eta=") + to_string(eta())
-    +s(", phi=") + to_string(phi())
+    "TruthParticle(pdg_id="+to_string(PDG_ID)
+    +", pT=" + to_string(pt())
+    +", charge=" + to_string(charge())
+    +", eta=" + to_string(eta())
+    +", phi=" + to_string(phi())
     );
 }
 
@@ -607,15 +612,14 @@ int Photon::id_nn()
 
 Photon::operator string()
 {
-    using s = string; //alias
     
     return
     (
-    s("TruthParticle(pdg_id=")+to_string(PDG_ID)
-    +s(", pT=") + to_string(pt())
-    +s(", charge=") + to_string(charge())
-    +s(", eta=") + to_string(eta())
-    +s(", phi=") + to_string(phi())
+    "TruthParticle(pdg_id="+to_string(PDG_ID)
+    +", pT=" + to_string(pt())
+    +", charge=" + to_string(charge())
+    +", eta=" + to_string(eta())
+    +", phi=" + to_string(phi())
     );
 }
 
@@ -812,14 +816,13 @@ int Track::num_sct_hits()
 
 Track::operator string()
 {
-    using s = string; //alias
     
     return
     (
-     s("Track(pT=")+to_string(pt())
-    +s(", charge=") + to_string(charge())
-    +s(", eta=") + to_string(eta())
-    +s(", phi=") + to_string(phi())
+     "Track(pT="+to_string(pt())
+    +", charge=" + to_string(charge())
+    +", eta=" + to_string(eta())
+    +", phi=" + to_string(phi())
     );
 }
 
