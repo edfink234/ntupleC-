@@ -14,7 +14,6 @@ private:
     std::vector<string> __files;
     int __skip_first_events;
     int __current_index;
-//    Event __current_event;
     std::vector<FT*> __event_filters;
     TChain __chain;
     TChain __event_info_chain;
@@ -25,7 +24,7 @@ private:
     void __load_electron_addresses();
     void __load_cluster_addresses();
     void __load_track_addresses();
-    void __load_truth_particle_addresses();
+    void __load_truth_particle_addresses(bool cache_truth);
     void __load_trigger_addresses();
 
     void __load_photons();
@@ -74,7 +73,6 @@ public:
          Iterator& operator++();
 
          FileReader& operator*();
-//         Event operator*(); 
          
          private:
          friend bool operator!=(const Iterator& a, const Iterator& b);
@@ -85,7 +83,6 @@ public:
 
     Iterator begin();
     Iterator end();
-//    Iterator end() {return Iterator(f.__num_events);}
 };
 
 
