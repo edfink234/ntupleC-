@@ -92,18 +92,32 @@ Long64_t FileReader::num_events()
 
 void FileReader::__load_photon_addresses()
 {
-
+    __chain.SetBranchStatus("photon_pt",1);
+    __chain.SetBranchStatus("photon_e",1);
+    __chain.SetBranchStatus("photon_syst_name",1);
+    __chain.SetBranchStatus("photon_syst_pt",1);
+    __chain.SetBranchStatus("photon_syst_e",1);
+    
+    
     __chain.SetBranchAddress("photon_pt",&(__current_event.photon_pt));
     __chain.SetBranchAddress("photon_e",&(__current_event.photon_e));
     __chain.SetBranchAddress("photon_syst_name",&(__current_event.photon_syst_name));
     __chain.SetBranchAddress("photon_syst_pt",&(__current_event.photon_syst_pt));
     __chain.SetBranchAddress("photon_syst_e",&(__current_event.photon_syst_e));
+    
+    
 }
 
 
 
 void FileReader::__load_electron_addresses()
 {
+    __chain.SetBranchStatus("electron_pt",1);
+    __chain.SetBranchStatus("electron_e",1);
+    __chain.SetBranchStatus("electron_syst_name",1);
+    __chain.SetBranchStatus("electron_syst_pt",1);
+    __chain.SetBranchStatus("electron_syst_e",1);
+    
     __chain.SetBranchAddress("electron_pt",&(__current_event.electron_pt));
     __chain.SetBranchAddress("electron_e",&(__current_event.electron_e));
     __chain.SetBranchAddress("electron_syst_name",&(__current_event.electron_syst_name));
@@ -114,30 +128,52 @@ void FileReader::__load_electron_addresses()
 
 void FileReader::__load_cluster_addresses()
 {
+    __chain.SetBranchStatus("cluster_pt",1);
     __chain.SetBranchAddress("cluster_pt",&(__current_event.cluster_pt));
 }
 
 
 void FileReader::__load_track_addresses()
 {
+    __chain.SetBranchStatus("track_pt",1);
     __chain.SetBranchAddress("track_pt",&(__current_event.track_pt));
     if (__chain.GetListOfBranches()->FindObject("track_type"))
     {
+        __chain.SetBranchStatus("track_type",1);
         __chain.SetBranchAddress("track_type",&(__current_event.track_type));
     }
 }
 
 
-void FileReader::__load_truth_particle_addresses()
+void FileReader::__load_truth_particle_addresses(bool cache_truth)
 {
-    __chain.SetBranchAddress("mc_pt",&(__current_event.mc_pt));
+    if (cache_truth)
+    {
+        __chain.SetBranchStatus("mc_pt",1);
+        __chain.SetBranchAddress("mc_pt",&(__current_event.mc_pt));
+    }
+    else
+    {
+        __chain.SetBranchStatus("mc_pdg_id",1);
+        __chain.SetBranchStatus("mc_barcode",1);
+        __chain.SetBranchStatus("mc_parent_barcode",1);
+        __chain.SetBranchStatus("mc_status",1);
+        __chain.SetBranchAddress("mc_pdg_id",&(__current_event.mc_pdg_id));
+        __chain.SetBranchAddress("mc_barcode",&(__current_event.mc_barcode));
+        __chain.SetBranchAddress("mc_parent_barcode",&(__current_event.mc_parent_barcode));
+        __chain.SetBranchAddress("mc_status",&(__current_event.mc_status));
+        
+    }
+    
 }
 
 
 void FileReader::__load_trigger_addresses()
 {
+    
     if (__chain.GetListOfBranches()->FindObject("trigger_passed_triggers"))
     {
+        __chain.SetBranchStatus("trigger_passed_triggers",1);
         __chain.SetBranchAddress("trigger_passed_triggers",&(__current_event.trigger_passed_triggers));
     }
 }
@@ -173,7 +209,7 @@ void FileReader::__load_photons()
         {
             continue;
         }
-        __current_event.photons.emplace_back(Photon(&__chain, i, pt, energy, __current_event.entry_number));
+        __current_event.photons.emplace_back(Photon(i, pt, energy, __current_event.entry_number));
     }
 }
 void FileReader::__load_electrons()
@@ -207,7 +243,7 @@ void FileReader::__load_electrons()
         {
             continue;
         }
-        __current_event.electrons.emplace_back(Electron(&__chain, i, pt, energy, __current_event.entry_number));
+        __current_event.electrons.emplace_back(Electron(i, pt, energy, __current_event.entry_number));
     }
 }
 void FileReader::__load_clusters()
@@ -216,18 +252,20 @@ void FileReader::__load_clusters()
     
     for (size_t i = 0; i < length; ++i)
     {
-        __current_event.clusters.emplace_back(Cluster(&__chain, i, __current_event.entry_number));
+        __current_event.clusters.emplace_back(Cluster(i, __current_event.entry_number));
     }
 }
 void FileReader::__load_tracks()
 {
     auto length = (*(__current_event.track_pt)).size();
     
+    
+    
     if (!__current_event.track_type)
     {
         for (size_t i = 0; i < length; ++i)
         {
-            __current_event.tracks.emplace_back(Track(&__chain,i,__current_event.entry_number));
+            __current_event.tracks.emplace_back(Track(i,__current_event.entry_number));
         }
     }
     else
@@ -236,7 +274,7 @@ void FileReader::__load_tracks()
         {
             if ((*__current_event.track_type)[i]==1)
             {
-                __current_event.pixel_tracks.emplace_back(Track(&__chain,i,__current_event.entry_number));
+                __current_event.pixel_tracks.emplace_back(Track(i,__current_event.entry_number));
             }
         }
     }
@@ -244,11 +282,15 @@ void FileReader::__load_tracks()
 }
 void FileReader::__load_truth_particles()
 {
-    auto length = (*(__current_event.mc_pt)).size();
+   
+    auto length = (*(TruthParticle::mc_pt)).size();
+    printf("length = %ld\n",length);
     for (size_t i = 0; i < length; ++i)
     {
-        __current_event.truth_particles.emplace_back(TruthParticle(&__chain, i, __current_event.entry_number));
+
+        __current_event.truth_particles.emplace_back(TruthParticle(i, __current_event.entry_number));
     }
+    
 }
 void FileReader::__load_triggers()
 {
@@ -269,6 +311,8 @@ std::vector<TruthParticle> FileReader::find_truth_particles
       int* status_code)
 {
     std::vector<TruthParticle> results;
+    
+    
     if (Event::cache_truth)
     {
         for (auto& tp : __current_event.truth_particles)
@@ -295,61 +339,44 @@ std::vector<TruthParticle> FileReader::find_truth_particles
     }
     else
     {
-        std::vector<int> *mc_pdg_id = nullptr;
-        __chain.SetBranchAddress("mc_pdg_id",&mc_pdg_id);
         
-        __chain.GetBranch("mc_pdg_id")->GetEntry(__current_index);
         
-        auto length = (*mc_pdg_id).size();
+        auto length = (*__current_event.mc_pdg_id).size();
+        
+
         
         for (decltype(length) i = 0; i < length; ++i)
         {
             if (!barcode.empty())
             {
-                std::vector<int> *mc_barcode = nullptr;
-                __chain.SetBranchAddress("mc_barcode",&mc_barcode);
-                
-                __chain.GetBranch("mc_barcode")->GetEntry(__current_index);
-                if (find(barcode.begin(),barcode.end(),(*mc_barcode)[i]) == barcode.end())
+                if (find(barcode.begin(),barcode.end(),(*(__current_event.mc_barcode))[i]) == barcode.end())
                 {
                     continue;
                 }
             }
             if (!parent_barcode.empty())
             {
-                std::vector<int> *mc_parent_barcode = nullptr;
-                __chain.SetBranchAddress("mc_parent_barcode",&mc_parent_barcode);
-                
-                __chain.GetBranch("mc_parent_barcode")->GetEntry(__current_index);
-                if (find(parent_barcode.begin(),parent_barcode.end(),(*mc_parent_barcode)[i]) == parent_barcode.end())
+                if (find(parent_barcode.begin(),parent_barcode.end(),(*(__current_event.mc_parent_barcode))[i]) == parent_barcode.end())
                 {
                     continue;
                 }
             }
             if (!pdg_id.empty())
             {
-                std::vector<int> *mc_pdg_id = nullptr;
-                __chain.SetBranchAddress("mc_pdg_id",&mc_pdg_id);
-                
-                __chain.GetBranch("mc_pdg_id")->GetEntry(__current_index);
-                if (find(pdg_id.begin(),pdg_id.end(),(*mc_pdg_id)[i]) == pdg_id.end())
+                if (find(pdg_id.begin(),pdg_id.end(),(*(__current_event.mc_pdg_id))[i]) == pdg_id.end())
                 {
                     continue;
                 }
             }
             if (status_code)
             {
-                std::vector<int> *mc_status = nullptr;
-                __chain.SetBranchAddress("mc_status",&mc_status);
-                
-                __chain.GetBranch("mc_status")->GetEntry(__current_index);
-                if ((*mc_status)[i] != *status_code)
+                if ((*__current_event.mc_status)[i] != *status_code)
                 {
                     continue;
                 }
             }
            
-            results.push_back(TruthParticle(&__chain, i, __current_index));
+            results.push_back(TruthParticle(i, __current_index));
             
         }
     }
@@ -370,19 +397,27 @@ FileReaderRange::Iterator::Iterator(int i) : data{i} {}
 
 FileReaderRange::Iterator::Iterator(int i, FileReader& f) : data{i}, F{f}
 {
-    
+    F.__current_index = F.__current_event.entry_number = data;
+    F.__chain.SetBranchStatus("*",0);
     //SetAddresses
-    
+
     if (F.__has_event_info_chain)
     {
+        F.__chain.SetBranchStatus("m_RunNumber",1);
+        F.__chain.SetBranchStatus("m_RandomRunNumber",1);
+        F.__chain.SetBranchStatus("ei_event_number",1);
+//        
+        
         F.__event_info_chain.SetBranchAddress("m_RunNumber",&(F.__current_event.m_RunNumber));
+        
         F.__event_info_chain.SetBranchAddress("m_RandomRunNumber",&(F.__current_event.m_RandomRunNumber));
+        
         F.__event_info_chain.SetBranchAddress("ei_event_number",&(F.__current_event.ei_event_number));
+        
     }
-    if (Event::cache_truth)
-    {
-        F.__load_truth_particle_addresses();
-    }
+
+    F.__load_truth_particle_addresses(Event::cache_truth);
+
     if (Event::load_reco)
     {
         if (Event::load_photons)
@@ -407,6 +442,10 @@ FileReaderRange::Iterator::Iterator(int i, FileReader& f) : data{i}, F{f}
             F.__load_trigger_addresses();
         }
     }
+    if (Event::cache_truth)
+    {
+        TruthParticle::SetTruthParticle(&F.__chain);
+    }
     
     //GetAddresses
     if (F.__has_event_info_chain)
@@ -415,47 +454,51 @@ FileReaderRange::Iterator::Iterator(int i, FileReader& f) : data{i}, F{f}
     }
     F.__chain.GetEntry(F.__current_index);
     
+    
+    
     if (Event::cache_truth)
     {
         F.__load_truth_particles();
     }
-    if (Event::load_reco)
-    {
-        if (Event::load_photons)
-        {
-            
-            F.__load_photons();
-        }
-        if (Event::load_electrons)
-        {
-            F.__load_electrons();
-        }
-        if (Event::load_clusters)
-        {
-            F.__load_clusters();
-        }
-        if (Event::load_tracks)
-        {
-            F.__load_tracks();
-        }
-        if (Event::load_triggers)
-        {
-            F.__load_triggers();
-        }
-    }
     
     
+//    if (Event::load_reco)
+//    {
+//        if (Event::load_photons)
+//        {
+//
+//            F.__load_photons();
+//        }
+//        if (Event::load_electrons)
+//        {
+//            F.__load_electrons();
+//        }
+//        if (Event::load_clusters)
+//        {
+//            F.__load_clusters();
+//        }
+//        if (Event::load_tracks)
+//        {
+//            F.__load_tracks();
+//        }
+//        if (Event::load_triggers)
+//        {
+//            F.__load_triggers();
+//        }
+//    }
+    
+
 }
 
 
 FileReaderRange::Iterator& FileReaderRange::Iterator::operator++()
 {
-    F.__current_event = {}; //reset event
-    
+    F.__current_event.truth_particles.clear();
+//    F.__current_event = {}; //reset event
+//    printf("data = %d\n",data);
     F.__current_index = F.__current_event.entry_number = ++data;
     
-    
-    
+
     if (F.__has_event_info_chain)
     {
         F.__event_info_chain.GetEntry(F.__current_index);
@@ -465,44 +508,34 @@ FileReaderRange::Iterator& FileReaderRange::Iterator::operator++()
     if (Event::cache_truth)
     {
         F.__load_truth_particles();
-    }
-    if (Event::load_reco)
-    {
-        if (Event::load_photons)
-        {
-            
-            F.__load_photons();
-        }
-        if (Event::load_electrons)
-        {
-            F.__load_electrons();
-        }
-        if (Event::load_clusters)
-        {
-            F.__load_clusters();
-        }
-        if (Event::load_tracks)
-        {
-            F.__load_tracks();
-        }
-        if (Event::load_triggers)
-        {
-            F.__load_triggers();
-        }
+        
     }
     
-
-//    if (F.__passes_event_filters())
+//    if (Event::load_reco)
 //    {
-////        puts("hello?");
-//        //create a new event on each loop -> instead:
-//        //really just need to load all particles for a given entry
-//        Event Temp(&(F.__chain), &(F.__event_info_chain), data);
-//
-//
-//        F.__current_event = Temp;
-////        F.__current_event.entry_number = F.__current_index;
+//        if (Event::load_photons)
+//        {
+//            
+//            F.__load_photons();
+//        }
+//        if (Event::load_electrons)
+//        {
+//            F.__load_electrons();
+//        }
+//        if (Event::load_clusters)
+//        {
+//            F.__load_clusters();
+//        }
+//        if (Event::load_tracks)
+//        {
+//            F.__load_tracks();
+//        }
+//        if (Event::load_triggers)
+//        {
+//            F.__load_triggers();
+//        }
 //    }
+    
     return *this;
 }
 
@@ -514,7 +547,11 @@ bool operator!=(const FileReaderRange::Iterator& a, const FileReaderRange::Itera
     return a.data != b.data;
 }
 
-FileReaderRange::Iterator FileReaderRange::begin() {return Iterator(f.__skip_first_events, f);}
-FileReaderRange::Iterator FileReaderRange::end() {return Iterator(30);}
+FileReaderRange::Iterator FileReaderRange::begin() {return Iterator(f.__skip_first_events+1, f);}
+FileReaderRange::Iterator FileReaderRange::end()
+{
+    return Iterator(f.__num_events);
+//    return Iterator(2);
+}
 
 

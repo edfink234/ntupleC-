@@ -1,6 +1,7 @@
 #include <unordered_map>
 #include <cmath>
 #include <algorithm>
+#include <chrono>
 //https://root-forum.cern.ch/t/problem-in-accessing-vector-vector-float/27983/2
 #include "LinkDef.h"
 #include "TFile.h"
@@ -11,6 +12,7 @@
 #include "TH1F.h"
 #include "TInterpreter.h"
 #include "RtypesCore.h"
+using Clock = std::chrono::high_resolution_clock;
 
 
 //debugging: https://drake.mit.edu/profiling.html
@@ -80,8 +82,6 @@ void fill_signal_hists(std::vector<TruthParticle>& particles, string cutname, do
     for (auto photon: particles)
     {
 
-
-        
         plot_groups.at(cutname+string("/photons/pt")).fill(photon.pt()/1e3,weight);
         plots.at(cutname+string("/photons/eta")).fill(photon.eta(),weight);
 
@@ -155,13 +155,11 @@ void run_analysis(string& input_filename, string systematic = "nominal", bool mc
         }));
 
     }
-    
     FileReaderRange reader({input_filename});
     Event::systematic = systematic;
     Event::load_tracks = true;
     int num_passed_events = 0;
     
-
 
     for (auto &&f: reader)
     {
@@ -171,6 +169,7 @@ void run_analysis(string& input_filename, string systematic = "nominal", bool mc
         int weight = 1;
         if (mc)
         {
+            
             std::vector<TruthParticle>&& truth_higgs = f.find_truth_particles({},{},{35});
             if (!(truth_higgs.empty()))
             {
@@ -180,27 +179,32 @@ void run_analysis(string& input_filename, string systematic = "nominal", bool mc
             int temp = 1;
             std::vector<TruthParticle>&& truth_photons = f.find_truth_particles({},{},{22},&temp);
 //
-//            for (auto i: truth_photons)
-//            {
-//                cout << string(i) << '\n';
-//            }
-//
+            for (auto i: truth_photons)
+            {
+                cout << string(i) << '\n';
+            }
+
 //
             fill_signal_hists(truth_photons,"truth");
 //
 //
+            
             std::vector<TruthParticle>&& truth_leptons = f.find_truth_particles({},{},{11, 12, 13, 14, 15, 16, 17, 18},&temp);
             
             
+
             if (lepton_selection(truth_leptons))
             {
                 fill_signal_hists(truth_leptons, "truth",1,"leptons");
             }
+           
 //
         }
 //
 //
+        
         vector<TruthParticle> photons;
+        
 //        vector<Photon> photons;
 
         std::copy_if (f.__current_event.photons.begin(), f.__current_event.photons.end(), std::back_inserter(photons), photon_selection );
@@ -212,7 +216,7 @@ void run_analysis(string& input_filename, string systematic = "nominal", bool mc
             fill_signal_hists(photons,"reco_2y",weight);
             num_passed_events++;
         }
-        
+       
     }
     
 }
@@ -220,6 +224,7 @@ void run_analysis(string& input_filename, string systematic = "nominal", bool mc
 
 void analyse_haa()
 {
+    auto start_time = Clock::now();
     cout << "Run over MC\n";
 
     string input_filename("../user.kschmied.28655874._000025.LGNTuple.root");
@@ -251,7 +256,9 @@ void analyse_haa()
     }
     
     output_file->Close();
-    
+    auto end_time = Clock::now();
+    std::cout << "Time difference:"
+       << std::chrono::duration_cast<std::chrono::nanoseconds>(end_time - start_time).count() << " nanoseconds" << std::endl;
     
 }
 
