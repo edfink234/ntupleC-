@@ -70,7 +70,7 @@ TruthParticle::TruthParticle(int index, int entry_number, const char* name, cons
 //    _entry.SetBranchAddress("mc_pdg_id",&pdg_id);
 //    _entry.GetBranch("mc_pdg_id")->GetEntry(index);
     
-    puts("called TruthParticle param ctor");
+//    puts("called TruthParticle param ctor");
 //    R__ASSERT(entry_number==_entry_number);
 //    using std::vector;
 //    std::vector<int> *mc_pdg_id= nullptr;
@@ -93,7 +93,7 @@ TruthParticle::TruthParticle(int index, int entry_number, const char* name, cons
 
 TruthParticle::TruthParticle(const TruthParticle& particle_temp)
 {
-    puts("called TruthParticle copy ctor");
+//    puts("called TruthParticle copy ctor");
     pdg_id = particle_temp.pdg_id;
     _index = particle_temp._index;
     _entry_number = particle_temp._entry_number;
@@ -461,7 +461,7 @@ void Electron::SetElectron(TChain* chain)
     chain->SetBranchAddress("electron_e",&Electron::electron_e);
     chain->SetBranchAddress("electron_eta",&Electron::electron_eta);
     chain->SetBranchAddress("electron_phi",&Electron::electron_phi);
-    chain->SetBranchAddress("electron_id",&Electron::electron_id);
+//    chain->SetBranchAddress("electron_id",&Electron::electron_id);
     chain->SetBranchAddress("electron_isolation",&Electron::electron_isolation);
     chain->SetBranchAddress("electron_d0",&Electron::electron_d0);
     chain->SetBranchAddress("electron_z0",&Electron::electron_z0);
@@ -644,7 +644,7 @@ void Photon::SetPhoton(TChain* chain)
     chain->SetBranchAddress("photon_id_loose",&Photon::photon_id_loose);
     chain->SetBranchAddress("photon_id_tight",&Photon::photon_id_tight);
     chain->SetBranchAddress("photon_cluster_eta_be_2",&Photon::photon_cluster_eta_be_2);
-    chain->SetBranchAddress("photon_id_nn",&Photon::photon_id_nn);
+//    chain->SetBranchAddress("photon_id_nn",&Photon::photon_id_nn);
 }
 
 //                *****************
@@ -839,7 +839,7 @@ void Track::SetTrack(TChain* chain)
     chain->SetBranchAddress("track_charge",&Track::track_charge);
     chain->SetBranchAddress("track_eta",&Track::track_eta);
     chain->SetBranchAddress("track_phi",&Track::track_phi);
-    chain->SetBranchAddress("track_e",&Track::track_e);
+//    chain->SetBranchAddress("track_e",&Track::track_e);
     chain->SetBranchAddress("track_num_pixel_hits",&Track::track_num_pixel_hits);
     chain->SetBranchAddress("track_num_sct_hits",&Track::track_num_sct_hits);
     

@@ -180,7 +180,8 @@ void FileReader::__load_trigger_addresses()
 
 void FileReader::__load_photons()
 {
-    auto length = (*(__current_event.photon_pt)).size();
+//    puts("called here");
+    auto length = (*(Photon::photon_pt)).size();
     double pt, energy;
     int index;
     
@@ -189,8 +190,8 @@ void FileReader::__load_photons()
         
         if ((Event::systematic.empty()) || (Event::systematic=="nominal"))
         {
-            pt = (*(__current_event.photon_pt))[i];
-            energy = (*(__current_event.photon_e))[i];
+            pt = (*(Photon::photon_pt))[i];
+            energy = (*(Photon::photon_e))[i];
         }
         else
         {
@@ -209,12 +210,13 @@ void FileReader::__load_photons()
         {
             continue;
         }
+
         __current_event.photons.emplace_back(Photon(i, pt, energy, __current_event.entry_number));
     }
 }
 void FileReader::__load_electrons()
 {
-    auto length = (*(__current_event.electron_pt)).size();
+    auto length = (*(Electron::electron_pt)).size();
     double pt, energy;
     int index;
     
@@ -223,8 +225,8 @@ void FileReader::__load_electrons()
         
         if ((Event::systematic.empty()) || (Event::systematic=="nominal"))
         {
-            pt = (*(__current_event.electron_pt))[i];
-            energy = (*(__current_event.electron_e))[i];
+            pt = (*(Electron::electron_pt))[i];
+            energy = (*(Electron::electron_e))[i];
         }
         else
         {
@@ -248,7 +250,7 @@ void FileReader::__load_electrons()
 }
 void FileReader::__load_clusters()
 {
-    auto length = (*(__current_event.cluster_pt)).size();
+    auto length = (*(Cluster::cluster_pt)).size();
     
     for (size_t i = 0; i < length; ++i)
     {
@@ -257,7 +259,7 @@ void FileReader::__load_clusters()
 }
 void FileReader::__load_tracks()
 {
-    auto length = (*(__current_event.track_pt)).size();
+    auto length = (*(Track::track_pt)).size();
     
     
     
@@ -284,7 +286,7 @@ void FileReader::__load_truth_particles()
 {
    
     auto length = (*(TruthParticle::mc_pt)).size();
-    printf("length = %ld\n",length);
+//    printf("length = %ld\n",length);
     for (size_t i = 0; i < length; ++i)
     {
 
@@ -424,10 +426,12 @@ FileReaderRange::Iterator::Iterator(int i, FileReader& f) : data{i}, F{f}
         {
             
             F.__load_photon_addresses();
+            
         }
         if (Event::load_electrons)
         {
             F.__load_electron_addresses();
+            Photon::SetPhoton(&F.__chain);
         }
         if (Event::load_clusters)
         {
@@ -446,6 +450,36 @@ FileReaderRange::Iterator::Iterator(int i, FileReader& f) : data{i}, F{f}
     {
         TruthParticle::SetTruthParticle(&F.__chain);
     }
+    if (Event::load_reco)
+    {
+        if (Event::load_photons)
+        {
+            F.__load_photon_addresses();
+            Photon::SetPhoton(&F.__chain);
+        }
+        if (Event::load_electrons)
+        {
+            F.__load_electron_addresses();
+            Electron::SetElectron(&F.__chain);
+        }
+        if (Event::load_clusters)
+        {
+            F.__load_cluster_addresses();
+            Cluster::SetCluster(&F.__chain);
+        }
+        if (Event::load_tracks)
+        {
+            F.__load_track_addresses();
+            Track::SetTrack(&F.__chain);
+        }
+        if (Event::load_triggers)
+        {
+            F.__load_trigger_addresses();
+            
+        }
+    }
+        
+        
     
     //GetAddresses
     if (F.__has_event_info_chain)
@@ -462,30 +496,35 @@ FileReaderRange::Iterator::Iterator(int i, FileReader& f) : data{i}, F{f}
     }
     
     
-//    if (Event::load_reco)
-//    {
-//        if (Event::load_photons)
-//        {
-//
-//            F.__load_photons();
-//        }
-//        if (Event::load_electrons)
-//        {
-//            F.__load_electrons();
-//        }
-//        if (Event::load_clusters)
-//        {
-//            F.__load_clusters();
-//        }
-//        if (Event::load_tracks)
-//        {
-//            F.__load_tracks();
-//        }
-//        if (Event::load_triggers)
-//        {
-//            F.__load_triggers();
-//        }
-//    }
+    if (Event::load_reco)
+    {
+        if (Event::load_photons)
+        {
+            
+            F.__load_photons();
+            
+        }
+        if (Event::load_electrons)
+        {
+            
+            F.__load_electrons();
+            
+        }
+        if (Event::load_clusters)
+        {
+
+            F.__load_clusters();
+
+        }
+        if (Event::load_tracks)
+        {
+            F.__load_tracks();
+        }
+        if (Event::load_triggers)
+        {
+            F.__load_triggers();
+        }
+    }
     
 
 }
@@ -493,12 +532,17 @@ FileReaderRange::Iterator::Iterator(int i, FileReader& f) : data{i}, F{f}
 
 FileReaderRange::Iterator& FileReaderRange::Iterator::operator++()
 {
+    
     F.__current_event.truth_particles.clear();
+   
+    F.__current_event.photons.clear();
+    F.__current_event.triggers.clear();
+    
 //    F.__current_event = {}; //reset event
 //    printf("data = %d\n",data);
     F.__current_index = F.__current_event.entry_number = ++data;
     
-
+    
     if (F.__has_event_info_chain)
     {
         F.__event_info_chain.GetEntry(F.__current_index);
@@ -511,30 +555,30 @@ FileReaderRange::Iterator& FileReaderRange::Iterator::operator++()
         
     }
     
-//    if (Event::load_reco)
-//    {
-//        if (Event::load_photons)
-//        {
-//            
-//            F.__load_photons();
-//        }
-//        if (Event::load_electrons)
-//        {
-//            F.__load_electrons();
-//        }
-//        if (Event::load_clusters)
-//        {
-//            F.__load_clusters();
-//        }
-//        if (Event::load_tracks)
-//        {
-//            F.__load_tracks();
-//        }
-//        if (Event::load_triggers)
-//        {
-//            F.__load_triggers();
-//        }
-//    }
+    if (Event::load_reco)
+    {
+        if (Event::load_photons)
+        {
+            
+            F.__load_photons();
+        }
+        if (Event::load_electrons)
+        {
+            F.__load_electrons();
+        }
+        if (Event::load_clusters)
+        {
+            F.__load_clusters();
+        }
+        if (Event::load_tracks)
+        {
+            F.__load_tracks();
+        }
+        if (Event::load_triggers)
+        {
+            F.__load_triggers();
+        }
+    }
     
     return *this;
 }
@@ -547,11 +591,11 @@ bool operator!=(const FileReaderRange::Iterator& a, const FileReaderRange::Itera
     return a.data != b.data;
 }
 
-FileReaderRange::Iterator FileReaderRange::begin() {return Iterator(f.__skip_first_events+1, f);}
+FileReaderRange::Iterator FileReaderRange::begin() {return Iterator(f.__skip_first_events, f);}
 FileReaderRange::Iterator FileReaderRange::end()
 {
     return Iterator(f.__num_events);
-//    return Iterator(2);
+//    return Iterator(100);
 }
 
 
