@@ -99,6 +99,9 @@ private:
     double _systematic_pt;
     double _systematic_energy;
     
+    
+    
+public:
     static std::vector<double> *electron_pt;
     static std::vector<double> *electron_e;
     static std::vector<double> *electron_eta;
@@ -108,7 +111,7 @@ private:
     static std::vector<double> *electron_d0;
     static std::vector<double> *electron_z0;
     
-public:
+    
     static void SetElectron(TChain*);
     Electron();
     Electron(int, double pt=0, double energy = 0, int entry_number = 0, const char* name = "", const char* title = "");
@@ -134,6 +137,8 @@ private:
     double _systematic_pt;
     double _systematic_energy;
     
+    
+public:
     static std::vector<double> *photon_pt;
     static std::vector<double> *photon_e;
     static std::vector<double> *photon_eta;
@@ -144,7 +149,7 @@ private:
     static std::vector<int> *photon_id_tight;
     static std::vector<int> *photon_cluster_eta_be_2;
     static std::vector<int> *photon_id_nn;
-public:
+    
     static void SetPhoton(TChain*);
     Photon();
     Photon(int, double pt=0, double energy = 0, int entry_number = 0, const char* name = "", const char* title = "");
@@ -169,11 +174,13 @@ class Cluster final : public PhysicsObject
 private:
     static const string PREFIX;
     
+    
+public:
     static std::vector<double> *cluster_pt;
     static std::vector<double> *cluster_eta;
     static std::vector<double> *cluster_phi;
     static std::vector<double> *cluster_e;
-public:
+    
     static void SetCluster(TChain*);
     Cluster();
     Cluster(int, int entry_number = 0, const char* name = "", const char* title = "");
@@ -190,6 +197,8 @@ class Track final : public PhysicsObject
 private:
     static const string PREFIX;
     
+    
+public:
     static std::vector<double>* track_pt;
     static std::vector<double>* track_charge;
     static std::vector<double>* track_eta;
@@ -197,7 +206,7 @@ private:
     static std::vector<double>* track_e;
     static std::vector<int>* track_num_pixel_hits;
     static std::vector<int>* track_num_sct_hits;
-public:
+    
     static void SetTrack(TChain*);
     Track();
     Track(const Track&);

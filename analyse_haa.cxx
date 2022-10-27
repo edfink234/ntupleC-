@@ -55,6 +55,7 @@ bool lepton_selection(vector<TruthParticle>& leptons)
 
 bool photon_selection(Photon& photon)
 {
+//    cout << "photon_selection here\n";
     return ((photon.id_()) && (photon.pt() > 10000)
     && (abs(photon.eta()) < 2.37)
             && (!((1.37 < abs(photon.eta())) && (1.52 > abs(photon.eta())))));
@@ -88,25 +89,25 @@ void fill_signal_hists(std::vector<TruthParticle>& particles, string cutname, do
     }
 }
 
-//void fill_signal_hists(std::vector<Photon>& particles, string cutname, double weight = 1, string particleType = "photons")
-//{
-//
-//    if (particleType=="leptons")
-//    {
-//        for (auto lepton: particles)
-//        {
-//            plot_groups[cutname+string("/leptons/pt")].fill(lepton.pt()/1e3,weight);
-//            plots[cutname+string("/leptons/eta")].fill(lepton.eta(),weight);
-//        }
-//        return;
-//    }
-//
-//    for (auto photon: particles)
-//    {
-//        plot_groups.at(cutname+string("/photons/pt")).fill(photon.pt()/1e3,weight);
-//        plots.at(cutname+string("/photons/eta")).fill(photon.eta(),weight);
-//    }
-//}
+void fill_signal_hists(std::vector<Photon>& particles, string cutname, double weight = 1, string particleType = "photons")
+{
+
+    if (particleType=="leptons")
+    {
+        for (auto lepton: particles)
+        {
+            plot_groups[cutname+string("/leptons/pt")].fill(lepton.pt()/1e3,weight);
+            plots[cutname+string("/leptons/eta")].fill(lepton.eta(),weight);
+        }
+        return;
+    }
+
+    for (auto photon: particles)
+    {
+        plot_groups.at(cutname+string("/photons/pt")).fill(photon.pt()/1e3,weight);
+        plots.at(cutname+string("/photons/eta")).fill(photon.eta(),weight);
+    }
+}
 
 
 void run_analysis(string& input_filename, string systematic = "nominal", bool mc = false)
@@ -164,7 +165,7 @@ void run_analysis(string& input_filename, string systematic = "nominal", bool mc
     for (auto &&f: reader)
     {
 
-        cout << "entry_number " << f.__current_event.entry_number  << '\n';
+//        cout << "entry_number " << f.__current_event.entry_number  << '\n';
 //
         int weight = 1;
         if (mc)
@@ -179,10 +180,10 @@ void run_analysis(string& input_filename, string systematic = "nominal", bool mc
             int temp = 1;
             std::vector<TruthParticle>&& truth_photons = f.find_truth_particles({},{},{22},&temp);
 //
-            for (auto i: truth_photons)
-            {
-                cout << string(i) << '\n';
-            }
+//            for (auto i: truth_photons)
+//            {
+//                cout << string(i) << '\n';
+//            }
 
 //
             fill_signal_hists(truth_photons,"truth");
@@ -203,21 +204,29 @@ void run_analysis(string& input_filename, string systematic = "nominal", bool mc
 //
 //
         
-        vector<TruthParticle> photons;
+//        vector<TruthParticle> photons;
         
-//        vector<Photon> photons;
-
+        vector<Photon> photons;
+//        std::cout << photons.size() << ' ' << f.__current_event.photons.size()
+//        << '\n';
         std::copy_if (f.__current_event.photons.begin(), f.__current_event.photons.end(), std::back_inserter(photons), photon_selection );
-
         fill_signal_hists(photons, "reco", weight);
 //
         if (photons.size() == 2)
         {
+            cout << "entry_number " << f.__current_event.entry_number+1  << '\n';
+            for (auto i: photons)
+            {
+                cout << string(i) << '\n';
+            }
             fill_signal_hists(photons,"reco_2y",weight);
             num_passed_events++;
         }
        
     }
+    
+    cout << "# events for " << systematic << " = " << num_passed_events
+    << '\n';
     
 }
 
