@@ -75,10 +75,6 @@ bool FileReader::__passes_event_filters()
 }
 
 
-//Event FileReader::event()
-//{
-//    return __current_event;
-//}
 
 
 int FileReader::current_index()

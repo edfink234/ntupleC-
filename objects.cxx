@@ -16,10 +16,7 @@ PhysicsObject::PhysicsObject() = default;
 PhysicsObject::PhysicsObject(int index, int entry_number, const char* name, const char* title)
 :  _index{index}, _entry_number{entry_number}
 {
-//    _entry.Reset();
-//    _entry.Add(entry);
-//    _entry.SetName(name);
-//    _entry.SetTitle(title);
+
 }
 
 PhysicsObject::~PhysicsObject() = default;
@@ -43,15 +40,7 @@ double PhysicsObject::delta_r(TruthParticle& particle_b)
 
 PhysicsObject::operator string() //const
 {
-//    using s = string; //alias
-    
     return
-//    (
-//    s("Particle(pT=")+to_string(pt())
-//    +s(", eta=") + to_string(eta())
-//    +s(", phi=") + to_string(phi())
-//    );
-    
     (
     "Particle(pT="+to_string(pt())
     +", eta=" + to_string(eta())
@@ -73,23 +62,7 @@ TruthParticle::TruthParticle(int index, int entry_number, const char* name, cons
 {
     //https://root-forum.cern.ch/t/looping-over-a-ttree/19899/5
     //https://root.cern/root/html534/tutorials/tree/hvector.C.html
-//    _entry.SetBranchAddress("mc_pdg_id",&pdg_id);
-//    _entry.GetBranch("mc_pdg_id")->GetEntry(index);
-    
-//    puts("called TruthParticle param ctor");
-//    R__ASSERT(entry_number==_entry_number);
-//    using std::vector;
-//    std::vector<int> *mc_pdg_id= nullptr;
-//    _entry.SetBranchAddress("mc_pdg_id",&mc_pdg_id);
-//    _entry.GetBranch("mc_pdg_id")->GetEntry(_entry_number);
-//    printf("the index = %d, the size = %lu, the entry_number = %d\n",_index, (*mc_pdg_id).size(), _entry_number);
-//    R__ASSERT((*mc_pdg_id).size() > static_cast<size_t>(_index));
-    
-    if ((*TruthParticle::mc_pdg_id).size() <= static_cast<size_t>(_index))
-    {
-//        pdg_id = (*mc_pdg_id)[(*mc_pdg_id).size()-1];
-        return;
-    }
+
     pdg_id = (*TruthParticle::mc_pdg_id)[_index];
     
 }
@@ -99,7 +72,6 @@ TruthParticle::TruthParticle(int index, int entry_number, const char* name, cons
 
 TruthParticle::TruthParticle(const TruthParticle& particle_temp)
 {
-//    puts("called TruthParticle copy ctor");
     pdg_id = particle_temp.pdg_id;
     _index = particle_temp._index;
     _entry_number = particle_temp._entry_number;
@@ -108,7 +80,6 @@ TruthParticle::TruthParticle(const TruthParticle& particle_temp)
 
 TruthParticle& TruthParticle::operator=(const TruthParticle& particle_temp)
 {
-    puts("called TruthParticle assigment operator");
     pdg_id = particle_temp.pdg_id;
     _index = particle_temp._index;
     _entry_number = particle_temp._entry_number;
@@ -127,7 +98,6 @@ TLorentzVector TruthParticle::Vector()
 
 int TruthParticle::barcode()
 {
-    R__ASSERT((*TruthParticle::mc_barcode).size() > static_cast<size_t>(_index));
     return (*TruthParticle::mc_barcode)[_index];
 }
 
@@ -135,7 +105,6 @@ int TruthParticle::barcode()
 
 int TruthParticle::parent_barcode()
 {
-    R__ASSERT((*TruthParticle::mc_parent_barcode).size() > static_cast<size_t>(_index));
     return (*TruthParticle::mc_parent_barcode)[_index];
 }
 
@@ -143,15 +112,6 @@ int TruthParticle::parent_barcode()
 
 int TruthParticle::status_code()
 {
-//    R__ASSERT((*TruthParticle::mc_status).size() > static_cast<size_t>(_index));
-    if ((*TruthParticle::mc_status).size() <= static_cast<size_t>(_index))
-    {
-        return
-        ((*TruthParticle::mc_status).size() > 0)
-        ? (*TruthParticle::mc_status)[(*TruthParticle::mc_status).size()-1]
-        : 0;
-    }
-    
     return (*TruthParticle::mc_status)[_index];
 }
 
@@ -159,15 +119,6 @@ int TruthParticle::status_code()
 
 double TruthParticle::pt()
 {
-
-//    R__ASSERT((*TruthParticle::mc_pt).size() > static_cast<size_t>(_index));
-    if ((*TruthParticle::mc_pt).size() <= static_cast<size_t>(_index))
-    {
-        return
-        ((*TruthParticle::mc_pt).size() > 0)
-        ? (*TruthParticle::mc_pt)[(*TruthParticle::mc_pt).size()-1]
-        : 0;
-    }
     return (*TruthParticle::mc_pt)[_index];
 }
 
@@ -176,15 +127,6 @@ double TruthParticle::pt()
 
 double TruthParticle::charge()
 {
-
-//    R__ASSERT((*TruthParticle::mc_charge).size() > static_cast<size_t>(_index));
-    if ((*TruthParticle::mc_charge).size() <= static_cast<size_t>(_index))
-    {
-        return
-        ((*TruthParticle::mc_charge).size() > 0)
-        ? (*TruthParticle::mc_charge)[(*TruthParticle::mc_charge).size()-1]
-        : 0;
-    }
     return (*TruthParticle::mc_charge)[_index];
 }
 
@@ -193,15 +135,6 @@ double TruthParticle::charge()
 
 double TruthParticle::eta()
 {
-
-//    R__ASSERT((*TruthParticle::mc_eta).size() > static_cast<size_t>(_index));
-    if ((*TruthParticle::mc_charge).size() <= static_cast<size_t>(_index))
-    {
-        return
-        ((*TruthParticle::mc_eta).size() > 0)
-        ? (*TruthParticle::mc_eta)[(*TruthParticle::mc_eta).size()-1]
-        : 0;
-    }
     return (*TruthParticle::mc_eta)[_index];
 }
 
@@ -213,15 +146,6 @@ double TruthParticle::eta()
 
 double TruthParticle::phi()
 {
-
-//    R__ASSERT((*TruthParticle::mc_phi).size() > static_cast<size_t>(_index));
-    if ((*TruthParticle::mc_phi).size() <= static_cast<size_t>(_index))
-    {
-        return
-        ((*TruthParticle::mc_phi).size() > 0)
-        ? (*TruthParticle::mc_phi)[(*TruthParticle::mc_phi).size()-1]
-        : 0;
-    }
     return (*TruthParticle::mc_phi)[_index];
 }
 
@@ -232,8 +156,6 @@ double TruthParticle::phi()
 
 double TruthParticle::e()
 {
-
-    R__ASSERT((*TruthParticle::mc_e).size() > static_cast<size_t>(_index));
     return (*TruthParticle::mc_e)[_index];
 }
 
@@ -242,8 +164,6 @@ double TruthParticle::e()
 
 double TruthParticle::m()
 {
-
-    R__ASSERT((*TruthParticle::mc_mass).size() > static_cast<size_t>(_index));
     return (*TruthParticle::mc_mass)[_index];
 }
 
@@ -252,7 +172,6 @@ double TruthParticle::m()
 
 TruthParticle::operator string() 
 {
-    
     return
     (
     "TruthParticle(pdg_id="+to_string(pdg_id)
@@ -303,7 +222,6 @@ void TruthParticle::SetTruthParticle(TChain* chain)
     chain->SetBranchAddress("mc_phi",&TruthParticle::mc_phi);
     chain->SetBranchAddress("mc_e",&TruthParticle::mc_e);
     chain->SetBranchAddress("mc_mass",&TruthParticle::mc_mass);
-
 }
 
 
@@ -357,7 +275,6 @@ double Electron::pt()
     {
         return _systematic_pt;
     }
-    R__ASSERT((*Electron::electron_pt).size() > static_cast<size_t>(_index));
     return (*Electron::electron_pt)[_index];
 }
 
@@ -369,7 +286,6 @@ double Electron::e()
     {
         return _systematic_energy;
     }
-    R__ASSERT((*Electron::electron_e).size() > static_cast<size_t>(_index));
     return (*Electron::electron_e)[_index];
 }
 
@@ -378,7 +294,6 @@ double Electron::e()
 
 double Electron::eta()
 {
-    R__ASSERT((*Electron::electron_eta).size() > static_cast<size_t>(_index));
     return (*Electron::electron_eta)[_index];
 }
 
@@ -387,7 +302,6 @@ double Electron::eta()
 
 double Electron::phi()
 {
-    R__ASSERT((*Electron::electron_phi).size() > static_cast<size_t>(_index));
     return (*Electron::electron_phi)[_index];
 }
 
@@ -397,7 +311,6 @@ double Electron::phi()
 
 int Electron::id_()
 {
-    R__ASSERT((*Electron::electron_id).size() > static_cast<size_t>(_index));
     return (*Electron::electron_id)[_index];
 }
 
@@ -407,7 +320,6 @@ int Electron::id_()
 
 double Electron::isolation()
 {
-    R__ASSERT((*Electron::electron_isolation).size() > static_cast<size_t>(_index));
     return (*Electron::electron_isolation)[_index];
 }
 
@@ -419,8 +331,6 @@ double Electron::isolation()
 
 double Electron::d0()
 {
-
-    R__ASSERT((*Electron::electron_d0).size() > static_cast<size_t>(_index));
     return (*Electron::electron_d0)[_index];
 }
 
@@ -428,8 +338,6 @@ double Electron::d0()
 
 double Electron::z0()
 {
-
-    R__ASSERT((*Electron::electron_z0).size() > static_cast<size_t>(_index));
     return (*Electron::electron_z0)[_index];
 }
 
@@ -437,8 +345,6 @@ double Electron::z0()
 
 Electron::operator string()
 {
-
-    
     return
     (
     "TruthParticle(pdg_id="+to_string(PDG_ID)
@@ -517,7 +423,6 @@ double Photon::pt()
     {
         return _systematic_pt;
     }
-    R__ASSERT((*Photon::photon_pt).size() > static_cast<size_t>(_index));
     return (*Photon::photon_pt)[_index];
 }
 
@@ -527,7 +432,6 @@ double Photon::e()
     {
         return _systematic_energy;
     }
-    R__ASSERT((*Photon::photon_e).size() > static_cast<size_t>(_index));
     return (*Photon::photon_e)[_index];
 }
 
@@ -535,7 +439,6 @@ double Photon::e()
 
 double Photon::eta()
 {
-    R__ASSERT((*Photon::photon_eta).size() > static_cast<size_t>(_index));
     return (*Photon::photon_eta)[_index];
 }
 
@@ -543,7 +446,6 @@ double Photon::eta()
 
 double Photon::phi()
 {
-    R__ASSERT((*Photon::photon_phi).size() > static_cast<size_t>(_index));
     return (*Photon::photon_phi)[_index];
 }
 
@@ -556,7 +458,6 @@ double Photon::m()
 
 double Photon::isolation()
 {
-    R__ASSERT((*Photon::photon_etcone40).size() > static_cast<size_t>(_index));
     return (*Photon::photon_etcone40)[_index];
 }
 
@@ -564,7 +465,6 @@ double Photon::isolation()
 
 int Photon::id_()
 {
-    R__ASSERT((*Photon::photon_id).size() > static_cast<size_t>(_index));
     return (*Photon::photon_id)[_index];
 }
 
@@ -572,8 +472,6 @@ int Photon::id_()
 
 int Photon::id_loose()
 {
-
-    R__ASSERT((*Photon::photon_id_loose).size() > static_cast<size_t>(_index));
     return (*Photon::photon_id_loose)[_index];
 }
 
@@ -582,8 +480,6 @@ int Photon::id_loose()
 
 int Photon::id_tight()
 {
-
-    R__ASSERT((*Photon::photon_id_tight).size() > static_cast<size_t>(_index));
     return (*Photon::photon_id_tight)[_index];
 }
 
@@ -592,8 +488,6 @@ int Photon::id_tight()
 
 double Photon::cluster_eta()
 {
-
-    R__ASSERT((*Photon::photon_cluster_eta_be_2).size() > static_cast<size_t>(_index));
     return (*Photon::photon_cluster_eta_be_2)[_index];
 }
 
@@ -602,8 +496,6 @@ double Photon::cluster_eta()
 
 int Photon::id_nn()
 {
-
-    R__ASSERT((*Photon::photon_id_nn).size() > static_cast<size_t>(_index));
     return (*Photon::photon_id_nn)[_index];
 }
 
@@ -612,7 +504,6 @@ int Photon::id_nn()
 
 Photon::operator string()
 {
-    
     return
     (
     "TruthParticle(pdg_id="+to_string(PDG_ID)
@@ -678,15 +569,11 @@ Cluster& Cluster::operator=(const Cluster& other)
 
 double Cluster::pt()
 {
-
-    R__ASSERT((*Cluster::cluster_pt).size() > static_cast<size_t>(_index));
     return (*Cluster::cluster_pt)[_index];
 }
 
 double Cluster::eta()
 {
-
-    R__ASSERT((*Cluster::cluster_eta).size() > static_cast<size_t>(_index));
     return (*Cluster::cluster_eta)[_index];
 }
 
@@ -694,8 +581,6 @@ double Cluster::eta()
 
 double Cluster::phi()
 {
-
-    R__ASSERT((*Cluster::cluster_phi).size() > static_cast<size_t>(_index));
     return (*Cluster::cluster_phi)[_index];
 }
 
@@ -703,7 +588,6 @@ double Cluster::phi()
 
 double Cluster::e()
 {
-    R__ASSERT((*Cluster::cluster_e).size() > static_cast<size_t>(_index));
     return (*Cluster::cluster_e)[_index];
 }
 
@@ -752,8 +636,6 @@ Track& Track::operator=(const Track& other)
 
 double Track::pt()
 {
-
-    R__ASSERT((*Track::track_pt).size() > static_cast<size_t>(_index));
     return (*Track::track_pt)[_index];
 }
 
@@ -761,8 +643,6 @@ double Track::pt()
 
 double Track::charge()
 {
-
-    R__ASSERT((*Track::track_charge).size() > static_cast<size_t>(_index));
     return (*Track::track_charge)[_index];
 }
 
@@ -770,16 +650,12 @@ double Track::charge()
 
 double Track::eta()
 {
-
-    R__ASSERT((*Track::track_eta).size() > static_cast<size_t>(_index));
     return (*Track::track_eta)[_index];
 }
 
 
 double Track::phi()
 {
-
-    R__ASSERT((*track_phi).size() > static_cast<size_t>(_index));
     return (*Track::track_phi)[_index];
 }
 
@@ -788,8 +664,6 @@ double Track::phi()
 
 double Track::e()
 {
-
-    R__ASSERT((*Track::track_e).size() > static_cast<size_t>(_index));
     return (*Track::track_e)[_index];
 }
 
@@ -798,8 +672,6 @@ double Track::e()
 
 int Track::num_pixel_hits()
 {
-
-    R__ASSERT((*Track::track_num_pixel_hits).size() > static_cast<size_t>(_index));
     return (*Track::track_num_pixel_hits)[_index];
 }
 
@@ -807,8 +679,6 @@ int Track::num_pixel_hits()
 
 int Track::num_sct_hits()
 {
-
-    R__ASSERT((*Track::track_num_sct_hits).size() > static_cast<size_t>(_index));
     return (*track_num_sct_hits)[_index];
 }
 
@@ -816,7 +686,6 @@ int Track::num_sct_hits()
 
 Track::operator string()
 {
-    
     return
     (
      "Track(pT="+to_string(pt())

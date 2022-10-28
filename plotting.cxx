@@ -9,7 +9,6 @@ void _mkdir_recursive(TFile* out_file, const string& full_path)
     while ((pos=full_path.find('/',pos))!=string::npos)
     {
         path = full_path.substr(0,pos++);
-//        cout << path << '\n';
         if (!(out_file->GetDirectory(path.c_str())))
         {
             out_file->mkdir(path.c_str());
@@ -38,14 +37,8 @@ Plot::Plot(string name, string title, int nbins, int x_min, int x_max, tuple<str
     __y_label{get<y_label>(kwargs)},
     __bin_edges{get<bin_edges>(kwargs)}
 {
-//    puts("parametrized ctor called");
     
-    static bool created = false;
-    if (!created)
-    {
-        TH1::AddDirectory(kFALSE);
-        created=true;
-    }
+    TH1::AddDirectory(kFALSE);
     size_t temp;
     if ((temp = name.find_last_of('/')) != std::string::npos)
     {
@@ -60,30 +53,20 @@ Plot::Plot(string name, string title, int nbins, int x_min, int x_max, tuple<str
     {
 //    https://stackoverflow.com/questions/3093451/is-it-safe-to-pass-a-vector-as-an-array
         __hist.reset(new TH1F(name.c_str(), title.c_str(), __bin_edges.size()-1, &__bin_edges[0] ));
-//        __hist = new TH1F(name.c_str(), title.c_str(), __bin_edges.size()-1, &__bin_edges[0] );
     }
     else
     {
         __hist.reset(new TH1F(name.c_str(), title.c_str(),__nbins, __x_min, __x_max));
-//        __hist = new TH1F(name.c_str(), title.c_str(),__nbins, __x_min, __x_max);
     }
     __hist->GetXaxis()->SetTitle(__x_label.c_str());
     __hist->GetYaxis()->SetTitle(__y_label.c_str());
-//    cout << name << '\n';
 }
 
 Plot::~Plot() = default;
-//{
-//    puts("dtor called");
-//    del();
-//    __hist.reset();
-
-//} //?
 
 //https://stackoverflow.com/questions/16030081/copy-constructor-for-a-class-with-unique-ptr
-Plot::Plot(const Plot& other) //: __hist(new TH1F(*other.__hist))
+Plot::Plot(const Plot& other)
 {
-//    puts("copy ctor called");
     __hist = other.__hist;
     name = other.name;
     path = other.path;
@@ -98,15 +81,10 @@ Plot::Plot(const Plot& other) //: __hist(new TH1F(*other.__hist))
 }
 
 Plot::Plot() = default;
-//{
-//    puts("default ctor called");
-//    __hist.reset(new TH1F);
-
-//}
 
 Plot& Plot::operator=(const Plot& other)
 {
-    puts("assignment operator called");
+    __hist = other.__hist;
     name = other.name;
     path = other.path;
     title = other.title;
@@ -116,7 +94,6 @@ Plot& Plot::operator=(const Plot& other)
     __x_label = other.__x_label;
     __y_label = other.__y_label;
     __bin_edges = other.__bin_edges;
-    __hist = other.__hist;
     return *this;
 }
 
@@ -136,9 +113,8 @@ void Plot::save(TFile* out_file)
 {
     if (!out_file)
     {
-        puts("called here");
-//        cout << __hist->GetDirectory()->GetFile()->GetName();
-//        out_file = __hist->GetDirectory()->GetFile();
+        cout << "Error in Plot::save, need an output file to save to!\n";
+        return;
     }
     if (path != '/')
     {
@@ -156,7 +132,6 @@ void Plot::draw()
 void Plot::del()
 {
     __hist.reset();
-//    delete __hist;
 }
 
 TH1F Plot::hist()
@@ -183,6 +158,8 @@ Plot2D::Plot2D(string name, string title, int xbins, int x_min, int x_max, int y
     __x_label{get<x_label>(kwargs)},
     __y_label{get<y_label>(kwargs)}
 {
+    
+    TH1::AddDirectory(kFALSE);
     size_t temp;
     if ((temp = name.find_last_of('/')) != std::string::npos)
     {
@@ -199,14 +176,14 @@ Plot2D::Plot2D(string name, string title, int xbins, int x_min, int x_max, int y
 
     __hist->GetXaxis()->SetTitle(__x_label.c_str());
     __hist->GetYaxis()->SetTitle(__y_label.c_str());
-//    cout << name << '\n';
 }
 
-Plot2D::~Plot2D(){__hist.reset(nullptr);} //?
+Plot2D::~Plot2D() = default;
 
 //https://stackoverflow.com/questions/16030081/copy-constructor-for-a-class-with-unique-ptr
-Plot2D::Plot2D(const Plot2D& other) : __hist(new TH2F(*other.__hist))
+Plot2D::Plot2D(const Plot2D& other)
 {
+    __hist = other.__hist;
     name = other.name;
     path = other.path;
     title = other.title;
@@ -225,6 +202,7 @@ Plot2D::Plot2D() = default;
 
 Plot2D& Plot2D::operator=(const Plot2D& other)
 {
+    __hist = other.__hist;
     name = other.name;
     path = other.path;
     title = other.title;
@@ -236,7 +214,6 @@ Plot2D& Plot2D::operator=(const Plot2D& other)
     __y_max = other.__y_max;
     __x_label = other.__x_label;
     __y_label = other.__y_label;
-    __hist.reset(new TH2F(*other.__hist));
     return *this;
 }
 
@@ -256,7 +233,8 @@ void Plot2D::save(TFile* out_file)
 {
     if (!out_file)
     {
-        out_file = __hist->GetDirectory()->GetFile();
+        cout << "Error in Plot2D::save, need an output file to save to!\n";
+        return;
     }
     if (path != '/')
     {
@@ -273,7 +251,7 @@ void Plot2D::draw()
 
 void Plot2D::del()
 {
-    __hist.reset(nullptr);
+    __hist.reset();
 }
 
 TH2F Plot2D::hist()
@@ -285,7 +263,6 @@ TH2F Plot2D::hist()
 //                *      PlotGroup      *
 //                ***********************
 
-//FIXME:
 PlotGroup::PlotGroup() = default;
 PlotGroup::~PlotGroup() = default;
 
@@ -341,7 +318,20 @@ vector<Plot> PlotGroup::hists()
 //                *      PlotGroup2D      *
 //                *************************
 
-//FIXME: 
+PlotGroup2D::PlotGroup2D() = default;
+PlotGroup2D::~PlotGroup2D() = default;
+
+PlotGroup2D::PlotGroup2D(const PlotGroup2D& plot_group)
+{
+    __hists = plot_group.__hists;
+}
+
+PlotGroup2D& PlotGroup2D::operator=(const PlotGroup2D& plot_group)
+{
+    __hists = plot_group.__hists;
+    return *this;
+}
+
 PlotGroup2D::PlotGroup2D(vector<Plot2D>&& hists)
 {
     __hists = hists;

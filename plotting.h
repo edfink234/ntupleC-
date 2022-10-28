@@ -17,7 +17,7 @@ using std::string;
 using std::vector;
 using std::tuple;
 
-//TODO: make this enum class, item 10 Effective Modern C++
+//TODO: make these enum classes, item 10 Effective Modern C++
 enum plotOptions{x_label,y_label,bin_edges};
 
 void _mkdir_recursive(TFile*, const string&);
@@ -36,7 +36,6 @@ private:
     string __y_label;
     vector<double> __bin_edges;
     std::shared_ptr<TH1F> __hist;
-//    TH1F* __hist;
 public:
 //    string name;
     Plot();
@@ -72,7 +71,7 @@ private:
     int __y_max;
     string __x_label;
     string __y_label;
-    std::unique_ptr<TH2F> __hist;
+    std::shared_ptr<TH2F> __hist;
     
 public:
 //    string name;
@@ -118,7 +117,13 @@ class PlotGroup2D //2D
 private:
     vector<Plot2D> __hists;
 public:
+    PlotGroup2D();
+    ~PlotGroup2D();
     PlotGroup2D(vector<Plot2D>&&);
+    
+    PlotGroup2D(const PlotGroup2D&);
+    PlotGroup2D& operator=(const PlotGroup2D&);
+    
     void add(const PlotGroup2D&);
     void fill(double x, double y, double weight=1.0);
     void save(TFile* out_file = nullptr);
