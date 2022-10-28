@@ -66,6 +66,11 @@ bool track_selection(Track& track)
     return ((track.pt() > 1000) && (abs(track.eta()) < 2.5));
 }
 
+/*
+ I realize I could just use templates here for fill_signal_hists,
+ but it makes it ~10^-1 seconds slower...
+ */
+
 void fill_signal_hists(std::vector<TruthParticle>& particles, string cutname, double weight = 1, string particleType = "photons")
 {
     
@@ -165,7 +170,7 @@ void run_analysis(string& input_filename, string systematic = "nominal", bool mc
     for (auto &&f: reader)
     {
 
-//        cout << "entry_number " << f.__current_event.entry_number  << '\n';
+        cout << "entry_number " << f.__current_event.entry_number  << '\n';
 //
         int weight = 1;
         if (mc)
@@ -214,11 +219,10 @@ void run_analysis(string& input_filename, string systematic = "nominal", bool mc
 //
         if (photons.size() == 2)
         {
-            cout << "entry_number " << f.__current_event.entry_number+1  << '\n';
-            for (auto i: photons)
-            {
-                cout << string(i) << '\n';
-            }
+//            for (auto i: photons)
+//            {
+//                cout << string(i) << '\n';
+//            }
             fill_signal_hists(photons,"reco_2y",weight);
             num_passed_events++;
         }
@@ -239,7 +243,8 @@ void analyse_haa()
     string input_filename("../user.kschmied.28655874._000025.LGNTuple.root");
     
     
-    const char* output_filename = "example_mc_haa_out_test1cpp.root";
+//    const char* output_filename = "example_mc_haa_out_test1cpp.root";
+    const char* output_filename = "example_mc_haa_out_testcpp.root";
     TFile* output_file = TFile::Open(output_filename, "RECREATE");
     if (!output_file) {
         std::cout << "Error opening file\n";
