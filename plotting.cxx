@@ -1,12 +1,14 @@
 #include "plotting.h"
+
+#include <iostream>
+
 #include "TH1F.h"
 
-
-void _mkdir_recursive(TFile* out_file, const string& full_path)
+void _mkdir_recursive(TFile* out_file, const std::string& full_path)
 {
-    size_t pos=0;
-    string path;
-    while ((pos=full_path.find('/',pos))!=string::npos)
+    size_t pos = 0;
+    std::string path;
+    while ((pos = full_path.find('/',pos)) != std::string::npos)
     {
         path = full_path.substr(0,pos++);
         if (!(out_file->GetDirectory(path.c_str())))
@@ -24,7 +26,7 @@ void _mkdir_recursive(TFile* out_file, const string& full_path)
 //                *      Plot      *
 //                ******************
 
-Plot::Plot(string name, string title, int nbins, int x_min, int x_max, tuple<string, string, vector<double>>&& kwargs)
+Plot::Plot(std::string name, std::string title, int nbins, int x_min, int x_max, std::tuple<std::string, std::string, std::vector<double>>&& kwargs)
 :
     name{name},
     path{"/"},
@@ -33,9 +35,9 @@ Plot::Plot(string name, string title, int nbins, int x_min, int x_max, tuple<str
     __nbins{nbins},
     __x_min{x_min},
     __x_max{x_max},
-    __x_label{get<x_label>(kwargs)},
-    __y_label{get<y_label>(kwargs)},
-    __bin_edges{get<bin_edges>(kwargs)}
+    __x_label{std::get<x_label>(kwargs)},
+    __y_label{std::get<y_label>(kwargs)},
+    __bin_edges{std::get<bin_edges>(kwargs)}
 {
     
     TH1::AddDirectory(kFALSE);
@@ -47,11 +49,10 @@ Plot::Plot(string name, string title, int nbins, int x_min, int x_max, tuple<str
     }
     if (title.empty())
     {
-        title=name;
+        title = name;
     }
     if (!(__bin_edges.empty()))
     {
-//    https://stackoverflow.com/questions/3093451/is-it-safe-to-pass-a-vector-as-an-array
         __hist.reset(new TH1F(name.c_str(), title.c_str(), __bin_edges.size()-1, &__bin_edges[0] ));
     }
     else
@@ -101,19 +102,22 @@ void Plot::add(const Plot& plot)
 {
     __hist->Add(&(*plot.__hist));
 }
+
 void Plot::add(const TH1F* plot)
 {
     __hist->Add(plot);
 }
+
 void Plot::fill(double value, double weight)
 {
     __hist->Fill(value,weight);
 }
+
 void Plot::save(TFile* out_file)
 {
     if (!out_file)
     {
-        cout << "Error in Plot::save, need an output file to save to!\n";
+        std::cerr << "Error in Plot::save, need an output file to save to!\n";
         return;
     }
     if (path != '/')
@@ -122,8 +126,8 @@ void Plot::save(TFile* out_file)
     }
     out_file->cd(path.c_str());
     __hist->Write(write_name.c_str());
-    
 }
+
 void Plot::draw()
 {
     __hist->Draw();
@@ -143,8 +147,7 @@ TH1F Plot::hist()
 //                *      Plot2D      *
 //                ********************
 
-//FIXME:
-Plot2D::Plot2D(string name, string title, int xbins, int x_min, int x_max, int ybins, int y_min, int y_max, tuple<string, string, vector<double>>&& kwargs)
+Plot2D::Plot2D(std::string name, std::string title, int xbins, int x_min, int x_max, int ybins, int y_min, int y_max, std::tuple<std::string, std::string, std::vector<double>>&& kwargs)
 :
     name{name},
     path{"/"},
@@ -155,10 +158,9 @@ Plot2D::Plot2D(string name, string title, int xbins, int x_min, int x_max, int y
     __ybins{ybins},
     __y_min{y_min},
     __y_max{y_max},
-    __x_label{get<x_label>(kwargs)},
-    __y_label{get<y_label>(kwargs)}
+    __x_label{std::get<x_label>(kwargs)},
+    __y_label{std::get<y_label>(kwargs)}
 {
-    
     TH1::AddDirectory(kFALSE);
     size_t temp;
     if ((temp = name.find_last_of('/')) != std::string::npos)
@@ -168,10 +170,8 @@ Plot2D::Plot2D(string name, string title, int xbins, int x_min, int x_max, int y
     }
     if (title.empty())
     {
-        title=name;
+        title = name;
     }
-
-
     __hist.reset(new TH2F(name.c_str(), title.c_str(),__xbins, __x_min, __x_max, __ybins, __y_min, __y_max));
 
     __hist->GetXaxis()->SetTitle(__x_label.c_str());
@@ -195,7 +195,6 @@ Plot2D::Plot2D(const Plot2D& other)
     __y_max = other.__y_max;
     __x_label = other.__x_label;
     __y_label = other.__y_label;
-    
 }
 
 Plot2D::Plot2D() = default;
@@ -221,19 +220,22 @@ void Plot2D::add(const Plot2D& plot)
 {
     __hist->Add(&(*plot.__hist));
 }
+
 void Plot2D::add(const TH2F* plot)
 {
     __hist->Add(plot);
 }
+
 void Plot2D::fill(double x, double y, double weight)
 {
     __hist->Fill(x,y,weight);
 }
+
 void Plot2D::save(TFile* out_file)
 {
     if (!out_file)
     {
-        cout << "Error in Plot2D::save, need an output file to save to!\n";
+        std::cerr << "Error in Plot2D::save, need an output file to save to!\n";
         return;
     }
     if (path != '/')
@@ -242,8 +244,8 @@ void Plot2D::save(TFile* out_file)
     }
     out_file->cd(path.c_str());
     __hist->Write(write_name.c_str());
-    
 }
+
 void Plot2D::draw()
 {
     __hist->Draw();
@@ -277,8 +279,7 @@ PlotGroup& PlotGroup::operator=(const PlotGroup& plot_group)
     return *this;
 }
 
-
-PlotGroup::PlotGroup(vector<Plot>&& hists)
+PlotGroup::PlotGroup(std::vector<Plot>&& hists)
 {
     __hists = hists;
 }
@@ -287,7 +288,7 @@ void PlotGroup::add(const PlotGroup& plots)
 {
     R__ASSERT(__hists.size() == plots.__hists.size());
     
-    for (size_t i=0; i < __hists.size(); ++i)
+    for (size_t i = 0; i < __hists.size(); ++i)
     {
         __hists[i].add(plots.__hists[i]);
     }
@@ -309,7 +310,7 @@ void PlotGroup::save(TFile* out_file)
     }
 }
 
-vector<Plot> PlotGroup::hists()
+std::vector<Plot> PlotGroup::hists()
 {
     return __hists;
 }
@@ -332,7 +333,7 @@ PlotGroup2D& PlotGroup2D::operator=(const PlotGroup2D& plot_group)
     return *this;
 }
 
-PlotGroup2D::PlotGroup2D(vector<Plot2D>&& hists)
+PlotGroup2D::PlotGroup2D(std::vector<Plot2D>&& hists)
 {
     __hists = hists;
 }
@@ -341,7 +342,7 @@ void PlotGroup2D::add(const PlotGroup2D& plots)
 {
     R__ASSERT(__hists.size() == plots.__hists.size());
     
-    for (size_t i=0; i < __hists.size(); ++i)
+    for (size_t i = 0; i < __hists.size(); ++i)
     {
         __hists[i].add(plots.__hists[i]);
     }
@@ -363,7 +364,7 @@ void PlotGroup2D::save(TFile* out_file)
     }
 }
 
-vector<Plot2D> PlotGroup2D::hists()
+std::vector<Plot2D> PlotGroup2D::hists()
 {
     return __hists;
 }

@@ -1,21 +1,20 @@
 #ifndef OBJECTSH
 #define OBJECTSH
 
-#include <cmath>
 #include <vector>
 #include <string>
+
 #include "TLorentzVector.h"
 #include "TTree.h"
 #include "TBranch.h"
 #include "TChain.h"
-using std::string;
 
 class TruthParticle;
 
 class PhysicsObject
 {
 protected:
-    static const string PREFIX;
+    static const std::string PREFIX;
     int _index;
     int _entry_number;
 public:
@@ -23,14 +22,11 @@ public:
     PhysicsObject(int, int entry_number = 0, const char* name = "", const char* title = "");
     virtual ~PhysicsObject() = 0;
     virtual TLorentzVector Vector(); //renamed jic it clashes w/ std::vector
-    
     double acoplanarity(TruthParticle&);
     double delta_r( TruthParticle&);
-    operator string();
+    operator std::string();
     
     //TODO: getattr equivalent in C++;
-    
-    
     //TODO: Add property class?: https://en.wikipedia.org/wiki/Property_%28programming%29#C++
     //override in TruthParticle!
     //https://stackoverflow.com/questions/46446652/is-there-any-point-in-using-override-when-overriding-a-pure-virtual-function
@@ -46,27 +42,19 @@ class TruthParticle : public PhysicsObject
 protected:
     double Cluster_eta;
     int pdg_id;
-    static const string PREFIX;
-    
-    
-    
-    
-    
-    
-    
+    static const std::string PREFIX;
     friend class FileReader;
 public:
-    
-    static std::vector<int> *mc_pdg_id;
-    static std::vector<int> *mc_barcode;
-    static std::vector<int> *mc_parent_barcode;
-    static std::vector<int> *mc_status;
-    static std::vector<double> *mc_pt;
-    static std::vector<double> *mc_charge;
-    static std::vector<double> *mc_eta;
-    static std::vector<double> *mc_phi;
-    static std::vector<double> *mc_e;
-    static std::vector<double> *mc_mass;
+    static std::vector<int>* mc_pdg_id;
+    static std::vector<int>* mc_barcode;
+    static std::vector<int>* mc_parent_barcode;
+    static std::vector<int>* mc_status;
+    static std::vector<double>* mc_pt;
+    static std::vector<double>* mc_charge;
+    static std::vector<double>* mc_eta;
+    static std::vector<double>* mc_phi;
+    static std::vector<double>* mc_e;
+    static std::vector<double>* mc_mass;
     
     static void SetTruthParticle(TChain*);
     TruthParticle();
@@ -84,7 +72,7 @@ public:
     double phi() override;
     double e() override;
     virtual double m();
-    operator string();
+    operator std::string();
     
     virtual int id_();
     virtual int id_loose();
@@ -94,23 +82,20 @@ public:
 class Electron final : public TruthParticle
 {
 private:
-    static const string PREFIX;
+    static const std::string PREFIX;
     static const int PDG_ID;
     double _systematic_pt;
     double _systematic_energy;
     
-    
-    
 public:
-    static std::vector<double> *electron_pt;
-    static std::vector<double> *electron_e;
-    static std::vector<double> *electron_eta;
-    static std::vector<double> *electron_phi;
-    static std::vector<int> *electron_id;
-    static std::vector<double> *electron_isolation;
-    static std::vector<double> *electron_d0;
-    static std::vector<double> *electron_z0;
-    
+    static std::vector<double>* electron_pt;
+    static std::vector<double>* electron_e;
+    static std::vector<double>* electron_eta;
+    static std::vector<double>* electron_phi;
+    static std::vector<int>* electron_id;
+    static std::vector<double>* electron_isolation;
+    static std::vector<double>* electron_d0;
+    static std::vector<double>* electron_z0;
     
     static void SetElectron(TChain*);
     Electron();
@@ -126,29 +111,28 @@ public:
     double isolation();
     double d0();
     double z0();
-    operator string();
+    operator std::string();
 };
 
 class Photon final : public TruthParticle
 {
 private:
-    static const string PREFIX;
+    static const std::string PREFIX;
     static const int PDG_ID;
     double _systematic_pt;
     double _systematic_energy;
     
-    
 public:
-    static std::vector<double> *photon_pt;
-    static std::vector<double> *photon_e;
-    static std::vector<double> *photon_eta;
-    static std::vector<double> *photon_phi;
-    static std::vector<double> *photon_etcone40;
-    static std::vector<int> *photon_id;
-    static std::vector<int> *photon_id_loose;
-    static std::vector<int> *photon_id_tight;
-    static std::vector<int> *photon_cluster_eta_be_2;
-    static std::vector<int> *photon_id_nn;
+    static std::vector<double>* photon_pt;
+    static std::vector<double>* photon_e;
+    static std::vector<double>* photon_eta;
+    static std::vector<double>* photon_phi;
+    static std::vector<double>* photon_etcone40;
+    static std::vector<int>* photon_id;
+    static std::vector<int>* photon_id_loose;
+    static std::vector<int>* photon_id_tight;
+    static std::vector<int>* photon_cluster_eta_be_2;
+    static std::vector<int>* photon_id_nn;
     
     static void SetPhoton(TChain*);
     Photon();
@@ -166,20 +150,19 @@ public:
     int id_tight() override;
     double cluster_eta();
     int id_nn();
-    operator string();
+    operator std::string();
 };
 
 class Cluster final : public PhysicsObject
 {
 private:
-    static const string PREFIX;
-    
+    static const std::string PREFIX;
     
 public:
-    static std::vector<double> *cluster_pt;
-    static std::vector<double> *cluster_eta;
-    static std::vector<double> *cluster_phi;
-    static std::vector<double> *cluster_e;
+    static std::vector<double>* cluster_pt;
+    static std::vector<double>* cluster_eta;
+    static std::vector<double>* cluster_phi;
+    static std::vector<double>* cluster_e;
     
     static void SetCluster(TChain*);
     Cluster();
@@ -195,9 +178,7 @@ public:
 class Track final : public PhysicsObject
 {
 private:
-    static const string PREFIX;
-    
-    
+    static const std::string PREFIX;
 public:
     static std::vector<double>* track_pt;
     static std::vector<double>* track_charge;
@@ -219,9 +200,7 @@ public:
     double e() override;
     int num_pixel_hits();
     int num_sct_hits();
-    operator string();
+    operator std::string();
 };
-
-
 
 #endif
