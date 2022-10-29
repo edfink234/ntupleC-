@@ -2,24 +2,27 @@
 #include <cmath>
 #include <algorithm>
 #include <chrono>
-//https://root-forum.cern.ch/t/problem-in-accessing-vector-vector-float/27983/2
-#include "LinkDef.h"
+#include <string>
+#include <vector>
+#include <array>
+#include <iostream>
+
+#include "TH1F.h"
 #include "TFile.h"
+
+//https://root-forum.cern.ch/t/problem-in-accessing-vector-vector-float/27983/2
+//#include "LinkDef.h"
 #include "plotting.h"
 #include "objects.h"
 #include "event.h"
 #include "filereader.h"
-#include "TH1F.h"
-#include "TInterpreter.h"
-#include "RtypesCore.h"
+
 using Clock = std::chrono::high_resolution_clock;
 
-
 //debugging: https://drake.mit.edu/profiling.html
-const std::vector<string> CUTS = {"truth","reco","reco_2y"};
-std::unordered_map<string,Plot> plots;
-std::unordered_map<string,PlotGroup> plot_groups;
-
+constexpr std::array<const char*,3> CUTS = {"truth","reco","reco_2y"};
+std::unordered_map<std::string,Plot> plots;
+std::unordered_map<std::string,PlotGroup> plot_groups;
 
 double dR(TruthParticle& lepton1, TruthParticle& lepton2)
 {
@@ -30,7 +33,7 @@ double dR(TruthParticle& lepton1, TruthParticle& lepton2)
          + (lepton1.phi() - lepton2.phi())*(lepton1.phi() - lepton2.phi())),0.5);
 }
 
-bool lepton_selection(vector<TruthParticle>& leptons)
+bool lepton_selection(std::vector<TruthParticle>& leptons)
 {
     return
     (
@@ -50,12 +53,10 @@ bool lepton_selection(vector<TruthParticle>& leptons)
      ||
     (leptons[1].pt() > 20e3 && leptons[0].pt() > 27e3))
      );
-    
 }
 
 bool photon_selection(Photon& photon)
 {
-//    cout << "photon_selection here\n";
     return ((photon.id_()) && (photon.pt() > 10000)
     && (abs(photon.eta()) < 2.37)
             && (!((1.37 < abs(photon.eta())) && (1.52 > abs(photon.eta())))));
@@ -71,115 +72,104 @@ bool track_selection(Track& track)
  but it makes it ~10^-1 seconds slower...
  */
 
-void fill_signal_hists(std::vector<TruthParticle>& particles, string cutname, double weight = 1, string particleType = "photons")
+void fill_signal_hists(std::vector<TruthParticle>& particles, std::string cutname, double weight = 1, std::string particleType = "photons")
 {
-    
-    if (particleType=="leptons")
+    if (particleType == "leptons")
     {
         for (auto lepton: particles)
         {
-            plot_groups[cutname+string("/leptons/pt")].fill(lepton.pt()/1e3,weight);
-            plots[cutname+string("/leptons/eta")].fill(lepton.eta(),weight);
-        }
-        return;
-    }
-
-    
-    for (auto photon: particles)
-    {
-
-        plot_groups.at(cutname+string("/photons/pt")).fill(photon.pt()/1e3,weight);
-        plots.at(cutname+string("/photons/eta")).fill(photon.eta(),weight);
-
-    }
-}
-
-void fill_signal_hists(std::vector<Photon>& particles, string cutname, double weight = 1, string particleType = "photons")
-{
-
-    if (particleType=="leptons")
-    {
-        for (auto lepton: particles)
-        {
-            plot_groups[cutname+string("/leptons/pt")].fill(lepton.pt()/1e3,weight);
-            plots[cutname+string("/leptons/eta")].fill(lepton.eta(),weight);
+            plot_groups[cutname+std::string("/leptons/pt")].fill(lepton.pt()/1e3,weight);
+            plots[cutname+std::string("/leptons/eta")].fill(lepton.eta(),weight);
         }
         return;
     }
 
     for (auto photon: particles)
     {
-        plot_groups.at(cutname+string("/photons/pt")).fill(photon.pt()/1e3,weight);
-        plots.at(cutname+string("/photons/eta")).fill(photon.eta(),weight);
+        plot_groups.at(cutname+std::string("/photons/pt")).fill(photon.pt()/1e3,weight);
+        plots.at(cutname+std::string("/photons/eta")).fill(photon.eta(),weight);
     }
 }
 
+void fill_signal_hists(std::vector<Photon>& particles, std::string cutname, double weight = 1, std::string particleType = "photons")
+{
+    if (particleType == "leptons")
+    {
+        for (auto lepton: particles)
+        {
+            plot_groups[cutname+std::string("/leptons/pt")].fill(lepton.pt()/1e3,weight);
+            plots[cutname+std::string("/leptons/eta")].fill(lepton.eta(),weight);
+        }
+        return;
+    }
 
-void run_analysis(string& input_filename, string systematic = "nominal", bool mc = false)
+    for (auto photon: particles)
+    {
+        plot_groups.at(cutname+std::string("/photons/pt")).fill(photon.pt()/1e3,weight);
+        plots.at(cutname+std::string("/photons/eta")).fill(photon.eta(),weight);
+    }
+}
+
+void run_analysis(std::string& input_filename, std::string systematic = "nominal", bool mc = false)
 {
 //https://en.cppreference.com/w/cpp/utility/variant
     //or union
 //https://www.sololearn.com/compiler-playground/cop9eIyns3c3
     
+    plots.emplace("cutflow",Plot(systematic+std::string("/cutflow"), std::string("cutflow"), 10, 0, 10));
 
-    
-    plots.emplace("cutflow",Plot(systematic+string("/cutflow"), string("cutflow"), 10, 0, 10));
-    
-
-    for (const string& cutname: CUTS)
+    for (const std::string& cutname: CUTS)
     {
-        plots.emplace(cutname+string("/photons/eta"),
-            Plot(systematic+string(1,'/')+cutname
-            +string("/photons/eta"),
-            string("eta"), 40, -6, 6));
+        plots.emplace(cutname+std::string("/photons/eta"),
+            Plot(systematic+std::string(1,'/')+cutname
+            +std::string("/photons/eta"),
+            std::string("eta"), 40, -6, 6));
 
-        plots.emplace(cutname+string("/leptons/eta"),
-            Plot(systematic+string(1,'/')+cutname
-            +string("/leptons/eta"),
-            string("eta"), 40, -6, 6));
+        plots.emplace(cutname+std::string("/leptons/eta"),
+            Plot(systematic+std::string(1,'/')+cutname
+            +std::string("/leptons/eta"),
+            std::string("eta"), 40, -6, 6));
 
         plot_groups.emplace(
-        cutname+string("/photons/pt"),
+        cutname+std::string("/photons/pt"),
         PlotGroup({
-            Plot(systematic+string(1,'/')+cutname
-            +string("/photons/pt"),
-            string("pT / GeV"), 20, 0, 200),
-            Plot(systematic+string(1,'/')+cutname
-            +string("/photons/pt_tight"),
-            string("pT / GeV"), 100, 0, 100)
+            Plot(systematic+std::string(1,'/')+cutname
+            +std::string("/photons/pt"),
+            std::string("pT / GeV"), 20, 0, 200),
+            Plot(systematic+std::string(1,'/')+cutname
+            +std::string("/photons/pt_tight"),
+            std::string("pT / GeV"), 100, 0, 100)
         }));
 
         plot_groups.emplace(
-        cutname+string("/leptons/pt"),
+        cutname+std::string("/leptons/pt"),
         PlotGroup({
-            Plot(systematic+string(1,'/')+cutname
-            +string("/leptons/pt"),
-            string("pT / GeV"), 20, 0, 200),
-            Plot(systematic+string(1,'/')+cutname
-            +string("/leptons/pt_tight"),
-            string("pT / GeV"), 100, 0, 100)
+            Plot(systematic+std::string(1,'/')+cutname
+            +std::string("/leptons/pt"),
+            std::string("pT / GeV"), 20, 0, 200),
+            Plot(systematic+std::string(1,'/')+cutname
+            +std::string("/leptons/pt_tight"),
+            std::string("pT / GeV"), 100, 0, 100)
         }));
-
     }
+    
     FileReaderRange reader({input_filename});
     Event::systematic = systematic;
     Event::load_tracks = true;
     int num_passed_events = 0;
     
-
     for (auto &&f: reader)
     {
-
-        cout << "entry_number " << f.__current_event.entry_number  << '\n';
-//
+        std::cout << "entry_number " << f.__current_event.entry_number  << '\n';
+        
         int weight = 1;
+        
         if (mc)
         {
-            
             std::vector<TruthParticle>&& truth_higgs = f.find_truth_particles({},{},{35});
             if (!(truth_higgs.empty()))
             {
-                cout << "found!";
+                std::cout << "found!";
                 std::vector<TruthParticle>&& truth_axions = f.find_truth_particles({},{truth_higgs[0].barcode()}, {36});
             }
             int temp = 1;
@@ -187,61 +177,45 @@ void run_analysis(string& input_filename, string systematic = "nominal", bool mc
 //
 //            for (auto i: truth_photons)
 //            {
-//                cout << string(i) << '\n';
+//                std::cout << std::string(i) << '\n';
 //            }
 
-//
             fill_signal_hists(truth_photons,"truth");
 //
-//
-            
             std::vector<TruthParticle>&& truth_leptons = f.find_truth_particles({},{},{11, 12, 13, 14, 15, 16, 17, 18},&temp);
             
-            
-
             if (lepton_selection(truth_leptons))
             {
                 fill_signal_hists(truth_leptons, "truth",1,"leptons");
             }
-           
-//
         }
-//
-//
-        
-//        vector<TruthParticle> photons;
-        
-        vector<Photon> photons;
+//        std::vector<TruthParticle> photons;
+        std::vector<Photon> photons;
 //        std::cout << photons.size() << ' ' << f.__current_event.photons.size()
 //        << '\n';
         std::copy_if (f.__current_event.photons.begin(), f.__current_event.photons.end(), std::back_inserter(photons), photon_selection );
         fill_signal_hists(photons, "reco", weight);
-//
         if (photons.size() == 2)
         {
 //            for (auto i: photons)
 //            {
-//                cout << string(i) << '\n';
+//                std::cout << std::string(i) << '\n';
 //            }
             fill_signal_hists(photons,"reco_2y",weight);
             num_passed_events++;
         }
-       
     }
     
-    cout << "# events for " << systematic << " = " << num_passed_events
+    std::cout << "# events for " << systematic << " = " << num_passed_events
     << '\n';
-    
 }
-
 
 void analyse_haa()
 {
     auto start_time = Clock::now();
-    cout << "Run over MC\n";
+    std::cout << "Run over MC\n";
 
-    string input_filename("../user.kschmied.28655874._000025.LGNTuple.root");
-    
+    std::string input_filename("../user.kschmied.28655874._000025.LGNTuple.root");
     
 //    const char* output_filename = "example_mc_haa_out_test1cpp.root";
     const char* output_filename = "example_mc_haa_out_testcpp.root";
@@ -251,10 +225,9 @@ void analyse_haa()
        exit(-1);
     }
     
-
-    std::vector<string> systematics = {"nominal"};
+    std::vector<std::string> systematics = {"nominal"};
     
-    for (string& systematic: systematics)
+    for (std::string& systematic: systematics)
     {
         run_analysis(input_filename, systematic.c_str(), true);
     }
@@ -273,10 +246,7 @@ void analyse_haa()
     auto end_time = Clock::now();
     std::cout << "Time difference:"
        << std::chrono::duration_cast<std::chrono::nanoseconds>(end_time - start_time).count() << " nanoseconds" << std::endl;
-    
 }
-
-
 
 int main()
 {

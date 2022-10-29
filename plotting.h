@@ -1,46 +1,39 @@
 #ifndef PLOTTINGH
 #define PLOTTINGH
 
-#include <iostream>
 #include <string>
 #include <vector>
 #include <tuple>
 #include <memory>
+
 #include "TH1F.h"
 #include "TH2F.h"
 #include "TFile.h"
 #include "TError.h"
-using std::get;
-using std::cout;
-
-using std::string;
-using std::vector;
-using std::tuple;
 
 //TODO: make these enum classes, item 10 Effective Modern C++
 enum plotOptions{x_label,y_label,bin_edges};
 
-void _mkdir_recursive(TFile*, const string&);
+void _mkdir_recursive(TFile*, const std::string&);
 
 class Plot
 {
 private:
-    string name;
-    string path;
-    string write_name;
-    string title;
+    std::string name;
+    std::string path;
+    std::string write_name;
+    std::string title;
     int __nbins;
     int __x_min;
     int __x_max;
-    string __x_label;
-    string __y_label;
-    vector<double> __bin_edges;
+    std::string __x_label;
+    std::string __y_label;
+    std::vector<double> __bin_edges;
     std::shared_ptr<TH1F> __hist;
 public:
-//    string name;
     Plot();
     ~Plot();
-    Plot(string name, string title="", int nbins = 40, int x_min = 0, int x_max = 20, tuple<string, string, vector<double>>&& kwargs = {});
+    Plot(std::string name, std::string title="", int nbins = 40, int x_min = 0, int x_max = 20, std::tuple<std::string, std::string, std::vector<double>>&& kwargs = {});
     
     Plot(const Plot&);
     Plot& operator=(const Plot&);
@@ -59,25 +52,24 @@ public:
 class Plot2D
 {
 private:
-    string name;
-    string path;
-    string write_name;
-    string title;
+    std::string name;
+    std::string path;
+    std::string write_name;
+    std::string title;
     int __xbins;
     int __x_min;
     int __x_max;
     int __ybins;
     int __y_min;
     int __y_max;
-    string __x_label;
-    string __y_label;
+    std::string __x_label;
+    std::string __y_label;
     std::shared_ptr<TH2F> __hist;
     
 public:
-//    string name;
     Plot2D();
     ~Plot2D();
-    Plot2D(string name, string title="", int xbins = 40, int x_min = 0, int x_max = 20, int ybins = 40, int y_min = 0, int y_max = 20, tuple<string, string, vector<double>>&& kwargs = {});
+    Plot2D(std::string name, std::string title="", int xbins = 40, int x_min = 0, int x_max = 20, int ybins = 40, int y_min = 0, int y_max = 20, std::tuple<std::string, std::string, std::vector<double>>&& kwargs = {});
     
     Plot2D(const Plot2D&);
     Plot2D& operator=(const Plot2D&);
@@ -92,15 +84,14 @@ public:
     TH2F hist();
 };
 
-//FIXME:
 class PlotGroup //1D
 {
 private:
-    vector<Plot> __hists;
+    std::vector<Plot> __hists;
 public:
     PlotGroup();
     ~PlotGroup();
-    PlotGroup(vector<Plot>&&);
+    PlotGroup(std::vector<Plot>&&);
     
     PlotGroup(const PlotGroup&);
     PlotGroup& operator=(const PlotGroup&);
@@ -108,18 +99,17 @@ public:
     void add(const PlotGroup&);
     void fill(double value, double weight=1.0);
     void save(TFile* out_file = nullptr);
-    vector<Plot> hists();
+    std::vector<Plot> hists();
 };
 
-//FIXME: 
 class PlotGroup2D //2D
 {
 private:
-    vector<Plot2D> __hists;
+    std::vector<Plot2D> __hists;
 public:
     PlotGroup2D();
     ~PlotGroup2D();
-    PlotGroup2D(vector<Plot2D>&&);
+    PlotGroup2D(std::vector<Plot2D>&&);
     
     PlotGroup2D(const PlotGroup2D&);
     PlotGroup2D& operator=(const PlotGroup2D&);
@@ -127,9 +117,7 @@ public:
     void add(const PlotGroup2D&);
     void fill(double x, double y, double weight=1.0);
     void save(TFile* out_file = nullptr);
-    vector<Plot2D> hists();
+    std::vector<Plot2D> hists();
 };
-
-
 
 #endif

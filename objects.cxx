@@ -1,8 +1,8 @@
 #include "objects.h"
-#include "TMath.h"
-#include <cassert>
 
-using std::to_string;
+#include "TMath.h"
+
+
 
 //TODO: Maybe add some namespaces?
 
@@ -38,17 +38,17 @@ double PhysicsObject::delta_r(TruthParticle& particle_b)
     return this->Vector().DeltaR(particle_b.Vector());
 }
 
-PhysicsObject::operator string() //const
+PhysicsObject::operator std::string() //const
 {
     return
     (
-    "Particle(pT="+to_string(pt())
-    +", eta=" + to_string(eta())
-    +", phi=" + to_string(phi())
+    "Particle(pT = "+std::to_string(pt())
+    +", eta = " + std::to_string(eta())
+    +", phi = " + std::to_string(phi())
     );
 }
 
-const string PhysicsObject::PREFIX = "";
+const std::string PhysicsObject::PREFIX = "";
 
 //                *****************
 //                * TruthParticle *
@@ -64,11 +64,7 @@ TruthParticle::TruthParticle(int index, int entry_number, const char* name, cons
     //https://root.cern/root/html534/tutorials/tree/hvector.C.html
 
     pdg_id = (*TruthParticle::mc_pdg_id)[_index];
-    
 }
-
-
-
 
 TruthParticle::TruthParticle(const TruthParticle& particle_temp)
 {
@@ -101,84 +97,55 @@ int TruthParticle::barcode()
     return (*TruthParticle::mc_barcode)[_index];
 }
 
-
-
 int TruthParticle::parent_barcode()
 {
     return (*TruthParticle::mc_parent_barcode)[_index];
 }
-
-
 
 int TruthParticle::status_code()
 {
     return (*TruthParticle::mc_status)[_index];
 }
 
-
-
 double TruthParticle::pt()
 {
     return (*TruthParticle::mc_pt)[_index];
 }
-
-
-
 
 double TruthParticle::charge()
 {
     return (*TruthParticle::mc_charge)[_index];
 }
 
-
-
-
 double TruthParticle::eta()
 {
     return (*TruthParticle::mc_eta)[_index];
 }
-
-
-
-
-
-
 
 double TruthParticle::phi()
 {
     return (*TruthParticle::mc_phi)[_index];
 }
 
-
-
-
-
-
 double TruthParticle::e()
 {
     return (*TruthParticle::mc_e)[_index];
 }
-
-
-
 
 double TruthParticle::m()
 {
     return (*TruthParticle::mc_mass)[_index];
 }
 
-
-
-
-TruthParticle::operator string() 
+TruthParticle::operator std::string()
 {
     return
     (
-    "TruthParticle(pdg_id="+to_string(pdg_id)
-    +", pT=" + to_string(pt())
-    +", charge=" + to_string(charge())
-    +", eta=" + to_string(eta())
-    +", phi=" + to_string(phi())
+    "TruthParticle(pdg_id = "+std::to_string(pdg_id)
+    +", pT = " + std::to_string(pt())
+    +", charge = " + std::to_string(charge())
+    +", eta = " + std::to_string(eta())
+    +", phi = " + std::to_string(phi())
     );
 }
 
@@ -186,7 +153,7 @@ int TruthParticle::id_(){return true;}
 int TruthParticle::id_loose(){return true;}
 int TruthParticle::id_tight(){return true;}
 
-const string TruthParticle::PREFIX = "mc";
+const std::string TruthParticle::PREFIX = "mc";
 std::vector<int>* TruthParticle::mc_pdg_id = nullptr;
 std::vector<int>* TruthParticle::mc_barcode = nullptr;
 std::vector<int>* TruthParticle::mc_parent_barcode = nullptr;
@@ -210,7 +177,6 @@ void TruthParticle::SetTruthParticle(TChain* chain)
     chain->SetBranchStatus("mc_phi",1);
     chain->SetBranchStatus("mc_e",1);
     chain->SetBranchStatus("mc_mass",1);
-    
     
     chain->SetBranchAddress("mc_pdg_id",&TruthParticle::mc_pdg_id);
     chain->SetBranchAddress("mc_barcode",&TruthParticle::mc_barcode);
@@ -241,7 +207,6 @@ Electron::Electron(int index, double pt, double energy, int entry_number, const 
     
 }
 
-
 Electron::Electron(const Electron& other)
 {
     pdg_id = other.pdg_id;
@@ -254,7 +219,6 @@ Electron::Electron(const Electron& other)
 
 Electron& Electron::operator=(const Electron& other)
 {
-
     pdg_id = other.pdg_id;
     _index = other._index;
     _entry_number = other._entry_number;
@@ -278,8 +242,6 @@ double Electron::pt()
     return (*Electron::electron_pt)[_index];
 }
 
-
-
 double Electron::e()
 {
     if (_systematic_energy)
@@ -289,74 +251,50 @@ double Electron::e()
     return (*Electron::electron_e)[_index];
 }
 
-
-
-
 double Electron::eta()
 {
     return (*Electron::electron_eta)[_index];
 }
-
-
-
 
 double Electron::phi()
 {
     return (*Electron::electron_phi)[_index];
 }
 
-
-
-
-
 int Electron::id_()
 {
     return (*Electron::electron_id)[_index];
 }
-
-
-
-
 
 double Electron::isolation()
 {
     return (*Electron::electron_isolation)[_index];
 }
 
-
-
-
-
-
-
 double Electron::d0()
 {
     return (*Electron::electron_d0)[_index];
 }
-
-
 
 double Electron::z0()
 {
     return (*Electron::electron_z0)[_index];
 }
 
-
-
-Electron::operator string()
+Electron::operator std::string()
 {
     return
     (
-    "TruthParticle(pdg_id="+to_string(PDG_ID)
-    +", pT=" + to_string(pt())
-    +", charge=" + to_string(charge())
-    +", eta=" + to_string(eta())
-    +", phi=" + to_string(phi())
+    "TruthParticle(pdg_id = "+std::to_string(PDG_ID)
+    +", pT = " + std::to_string(pt())
+    +", charge = " + std::to_string(charge())
+    +", eta = " + std::to_string(eta())
+    +", phi = " + std::to_string(phi())
     );
 }
 
 const int Electron::PDG_ID = 11;
-const string Electron::PREFIX = "electron";
+const std::string Electron::PREFIX = "electron";
 std::vector<double>* Electron::electron_pt = nullptr;
 std::vector<double>* Electron::electron_e = nullptr;
 std::vector<double>* Electron::electron_eta = nullptr;
@@ -396,7 +334,6 @@ Photon::Photon(int index, double pt, double energy, int entry_number, const char
 
 Photon::Photon(const Photon& other)
 {
-
     pdg_id = other.pdg_id;
     _index = other._index;
     _entry_number = other._entry_number;
@@ -407,7 +344,6 @@ Photon::Photon(const Photon& other)
 
 Photon& Photon::operator=(const Photon& other)
 {
-
     pdg_id = other.pdg_id;
     _index = other._index;
     _entry_number = other._entry_number;
@@ -435,21 +371,15 @@ double Photon::e()
     return (*Photon::photon_e)[_index];
 }
 
-
-
 double Photon::eta()
 {
     return (*Photon::photon_eta)[_index];
 }
 
-
-
 double Photon::phi()
 {
     return (*Photon::photon_phi)[_index];
 }
-
-
 
 double Photon::m()
 {
@@ -461,61 +391,45 @@ double Photon::isolation()
     return (*Photon::photon_etcone40)[_index];
 }
 
-
-
 int Photon::id_()
 {
     return (*Photon::photon_id)[_index];
 }
-
-
 
 int Photon::id_loose()
 {
     return (*Photon::photon_id_loose)[_index];
 }
 
-
-
-
 int Photon::id_tight()
 {
     return (*Photon::photon_id_tight)[_index];
 }
-
-
-
 
 double Photon::cluster_eta()
 {
     return (*Photon::photon_cluster_eta_be_2)[_index];
 }
 
-
-
-
 int Photon::id_nn()
 {
     return (*Photon::photon_id_nn)[_index];
 }
 
-
-
-
-Photon::operator string()
+Photon::operator std::string()
 {
     return
     (
-    "TruthParticle(pdg_id="+to_string(PDG_ID)
-    +", pT=" + to_string(pt())
-    +", charge=" + to_string(charge())
-    +", eta=" + to_string(eta())
-    +", phi=" + to_string(phi())
+    "TruthParticle(pdg_id = "+std::to_string(PDG_ID)
+    +", pT = " + std::to_string(pt())
+    +", charge = " + std::to_string(charge())
+    +", eta = " + std::to_string(eta())
+    +", phi = " + std::to_string(phi())
     );
 }
 
 const int Photon::PDG_ID = 22;
-const string Photon::PREFIX = "photon";
+const std::string Photon::PREFIX = "photon";
 
 std::vector<double>* Photon::photon_pt = nullptr;
 std::vector<double>* Photon::photon_e = nullptr;
@@ -577,23 +491,17 @@ double Cluster::eta()
     return (*Cluster::cluster_eta)[_index];
 }
 
-
-
 double Cluster::phi()
 {
     return (*Cluster::cluster_phi)[_index];
 }
-
-
 
 double Cluster::e()
 {
     return (*Cluster::cluster_e)[_index];
 }
 
-
-
-const string Cluster::PREFIX = "cluster";
+const std::string Cluster::PREFIX = "cluster";
 
 std::vector<double>* Cluster::cluster_pt = nullptr;
 std::vector<double>* Cluster::cluster_eta = nullptr;
@@ -613,7 +521,6 @@ void Cluster::SetCluster(TChain* chain)
 //                *****************
 
 Track::Track() = default;
-
 
 Track::Track(int index, int entry_number, const char* name, const char* title)
 :   PhysicsObject::PhysicsObject(index, entry_number, name, title)
@@ -639,63 +546,48 @@ double Track::pt()
     return (*Track::track_pt)[_index];
 }
 
-
-
 double Track::charge()
 {
     return (*Track::track_charge)[_index];
 }
-
-
 
 double Track::eta()
 {
     return (*Track::track_eta)[_index];
 }
 
-
 double Track::phi()
 {
     return (*Track::track_phi)[_index];
 }
-
-
-
 
 double Track::e()
 {
     return (*Track::track_e)[_index];
 }
 
-
-
-
 int Track::num_pixel_hits()
 {
     return (*Track::track_num_pixel_hits)[_index];
 }
-
-
 
 int Track::num_sct_hits()
 {
     return (*track_num_sct_hits)[_index];
 }
 
-
-
-Track::operator string()
+Track::operator std::string()
 {
     return
     (
-     "Track(pT="+to_string(pt())
-    +", charge=" + to_string(charge())
-    +", eta=" + to_string(eta())
-    +", phi=" + to_string(phi())
+     "Track(pT = "+std::to_string(pt())
+    +", charge = " + std::to_string(charge())
+    +", eta = " + std::to_string(eta())
+    +", phi = " + std::to_string(phi())
     );
 }
 
-const string Track::PREFIX = "track";
+const std::string Track::PREFIX = "track";
 
 std::vector<double>* Track::track_pt = nullptr;
 std::vector<double>* Track::track_charge = nullptr;
@@ -714,5 +606,4 @@ void Track::SetTrack(TChain* chain)
 //    chain->SetBranchAddress("track_e",&Track::track_e);
     chain->SetBranchAddress("track_num_pixel_hits",&Track::track_num_pixel_hits);
     chain->SetBranchAddress("track_num_sct_hits",&Track::track_num_sct_hits);
-    
 }

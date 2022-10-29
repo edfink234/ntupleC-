@@ -1,9 +1,9 @@
 #ifndef CANDIDATEH
 #define CANDIDATEH
 
-#include <cmath>
-#include <utility>
 #include "objects.h"
+
+#include <utility>
 
 class CandidateSet {
     TLorentzVector four_momentum;
@@ -19,6 +19,5 @@ public:
     double delta_eta();
     double acoplanarity();
 };
-
 
 #endif
