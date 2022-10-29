@@ -354,7 +354,7 @@ std::vector<TruthParticle> FileReader::find_truth_particles
     return results;
 }
 
-FileReaderRange::FileReaderRange(std::vector<std::string>&& files,
+FileReaderRange::FileReaderRange(std::vector<std::string>& files,
        const char* tree_name,
        Long64_t num_events, int skip_first_events) :
 f(files,tree_name, num_events, skip_first_events)

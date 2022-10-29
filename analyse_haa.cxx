@@ -110,7 +110,7 @@ void fill_signal_hists(std::vector<Photon>& particles, std::string cutname, doub
     }
 }
 
-void run_analysis(std::string& input_filename, std::string systematic = "nominal", bool mc = false)
+void run_analysis(std::vector<std::string>& input_filenames, std::string systematic = "nominal", bool mc = false)
 {
 //https://en.cppreference.com/w/cpp/utility/variant
     //or union
@@ -153,7 +153,7 @@ void run_analysis(std::string& input_filename, std::string systematic = "nominal
         }));
     }
     
-    FileReaderRange reader({input_filename});
+    FileReaderRange reader(input_filenames);
     Event::systematic = systematic;
     Event::load_tracks = true;
     int num_passed_events = 0;
@@ -215,8 +215,41 @@ void analyse_haa()
     auto start_time = Clock::now();
     std::cout << "Run over MC\n";
 
-    std::string input_filename("../user.kschmied.28655874._000025.LGNTuple.root");
+    std::vector<std::string> input_filenames = {"../user.kschmied.28655874._000025.LGNTuple.root","../user.kschmied.28655874._000024.LGNTuple.root"};
     
+//    Error in <TTree::SetBranchStatus>: unknown branch -> ei_event_number
+//    Error in <TTree::SetBranchStatus>: unknown branch -> m_RunNumber
+//    Error in <TTree::SetBranchStatus>: unknown branch -> m_RandomRunNumber
+    
+    
+//    std::vector<std::string> input_filenames =
+//    {
+//        "/home/common/Haa/ntuples/MC/background_v14/user.kschmied.361106.PowhegPythia8EvtGen_AZNLOCTEQ6L1_Zee_v14_LGNTuple.root/user.kschmied.28655874._000002.LGNTuple.root",
+//        "/home/common/Haa/ntuples/MC/background_v14/user.kschmied.361106.PowhegPythia8EvtGen_AZNLOCTEQ6L1_Zee_v14_LGNTuple.root/user.kschmied.28655874._000001.LGNTuple.root",
+//        "/home/common/Haa/ntuples/MC/background_v14/user.kschmied.361106.PowhegPythia8EvtGen_AZNLOCTEQ6L1_Zee_v14_LGNTuple.root/user.kschmied.28655874._000005.LGNTuple.root",
+//        "/home/common/Haa/ntuples/MC/background_v14/user.kschmied.361106.PowhegPythia8EvtGen_AZNLOCTEQ6L1_Zee_v14_LGNTuple.root/user.kschmied.28655874._000006.LGNTuple.root",
+//        "/home/common/Haa/ntuples/MC/background_v14/user.kschmied.361106.PowhegPythia8EvtGen_AZNLOCTEQ6L1_Zee_v14_LGNTuple.root/user.kschmied.28655874._000007.LGNTuple.root",
+//        "/home/common/Haa/ntuples/MC/background_v14/user.kschmied.361106.PowhegPythia8EvtGen_AZNLOCTEQ6L1_Zee_v14_LGNTuple.root/user.kschmied.28655874._000004.LGNTuple.root",
+//        "/home/common/Haa/ntuples/MC/background_v14/user.kschmied.361106.PowhegPythia8EvtGen_AZNLOCTEQ6L1_Zee_v14_LGNTuple.root/user.kschmied.28655874._000003.LGNTuple.root",
+//        "/home/common/Haa/ntuples/MC/background_v14/user.kschmied.361106.PowhegPythia8EvtGen_AZNLOCTEQ6L1_Zee_v14_LGNTuple.root/user.kschmied.28655874._000010.LGNTuple.root",
+//        "/home/common/Haa/ntuples/MC/background_v14/user.kschmied.361106.PowhegPythia8EvtGen_AZNLOCTEQ6L1_Zee_v14_LGNTuple.root/user.kschmied.28655874._000009.LGNTuple.root",
+//        "/home/common/Haa/ntuples/MC/background_v14/user.kschmied.361106.PowhegPythia8EvtGen_AZNLOCTEQ6L1_Zee_v14_LGNTuple.root/user.kschmied.28655874._000008.LGNTuple.root",
+//        "/home/common/Haa/ntuples/MC/background_v14/user.kschmied.361106.PowhegPythia8EvtGen_AZNLOCTEQ6L1_Zee_v14_LGNTuple.root/user.kschmied.28655874._000011.LGNTuple.root",
+//        "/home/common/Haa/ntuples/MC/background_v14/user.kschmied.361106.PowhegPythia8EvtGen_AZNLOCTEQ6L1_Zee_v14_LGNTuple.root/user.kschmied.28655874._000012.LGNTuple.root",
+//        "/home/common/Haa/ntuples/MC/background_v14/user.kschmied.361106.PowhegPythia8EvtGen_AZNLOCTEQ6L1_Zee_v14_LGNTuple.root/user.kschmied.28655874._000015.LGNTuple.root",
+//        "/home/common/Haa/ntuples/MC/background_v14/user.kschmied.361106.PowhegPythia8EvtGen_AZNLOCTEQ6L1_Zee_v14_LGNTuple.root/user.kschmied.28655874._000013.LGNTuple.root",
+//        "/home/common/Haa/ntuples/MC/background_v14/user.kschmied.361106.PowhegPythia8EvtGen_AZNLOCTEQ6L1_Zee_v14_LGNTuple.root/user.kschmied.28655874._000017.LGNTuple.root",
+//        "/home/common/Haa/ntuples/MC/background_v14/user.kschmied.361106.PowhegPythia8EvtGen_AZNLOCTEQ6L1_Zee_v14_LGNTuple.root/user.kschmied.28655874._000014.LGNTuple.root",
+//        "/home/common/Haa/ntuples/MC/background_v14/user.kschmied.361106.PowhegPythia8EvtGen_AZNLOCTEQ6L1_Zee_v14_LGNTuple.root/user.kschmied.28655874._000016.LGNTuple.root",
+//        "/home/common/Haa/ntuples/MC/background_v14/user.kschmied.361106.PowhegPythia8EvtGen_AZNLOCTEQ6L1_Zee_v14_LGNTuple.root/user.kschmied.28655874._000019.LGNTuple.root",
+//        "/home/common/Haa/ntuples/MC/background_v14/user.kschmied.361106.PowhegPythia8EvtGen_AZNLOCTEQ6L1_Zee_v14_LGNTuple.root/user.kschmied.28655874._000018.LGNTuple.root",
+//        "/home/common/Haa/ntuples/MC/background_v14/user.kschmied.361106.PowhegPythia8EvtGen_AZNLOCTEQ6L1_Zee_v14_LGNTuple.root/user.kschmied.28655874._000021.LGNTuple.root",
+//        "/home/common/Haa/ntuples/MC/background_v14/user.kschmied.361106.PowhegPythia8EvtGen_AZNLOCTEQ6L1_Zee_v14_LGNTuple.root/user.kschmied.28655874._000023.LGNTuple.root",
+//        "/home/common/Haa/ntuples/MC/background_v14/user.kschmied.361106.PowhegPythia8EvtGen_AZNLOCTEQ6L1_Zee_v14_LGNTuple.root/user.kschmied.28655874._000020.LGNTuple.root",
+//        "/home/common/Haa/ntuples/MC/background_v14/user.kschmied.361106.PowhegPythia8EvtGen_AZNLOCTEQ6L1_Zee_v14_LGNTuple.root/user.kschmied.28655874._000024.LGNTuple.root",
+//        "/home/common/Haa/ntuples/MC/background_v14/user.kschmied.361106.PowhegPythia8EvtGen_AZNLOCTEQ6L1_Zee_v14_LGNTuple.root/user.kschmied.28655874._000022.LGNTuple.root",
+//        "/home/common/Haa/ntuples/MC/background_v14/user.kschmied.361106.PowhegPythia8EvtGen_AZNLOCTEQ6L1_Zee_v14_LGNTuple.root/user.kschmied.28655874._000025.LGNTuple.root"
+//    };
 //    const char* output_filename = "example_mc_haa_out_test1cpp.root";
     const char* output_filename = "example_mc_haa_out_testcpp.root";
     TFile* output_file = TFile::Open(output_filename, "RECREATE");
@@ -229,7 +262,7 @@ void analyse_haa()
     
     for (std::string& systematic: systematics)
     {
-        run_analysis(input_filename, systematic.c_str(), true);
+        run_analysis(input_filenames, systematic.c_str(), true);
     }
     
     for (auto& plot: plots)
