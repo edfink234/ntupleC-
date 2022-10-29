@@ -54,7 +54,7 @@ public:
 class FileReaderRange {
     FileReader f;
 public:
-     FileReaderRange(std::vector<std::string>&& files,
+     FileReaderRange(std::vector<std::string>& files,
            const char* tree_name =
 //           "../user.kschmied.28655874._000025.LGNTuple.root?#physics",
            "physics",
