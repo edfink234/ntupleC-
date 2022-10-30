@@ -217,10 +217,6 @@ void analyse_haa()
 
     std::vector<std::string> input_filenames = {"../user.kschmied.28655874._000025.LGNTuple.root","../user.kschmied.28655874._000024.LGNTuple.root"};
     
-//    Error in <TTree::SetBranchStatus>: unknown branch -> ei_event_number
-//    Error in <TTree::SetBranchStatus>: unknown branch -> m_RunNumber
-//    Error in <TTree::SetBranchStatus>: unknown branch -> m_RandomRunNumber
-    
     
 //    std::vector<std::string> input_filenames =
 //    {
