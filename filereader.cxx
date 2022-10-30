@@ -10,7 +10,7 @@ __event_info_chain{"full_event_info"},
 __has_event_info_chain{true}
 
 {
-    for (auto& f: __files)
+    for (const auto& f: __files)
     {
         __chain.Add(f.c_str());
         __event_info_chain.Add(f.c_str());
@@ -41,6 +41,7 @@ FileReader::FileReader(const FileReader& other)
     __current_index = other.__current_index;
     __current_event = other.__current_event;
     __event_filters = other.__event_filters;
+    __has_event_info_chain = other.__has_event_info_chain;
     
     __chain.Reset();
     __chain.Add(const_cast<TChain*>(&other.__chain)); //😬
@@ -121,6 +122,7 @@ void FileReader::__load_track_addresses()
 {
     __chain.SetBranchStatus("track_pt",1);
     __chain.SetBranchAddress("track_pt",&(__current_event.track_pt));
+    
     if (__chain.GetListOfBranches()->FindObject("track_type"))
     {
         __chain.SetBranchStatus("track_type",1);
@@ -151,6 +153,7 @@ void FileReader::__load_truth_particle_addresses(bool cache_truth)
 
 void FileReader::__load_trigger_addresses()
 {
+    
     if (__chain.GetListOfBranches()->FindObject("trigger_passed_triggers"))
     {
         __chain.SetBranchStatus("trigger_passed_triggers",1);
@@ -310,7 +313,6 @@ std::vector<TruthParticle> FileReader::find_truth_particles
             {
                 continue;
             }
-            
             results.push_back(tp);
         }
     }
@@ -369,54 +371,24 @@ FileReaderRange::Iterator::Iterator(int i, FileReader& f) : data{i}, F{f}
     F.__current_index = F.__current_event.entry_number = data;
     F.__chain.SetBranchStatus("*",0);
     //SetAddresses
-
     if (F.__has_event_info_chain)
     {
-        F.__chain.SetBranchStatus("m_RunNumber",1);
-        F.__chain.SetBranchStatus("m_RandomRunNumber",1);
+        F.__event_info_chain.SetBranchStatus("m_RunNumber",1);
+        F.__event_info_chain.SetBranchStatus("m_RandomRunNumber",1);
         F.__chain.SetBranchStatus("ei_event_number",1);
-//        
-        
+
         F.__event_info_chain.SetBranchAddress("m_RunNumber",&(F.__current_event.m_RunNumber));
-        
         F.__event_info_chain.SetBranchAddress("m_RandomRunNumber",&(F.__current_event.m_RandomRunNumber));
-        
-        F.__event_info_chain.SetBranchAddress("ei_event_number",&(F.__current_event.ei_event_number));
-        
+        F.__chain.SetBranchAddress("ei_event_number",&(F.__current_event.ei_event_number));
     }
 
     F.__load_truth_particle_addresses(Event::cache_truth);
-
-    if (Event::load_reco)
-    {
-        if (Event::load_photons)
-        {
-            
-            F.__load_photon_addresses();
-            
-        }
-        if (Event::load_electrons)
-        {
-            F.__load_electron_addresses();
-            Photon::SetPhoton(&F.__chain);
-        }
-        if (Event::load_clusters)
-        {
-            F.__load_cluster_addresses();
-        }
-        if (Event::load_tracks)
-        {
-            F.__load_track_addresses();
-        }
-        if (Event::load_triggers)
-        {
-            F.__load_trigger_addresses();
-        }
-    }
+        
     if (Event::cache_truth)
     {
         TruthParticle::SetTruthParticle(&F.__chain);
     }
+        
     if (Event::load_reco)
     {
         if (Event::load_photons)
@@ -424,28 +396,31 @@ FileReaderRange::Iterator::Iterator(int i, FileReader& f) : data{i}, F{f}
             F.__load_photon_addresses();
             Photon::SetPhoton(&F.__chain);
         }
+        
         if (Event::load_electrons)
         {
             F.__load_electron_addresses();
             Electron::SetElectron(&F.__chain);
         }
+        
         if (Event::load_clusters)
         {
             F.__load_cluster_addresses();
             Cluster::SetCluster(&F.__chain);
         }
+        
         if (Event::load_tracks)
         {
             F.__load_track_addresses();
             Track::SetTrack(&F.__chain);
         }
+        
         if (Event::load_triggers)
         {
             F.__load_trigger_addresses();
-            
         }
     }
-        
+
     //GetAddresses
     if (F.__has_event_info_chain)
     {
@@ -488,9 +463,11 @@ FileReaderRange::Iterator& FileReaderRange::Iterator::operator++()
     F.__current_event.truth_particles.clear();
     F.__current_event.photons.clear();
     F.__current_event.triggers.clear();
-    
-//    F.__current_event = {}; //reset event
-//    printf("data = %d\n",data);
+    F.__current_event.tracks.clear();
+    F.__current_event.pixel_tracks.clear();
+    F.__current_event.clusters.clear();
+    F.__current_event.electrons.clear();
+
     F.__current_index = F.__current_event.entry_number = ++data;
     
     if (F.__has_event_info_chain)
@@ -502,7 +479,6 @@ FileReaderRange::Iterator& FileReaderRange::Iterator::operator++()
     if (Event::cache_truth)
     {
         F.__load_truth_particles();
-        
     }
     
     if (Event::load_reco)
