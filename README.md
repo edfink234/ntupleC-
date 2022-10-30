@@ -8,7 +8,7 @@ To run, have all .h and .cxx files in the same directory, then run:
 
 
 
- - `g++ -shared -o libmydict.so mydict.cxx \`root-config --cflags --libs\` -fPIC`
+ - `g++ -shared -o libmydict.so mydict.cxx `\``root-config --cflags --libs`\`` -fPIC`
 
 
 
