@@ -26,7 +26,7 @@ struct Event
     std::vector<int> *mc_barcode = nullptr;
     std::vector<int> *mc_parent_barcode = nullptr;
     std::vector<int> *mc_status = nullptr;
-    std::vector<int>* track_type = nullptr;
+    std::vector<int> *track_type = nullptr;
 
     int entry_number;
     int run_number;
