@@ -228,7 +228,7 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
                 num_passed_events += 1;
             }
 
-            else if (f.__current_event.tracks.empty())
+            if (f.__current_event.tracks.empty())
             {
                 fill_signal_hists(candidate,"01_no_tracks",weight);
                 fill_tracking_hists(f.__current_event,"01_no_tracks",weight);
