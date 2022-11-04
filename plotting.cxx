@@ -26,7 +26,7 @@ void _mkdir_recursive(TFile* out_file, const std::string& full_path)
 //                *      Plot      *
 //                ******************
 
-Plot::Plot(std::string name, std::string title, int nbins, int x_min, int x_max, std::tuple<std::string, std::string, std::vector<double>>&& kwargs)
+Plot::Plot(const std::string name, std::string title, int nbins, double x_min, double x_max, std::tuple<std::string, std::string, std::vector<double>>&& kwargs)
 :
     name{name},
     path{"/"},
@@ -39,8 +39,8 @@ Plot::Plot(std::string name, std::string title, int nbins, int x_min, int x_max,
     __y_label{std::get<y_label>(kwargs)},
     __bin_edges{std::get<bin_edges>(kwargs)}
 {
-    
     TH1::AddDirectory(kFALSE);
+//    __hist->SetDirectory(0);
     size_t temp;
     if ((temp = name.find_last_of('/')) != std::string::npos)
     {
@@ -65,7 +65,6 @@ Plot::Plot(std::string name, std::string title, int nbins, int x_min, int x_max,
 
 Plot::~Plot() = default;
 
-//https://stackoverflow.com/questions/16030081/copy-constructor-for-a-class-with-unique-ptr
 Plot::Plot(const Plot& other)
 {
     __hist = other.__hist;
@@ -147,7 +146,7 @@ TH1F Plot::hist()
 //                *      Plot2D      *
 //                ********************
 
-Plot2D::Plot2D(std::string name, std::string title, int xbins, int x_min, int x_max, int ybins, int y_min, int y_max, std::tuple<std::string, std::string, std::vector<double>>&& kwargs)
+Plot2D::Plot2D(std::string name, std::string title, int xbins, double x_min, double x_max, int ybins, double y_min, double y_max, std::tuple<std::string, std::string, std::vector<double>>&& kwargs)
 :
     name{name},
     path{"/"},
@@ -180,7 +179,6 @@ Plot2D::Plot2D(std::string name, std::string title, int xbins, int x_min, int x_
 
 Plot2D::~Plot2D() = default;
 
-//https://stackoverflow.com/questions/16030081/copy-constructor-for-a-class-with-unique-ptr
 Plot2D::Plot2D(const Plot2D& other)
 {
     __hist = other.__hist;

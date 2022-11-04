@@ -1,12 +1,7 @@
 #include "objects.h"
 
 #include "TMath.h"
-
-
-
-//TODO: Maybe add some namespaces?
-
-                
+              
 //                *****************
 //                * PhysicsObject *
 //                *****************
@@ -190,9 +185,6 @@ void TruthParticle::SetTruthParticle(TChain* chain)
     chain->SetBranchAddress("mc_mass",&TruthParticle::mc_mass);
 }
 
-
-
-
 //                *****************
 //                *    Electron   *
 //                *****************
@@ -306,6 +298,15 @@ std::vector<double>* Electron::electron_z0 = nullptr;
 
 void Electron::SetElectron(TChain* chain)
 {
+    chain->SetBranchStatus("electron_pt",1);
+    chain->SetBranchStatus("electron_e",1);
+    chain->SetBranchStatus("electron_eta",1);
+    chain->SetBranchStatus("electron_phi",1);
+//    chain->SetBranchStatus("electron_id",1);
+    chain->SetBranchStatus("electron_isolation",1);
+    chain->SetBranchStatus("electron_d0",1);
+    chain->SetBranchStatus("electron_z0",1);
+
     chain->SetBranchAddress("electron_pt",&Electron::electron_pt);
     chain->SetBranchAddress("electron_e",&Electron::electron_e);
     chain->SetBranchAddress("electron_eta",&Electron::electron_eta);
@@ -315,8 +316,6 @@ void Electron::SetElectron(TChain* chain)
     chain->SetBranchAddress("electron_d0",&Electron::electron_d0);
     chain->SetBranchAddress("electron_z0",&Electron::electron_z0);
 }
-
-
 
 //                *****************
 //                *    Photon     *
@@ -444,6 +443,16 @@ std::vector<int>* Photon::photon_id_nn = nullptr;
 
 void Photon::SetPhoton(TChain* chain)
 {
+    chain->SetBranchStatus("photon_pt",1);
+    chain->SetBranchStatus("photon_e",1);
+    chain->SetBranchStatus("photon_eta",1);
+    chain->SetBranchStatus("photon_phi",1);
+    chain->SetBranchStatus("photon_etcone40",1);
+    chain->SetBranchStatus("photon_id",1);
+    chain->SetBranchStatus("photon_id_loose",1);
+    chain->SetBranchStatus("photon_id_tight",1);
+    chain->SetBranchStatus("photon_cluster_eta_be_2",1);
+    
     chain->SetBranchAddress("photon_pt",&Photon::photon_pt);
     chain->SetBranchAddress("photon_e",&Photon::photon_e);
     chain->SetBranchAddress("photon_eta",&Photon::photon_eta);
@@ -510,6 +519,11 @@ std::vector<double>* Cluster::cluster_e = nullptr;
 
 void Cluster::SetCluster(TChain* chain)
 {
+    chain->SetBranchStatus("cluster_pt",1);
+    chain->SetBranchStatus("cluster_eta",1);
+    chain->SetBranchStatus("cluster_phi",1);
+    chain->SetBranchStatus("cluster_e",1);
+    
     chain->SetBranchAddress("cluster_pt",&Cluster::cluster_pt);
     chain->SetBranchAddress("cluster_eta",&Cluster::cluster_eta);
     chain->SetBranchAddress("cluster_phi",&Cluster::cluster_phi);
@@ -599,6 +613,14 @@ std::vector<int>* Track::track_num_sct_hits = nullptr;
 
 void Track::SetTrack(TChain* chain)
 {
+    chain->SetBranchStatus("track_pt",1);
+    chain->SetBranchStatus("track_charge",1);
+    chain->SetBranchStatus("track_eta",1);
+    chain->SetBranchStatus("track_phi",1);
+//    chain->SetBranchStatus("track_e",1);
+    chain->SetBranchStatus("track_num_pixel_hits",1);
+    chain->SetBranchStatus("track_num_sct_hits",1);
+    
     chain->SetBranchAddress("track_pt",&Track::track_pt);
     chain->SetBranchAddress("track_charge",&Track::track_charge);
     chain->SetBranchAddress("track_eta",&Track::track_eta);

@@ -1,6 +1,7 @@
 #ifndef FILEREADERH
 #define FILEREADERH
 #include "event.h"
+#include "objects.h"
 
 using FT = bool(TChain&);
 
@@ -33,7 +34,7 @@ private:
     
 public:
     FileReader();
-    FileReader(std::vector<std::string>& files, const char* tree_name = "physics", Long64_t num_events = -1, int skip_first_events = 0);
+    FileReader(const std::vector<std::string>& files, const char* tree_name = "physics", Long64_t num_events = -1, int skip_first_events = 0);
     ~FileReader();
     FileReader(const FileReader&);
     template <typename T>
@@ -48,13 +49,12 @@ public:
      const std::vector<int>&& parent_barcode = {},
      const std::vector<int>&& pdg_id = {},
      int* status_code = nullptr);
-
 };
 
 class FileReaderRange {
     FileReader f;
 public:
-     FileReaderRange(std::vector<std::string>& files,
+     FileReaderRange(const std::vector<std::string>& files,
            const char* tree_name =
 //           "../user.kschmied.28655874._000025.LGNTuple.root?#physics",
            "physics",

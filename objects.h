@@ -118,7 +118,6 @@ class Photon final : public TruthParticle
 {
 private:
     static const std::string PREFIX;
-    static const int PDG_ID;
     double _systematic_pt;
     double _systematic_energy;
     
@@ -133,6 +132,7 @@ public:
     static std::vector<int>* photon_id_tight;
     static std::vector<int>* photon_cluster_eta_be_2;
     static std::vector<int>* photon_id_nn;
+    static const int PDG_ID;
     
     static void SetPhoton(TChain*);
     Photon();

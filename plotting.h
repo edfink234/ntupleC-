@@ -24,8 +24,8 @@ private:
     std::string write_name;
     std::string title;
     int __nbins;
-    int __x_min;
-    int __x_max;
+    double __x_min;
+    double __x_max;
     std::string __x_label;
     std::string __y_label;
     std::vector<double> __bin_edges;
@@ -33,7 +33,7 @@ private:
 public:
     Plot();
     ~Plot();
-    Plot(std::string name, std::string title="", int nbins = 40, int x_min = 0, int x_max = 20, std::tuple<std::string, std::string, std::vector<double>>&& kwargs = {});
+    Plot(const std::string name, std::string title="", int nbins = 40, double x_min = 0, double x_max = 20, std::tuple<std::string, std::string, std::vector<double>>&& kwargs = {});
     
     Plot(const Plot&);
     Plot& operator=(const Plot&);
@@ -57,11 +57,11 @@ private:
     std::string write_name;
     std::string title;
     int __xbins;
-    int __x_min;
-    int __x_max;
+    double __x_min;
+    double __x_max;
     int __ybins;
-    int __y_min;
-    int __y_max;
+    double __y_min;
+    double __y_max;
     std::string __x_label;
     std::string __y_label;
     std::shared_ptr<TH2F> __hist;
@@ -69,7 +69,7 @@ private:
 public:
     Plot2D();
     ~Plot2D();
-    Plot2D(std::string name, std::string title="", int xbins = 40, int x_min = 0, int x_max = 20, int ybins = 40, int y_min = 0, int y_max = 20, std::tuple<std::string, std::string, std::vector<double>>&& kwargs = {});
+    Plot2D(std::string name, std::string title="", int xbins = 40, double x_min = 0, double x_max = 20, int ybins = 40, double y_min = 0, double y_max = 20, std::tuple<std::string, std::string, std::vector<double>>&& kwargs = {});
     
     Plot2D(const Plot2D&);
     Plot2D& operator=(const Plot2D&);
