@@ -98,19 +98,25 @@ bool track_selection(Track& track)
     return true;
 }
 
-void fill_signal_hists(CandidateSet& candidate, std::string cutname, double weight = 1)
+template <typename T>
+void filter(std::vector<T>& vec, bool (*func) (T&))
 {
-    // Single photon pT
-    switch (candidate.CandidateSetType()) {
-        case 'T':
-            plot_groups.at(cutname+"/reco/photon_pt").fill(candidate.particle_a.pt()/1e3,weight);
-            plot_groups.at(cutname+"/reco/photon_pt").fill(candidate.particle_b.pt()/1e3,weight);
-            break;
-        case 'P':
-            plot_groups.at(cutname+"/reco/photon_pt").fill(candidate.particle_a_photon.pt()/1e3,weight);
-            plot_groups.at(cutname+"/reco/photon_pt").fill(candidate.particle_b_photon.pt()/1e3,weight);
-            break;
+    for (auto i = vec.begin(); i != vec.end(); ++i)
+    {
+        if (!func(*i))
+        {
+            vec.erase(i);
+            i--;
+        }
     }
+}
+
+template <typename T>
+void fill_signal_hists(CandidateSet<T>& candidate, std::string cutname, double weight = 1)
+{
+    plot_groups.at(cutname+"/reco/photon_pt").fill(candidate.particle_a.pt()/1e3,weight);
+    plot_groups.at(cutname+"/reco/photon_pt").fill(candidate.particle_b.pt()/1e3,weight);
+
     // Invariant diphoton mass
     plot_groups.at(cutname+"/candidate/mass").fill(candidate.four_momentum.M()/1e3,weight);
 }
@@ -193,21 +199,18 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
             continue;
         }
      
-        std::vector<Photon> photons;
-        std::copy_if (f.__current_event.photons.begin(), f.__current_event.photons.end(), std::back_inserter(photons), photon_selection );
-        f.__current_event.photons = move(photons);
+        filter<Photon>(f.__current_event.photons,&photon_selection);
         
-        std::vector<Track> tracks;
-        std::copy_if (f.__current_event.tracks.begin(), f.__current_event.tracks.end(), std::back_inserter(tracks), track_selection );
-        f.__current_event.tracks = move(tracks);
-
-        std::vector<TruthParticle>&& pre_truth_photons = f.find_truth_particles({},{},{Photon::PDG_ID});
-        std::vector<TruthParticle> truth_photons;
-        std::copy_if (pre_truth_photons.begin(), pre_truth_photons.end(), std::back_inserter(truth_photons), truth_photon_selection );
-
+        filter<Track>(f.__current_event.tracks,&track_selection);
+        
+        std::vector<TruthParticle>&& truth_photons = f.find_truth_particles({},{},{Photon::PDG_ID});
+        
+        filter<TruthParticle>(truth_photons,&truth_photon_selection);
+        
         if (truth_photons.size() == 2)
         {
-            CandidateSet truth_candidate(std::make_pair(truth_photons[0],truth_photons[1]));
+            CandidateSet<TruthParticle>
+            truth_candidate(std::make_pair(truth_photons[0],truth_photons[1]));
             if (truth_candidate.four_momentum.M() > 5000)
             {
                 fill_signal_hists(truth_candidate,"truth",1);
@@ -216,7 +219,8 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
 
         if (f.__current_event.photons.size()==2)
         {
-            CandidateSet candidate(std::make_pair(f.__current_event.photons[0],f.__current_event.photons[1]));
+            CandidateSet<Photon>
+            candidate(std::make_pair(f.__current_event.photons[0],f.__current_event.photons[1]));
             
             fill_signal_hists(candidate,"00_no_cuts",weight);
             fill_tracking_hists(f.__current_event,"00_no_cuts",weight);
@@ -250,11 +254,12 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
     << '\n';
 }
 
-void analyse_haa()
+void analyse()
 {
     auto start_time = Clock::now();
     std::cout << "Run over MC\n";
 
+//    std::vector<std::string> input_filenames = {"/home/common/Haa/ntuples/MC/background_v14/user.kschmied.361106.PowhegPythia8EvtGen_AZNLOCTEQ6L1_Zee_v14_LGNTuple.root/user.kschmied.28655874._000025.LGNTuple.root"};
     std::vector<std::string> input_filenames = {"../user.kschmied.28655874._000025.LGNTuple.root"};
     
 //    std::vector<std::string> input_filenames = {"/home/common/Haa/ntuples/MC/background_v14/user.kschmied.361106.PowhegPythia8EvtGen_AZNLOCTEQ6L1_Zee_v14_LGNTuple.root/user.kschmied.28655874._000025.LGNTuple.root"};
@@ -312,6 +317,6 @@ void analyse_haa()
 
 int main()
 {
-    analyse_haa();
+    analyse();
 }
 
