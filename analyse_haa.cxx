@@ -202,6 +202,8 @@ void run_analysis(std::vector<std::string>& input_filenames, std::string systema
 //        std::cout << photons.size() << ' ' << f.__current_event.photons.size()
 //        << '\n';
         std::copy_if (f.__current_event.photons.begin(), f.__current_event.photons.end(), std::back_inserter(photons), photon_selection );
+        
+        
         fill_signal_hists(photons, "reco", weight);
         if (photons.size() == 2)
         {
@@ -223,6 +225,8 @@ void analyse_haa()
     auto start_time = Clock::now();
     std::cout << "Run over MC\n";
 
+//    std::vector<std::string> input_filenames = {"/home/common/Haa/ntuples/MC/background_v14/user.kschmied.361106.PowhegPythia8EvtGen_AZNLOCTEQ6L1_Zee_v14_LGNTuple.root/user.kschmied.28655874._000025.LGNTuple.root"};
+    
     std::vector<std::string> input_filenames = {"../user.kschmied.28655874._000025.LGNTuple.root"};//,"../user.kschmied.28655874._000024.LGNTuple.root"};
     
 //    std::vector<std::string> input_filenames =
