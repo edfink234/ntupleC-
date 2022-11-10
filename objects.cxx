@@ -1,6 +1,10 @@
 #include "objects.h"
 
 #include "TMath.h"
+#include "Math/Vector4D.h"
+#include "Math/VectorUtil.h"
+
+using namespace ROOT::Math;
               
 //                *****************
 //                * PhysicsObject *
@@ -8,29 +12,37 @@
                  
 PhysicsObject::PhysicsObject() = default;
 
-PhysicsObject::PhysicsObject(int index, int entry_number, const char* name, const char* title)
-:  _index{index}, _entry_number{entry_number}
+PhysicsObject::PhysicsObject(int index)
+:  _index{index}
 {
 
 }
 
 PhysicsObject::~PhysicsObject() = default;
 
-TLorentzVector PhysicsObject::Vector()
+//TLorentzVector PhysicsObject::Vector()
+//{
+//    TLorentzVector vec;
+//    vec.SetPtEtaPhiE(pt(),eta(),phi(),e());
+//    return vec;
+//}
+PtEtaPhiEVector PhysicsObject::Vector()
 {
-    TLorentzVector vec;
-    vec.SetPtEtaPhiE(pt(),eta(),phi(),e());
+    PtEtaPhiEVector vec;
+    vec.SetCoordinates(pt(),eta(),phi(),e());
     return vec;
 }
 
 double PhysicsObject::acoplanarity(TruthParticle& particle_b)
 {
-    return 1 - acos(cos(this->phi() - particle_b.phi())) / TMath::Pi();
+//    return 1 - acos(cos(this->phi() - particle_b.phi())) / TMath::Pi();
+    return 1 - acos(cos(this->phi() - particle_b.phi())) / Pi();
 }
 
 double PhysicsObject::delta_r(TruthParticle& particle_b)
 {
-    return this->Vector().DeltaR(particle_b.Vector());
+//    return this->Vector().DeltaR(particle_b.Vector());
+    return VectorUtil::DeltaR(this->Vector(),particle_b.Vector());
 }
 
 PhysicsObject::operator std::string() //const
@@ -51,8 +63,8 @@ const std::string PhysicsObject::PREFIX = "";
 
 TruthParticle::TruthParticle() = default;
 
-TruthParticle::TruthParticle(int index, int entry_number, const char* name, const char* title)
-:   PhysicsObject::PhysicsObject(index, entry_number, name, title),
+TruthParticle::TruthParticle(int index)
+:   PhysicsObject::PhysicsObject(index),
     Cluster_eta{0.0}
 {
     //https://root-forum.cern.ch/t/looping-over-a-ttree/19899/5
@@ -65,7 +77,6 @@ TruthParticle::TruthParticle(const TruthParticle& particle_temp)
 {
     pdg_id = particle_temp.pdg_id;
     _index = particle_temp._index;
-    _entry_number = particle_temp._entry_number;
     Cluster_eta = particle_temp.Cluster_eta;
 }
 
@@ -73,17 +84,22 @@ TruthParticle& TruthParticle::operator=(const TruthParticle& particle_temp)
 {
     pdg_id = particle_temp.pdg_id;
     _index = particle_temp._index;
-    _entry_number = particle_temp._entry_number;
     Cluster_eta = particle_temp.Cluster_eta;
     return *this;
 }
 
 TruthParticle::~TruthParticle() = default;
 
-TLorentzVector TruthParticle::Vector() 
+//TLorentzVector TruthParticle::Vector()
+//{
+//    TLorentzVector vec;
+//    vec.SetPtEtaPhiE(pt(),eta(),phi(),e());
+//    return vec;
+//}
+PtEtaPhiEVector TruthParticle::Vector()
 {
-    TLorentzVector vec;
-    vec.SetPtEtaPhiE(pt(),eta(),phi(),e());
+    PtEtaPhiEVector vec;
+    vec.SetCoordinates(pt(),eta(),phi(),e());
     return vec;
 }
 
@@ -120,6 +136,12 @@ double TruthParticle::eta()
 double TruthParticle::phi()
 {
     return (*TruthParticle::mc_phi)[_index];
+}
+
+bool TruthParticle::same_flavour(const TruthParticle& other)
+{
+//    printf("%d %d\n",this->pdg_id,other.pdg_id);
+    return (abs(this->pdg_id)==abs(other.pdg_id));
 }
 
 double TruthParticle::e()
@@ -191,8 +213,8 @@ void TruthParticle::SetTruthParticle(TChain* chain)
 
 Electron::Electron() = default;
 
-Electron::Electron(int index, double pt, double energy, int entry_number, const char* name, const char* title)
-: TruthParticle::TruthParticle(index, entry_number, name, title),
+Electron::Electron(int index, double pt, double energy)
+: TruthParticle::TruthParticle(index),
   _systematic_pt{pt},
   _systematic_energy{energy}
 {
@@ -203,7 +225,6 @@ Electron::Electron(const Electron& other)
 {
     pdg_id = other.pdg_id;
     _index = other._index;
-    _entry_number = other._entry_number;
     Cluster_eta = other.Cluster_eta;
     _systematic_pt = other._systematic_pt;
     _systematic_energy = other._systematic_energy;
@@ -213,7 +234,6 @@ Electron& Electron::operator=(const Electron& other)
 {
     pdg_id = other.pdg_id;
     _index = other._index;
-    _entry_number = other._entry_number;
     Cluster_eta = other.Cluster_eta;
     _systematic_pt = other._systematic_pt;
     _systematic_energy = other._systematic_energy;
@@ -323,8 +343,8 @@ void Electron::SetElectron(TChain* chain)
 
 Photon::Photon() = default;
 
-Photon::Photon(int index, double pt, double energy, int entry_number, const char* name, const char* title)
-: TruthParticle::TruthParticle(index, entry_number, name, title),
+Photon::Photon(int index, double pt, double energy)
+: TruthParticle::TruthParticle(index),
   _systematic_pt{pt},
   _systematic_energy{energy}
 {
@@ -335,7 +355,6 @@ Photon::Photon(const Photon& other)
 {
     pdg_id = other.pdg_id;
     _index = other._index;
-    _entry_number = other._entry_number;
     Cluster_eta = other.Cluster_eta;
     _systematic_pt = other._systematic_pt;
     _systematic_energy = other._systematic_energy;
@@ -345,7 +364,6 @@ Photon& Photon::operator=(const Photon& other)
 {
     pdg_id = other.pdg_id;
     _index = other._index;
-    _entry_number = other._entry_number;
     Cluster_eta = other.Cluster_eta;
     _systematic_pt = other._systematic_pt;
     _systematic_energy = other._systematic_energy;
@@ -471,8 +489,8 @@ void Photon::SetPhoton(TChain* chain)
 
 Cluster::Cluster() = default;
 
-Cluster::Cluster(int index, int entry_number, const char* name, const char* title)
-:   PhysicsObject::PhysicsObject(index, entry_number,  name, title)
+Cluster::Cluster(int index)
+:   PhysicsObject::PhysicsObject(index)
 {
     
 }
@@ -480,13 +498,11 @@ Cluster::Cluster(int index, int entry_number, const char* name, const char* titl
 Cluster::Cluster(const Cluster& particle_temp)
 {
     _index = particle_temp._index;
-    _entry_number = particle_temp._entry_number;
 }
 
 Cluster& Cluster::operator=(const Cluster& other)
 {
     _index = other._index;
-    _entry_number = other._entry_number;
     return *this;
 }
 
@@ -536,8 +552,8 @@ void Cluster::SetCluster(TChain* chain)
 
 Track::Track() = default;
 
-Track::Track(int index, int entry_number, const char* name, const char* title)
-:   PhysicsObject::PhysicsObject(index, entry_number, name, title)
+Track::Track(int index)
+:   PhysicsObject::PhysicsObject(index)
 {
     
 }
@@ -545,13 +561,11 @@ Track::Track(int index, int entry_number, const char* name, const char* title)
 Track::Track(const Track& particle_temp)
 {
     _index = particle_temp._index;
-    _entry_number = particle_temp._entry_number;
 }
 
 Track& Track::operator=(const Track& other)
 {
     _index = other._index;
-    _entry_number = other._entry_number;
     return *this;
 }
 
