@@ -4,10 +4,13 @@
 #include <vector>
 #include <string>
 
-#include "TLorentzVector.h"
+//#include "TLorentzVector.h"
+#include "Math/Vector4D.h"
 #include "TTree.h"
 #include "TBranch.h"
 #include "TChain.h"
+
+using namespace ROOT::Math;
 
 class TruthParticle;
 
@@ -16,20 +19,15 @@ class PhysicsObject
 protected:
     static const std::string PREFIX;
     int _index;
-    int _entry_number;
 public:
     PhysicsObject();
-    PhysicsObject(int, int entry_number = 0, const char* name = "", const char* title = "");
+    PhysicsObject(int);
     virtual ~PhysicsObject() = 0;
-    virtual TLorentzVector Vector(); //renamed jic it clashes w/ std::vector
+//    virtual TLorentzVector Vector();
+    virtual PtEtaPhiEVector Vector();
     double acoplanarity(TruthParticle&);
     double delta_r( TruthParticle&);
     operator std::string();
-    
-    //TODO: getattr equivalent in C++;
-    //TODO: Add property class?: https://en.wikipedia.org/wiki/Property_%28programming%29#C++
-    //override in TruthParticle!
-    //https://stackoverflow.com/questions/46446652/is-there-any-point-in-using-override-when-overriding-a-pure-virtual-function
 
     virtual double pt() = 0;
     virtual double eta() = 0;
@@ -58,11 +56,12 @@ public:
     
     static void SetTruthParticle(TChain*);
     TruthParticle();
-    TruthParticle(int, int entry_number = 0, const char* name = "", const char* title = "");
+    TruthParticle(int);
     TruthParticle(const TruthParticle&);
     TruthParticle& operator=(const TruthParticle&);
     virtual ~TruthParticle();
-    TLorentzVector Vector() override;
+//    TLorentzVector Vector() override;
+    PtEtaPhiEVector Vector() override;
     int barcode();
     int parent_barcode();
     int status_code();
@@ -71,6 +70,7 @@ public:
     double eta() override;
     double phi() override;
     double e() override;
+    virtual bool same_flavour(const TruthParticle &) final;
     virtual double m();
     operator std::string();
     
@@ -99,7 +99,7 @@ public:
     
     static void SetElectron(TChain*);
     Electron();
-    Electron(int, double pt=0, double energy = 0, int entry_number = 0, const char* name = "", const char* title = "");
+    Electron(int, double pt=0, double energy = 0);
     Electron(const Electron&);
     Electron& operator=(const Electron&);
     int Pdg_id();
@@ -136,7 +136,7 @@ public:
     
     static void SetPhoton(TChain*);
     Photon();
-    Photon(int, double pt=0, double energy = 0, int entry_number = 0, const char* name = "", const char* title = "");
+    Photon(int, double pt=0, double energy = 0);
     Photon(const Photon&);
     Photon& operator=(const Photon&);
     double pt() override;
@@ -166,7 +166,7 @@ public:
     
     static void SetCluster(TChain*);
     Cluster();
-    Cluster(int, int entry_number = 0, const char* name = "", const char* title = "");
+    Cluster(int);
     Cluster(const Cluster&);
     Cluster& operator=(const Cluster&);
     double pt() override;
@@ -191,7 +191,7 @@ public:
     static void SetTrack(TChain*);
     Track();
     Track(const Track&);
-    Track(int, int entry_number = 0, const char* name = "", const char* title = "");
+    Track(int);
     Track& operator=(const Track&);
     double pt() override;
     double charge();

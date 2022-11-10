@@ -15,6 +15,7 @@ __has_event_info_chain{true}
     {
 //        puts(f.c_str());
         __chain.Add(f.c_str());
+//        __chain.GetListOfBranches()->Print();
         __event_info_chain.Add(f.c_str());
     }
 //    __chain.GetListOfFiles()->Print();
@@ -261,7 +262,7 @@ void FileReader::__load_photons()
             continue;
         }
 
-        __current_event.photons.emplace_back(Photon(i, pt, energy, __current_event.entry_number));
+        __current_event.photons.emplace_back(Photon(i, pt, energy));
     }
 }
 
@@ -295,7 +296,7 @@ void FileReader::__load_electrons()
         {
             continue;
         }
-        __current_event.electrons.emplace_back(Electron(i, pt, energy, __current_event.entry_number));
+        __current_event.electrons.emplace_back(Electron(i, pt, energy));
     }
 }
 
@@ -305,7 +306,7 @@ void FileReader::__load_clusters()
     
     for (size_t i = 0; i < length; i++)
     {
-        __current_event.clusters.emplace_back(Cluster(i, __current_event.entry_number));
+        __current_event.clusters.emplace_back(Cluster(i));
     }
 }
 
@@ -325,11 +326,11 @@ void FileReader::__load_tracks()
         }
         if (track_type==0)
         {
-            __current_event.tracks.emplace_back(Track(i,__current_event.entry_number));
+            __current_event.tracks.emplace_back(Track(i));
         }
         else if (track_type==1)
         {
-            __current_event.pixel_tracks.emplace_back(Track(i,__current_event.entry_number));
+            __current_event.pixel_tracks.emplace_back(Track(i));
         }
     }
 }
@@ -339,8 +340,7 @@ void FileReader::__load_truth_particles()
     auto length = (*(TruthParticle::mc_pt)).size();
     for (size_t i = 0; i < length; i++)
     {
-
-        __current_event.truth_particles.emplace_back(TruthParticle(i, __current_event.entry_number));
+        __current_event.truth_particles.emplace_back(TruthParticle(i));
     }
 }
 
@@ -421,7 +421,7 @@ std::vector<TruthParticle> FileReader::find_truth_particles
                     continue;
                 }
             }
-            results.push_back(TruthParticle(i, __current_index));
+            results.push_back(TruthParticle(i));
         }
     }
     return results;
