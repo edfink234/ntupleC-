@@ -69,11 +69,6 @@ bool track_selection(Track& track)
     return ((track.pt() > 1000) && (abs(track.eta()) < 2.5));
 }
 
-/*
- I realize I could just use templates here for fill_signal_hists,
- but it makes it ~10^-1 seconds slower...
- */
-
 void fill_signal_hists(std::vector<TruthParticle>& particles, std::string cutname, double weight = 1, std::string particleType = "photons")
 {
     if (particleType == "leptons")
@@ -187,7 +182,6 @@ void run_analysis(std::vector<std::string>& input_filenames, std::string systema
 //                std::cout << std::string(i) << '\n';
 //            }
             
-
             fill_signal_hists(truth_photons,"truth");
 //
             std::vector<TruthParticle>&& truth_leptons = f.find_truth_particles({},{},{11, 12, 13, 14, 15, 16, 17, 18},&temp);
