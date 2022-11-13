@@ -33,75 +33,10 @@ __has_event_info_chain{true}
 
 FileReader::FileReader() = default;
 
-FileReader::~FileReader() //= default;
+FileReader::~FileReader() 
 {
     __chain.Reset();
     __event_info_chain.Reset();
-//    __chain.ResetBranchAddresses();
-//    __event_info_chain.ResetBranchAddresses();
-//    __current_event.photon_pt = nullptr;
-//    __current_event.photon_e = nullptr;
-//    __current_event.photon_syst_name = nullptr;
-//    __current_event.photon_syst_pt = nullptr;
-//    __current_event.photon_syst_e = nullptr;
-//    __current_event.electron_pt = nullptr;
-//    __current_event.electron_e = nullptr;
-//    __current_event.electron_syst_name = nullptr;
-//    __current_event.electron_syst_pt = nullptr;
-//    __current_event.electron_syst_e = nullptr;
-//    __current_event.cluster_pt = nullptr;
-//    __current_event.track_pt = nullptr;
-//    __current_event.trigger_passed_triggers = nullptr;
-//    __current_event.mc_pt = nullptr;
-//    __current_event.mc_pdg_id = nullptr;
-//    __current_event.mc_barcode = nullptr;
-//    __current_event.mc_parent_barcode = nullptr;
-//    __current_event.mc_status = nullptr;
-//    __current_event.track_type = nullptr;
-    
-//    TruthParticle::mc_pdg_id=nullptr;
-//    TruthParticle::mc_barcode=nullptr;
-//    TruthParticle::mc_parent_barcode=nullptr;
-//    TruthParticle::mc_status=nullptr;
-//    TruthParticle::mc_pt=nullptr;
-//    TruthParticle::mc_charge=nullptr;
-//    TruthParticle::mc_eta=nullptr;
-//    TruthParticle::mc_phi=nullptr;
-//    TruthParticle::mc_e=nullptr;
-//    TruthParticle::mc_mass=nullptr;
-//
-//    Electron::electron_pt=nullptr;
-//    Electron::electron_e=nullptr;
-//    Electron::electron_eta=nullptr;
-//    Electron::electron_phi=nullptr;
-//    Electron::electron_id=nullptr;
-//    Electron::electron_isolation=nullptr;
-//    Electron::electron_d0=nullptr;
-//    Electron::electron_z0=nullptr;
-//
-//    Photon::photon_pt=nullptr;
-//    Photon::photon_e=nullptr;
-//    Photon::photon_eta=nullptr;
-//    Photon::photon_phi=nullptr;
-//    Photon::photon_etcone40=nullptr;
-//    Photon::photon_id=nullptr;
-//    Photon::photon_id_loose=nullptr;
-//    Photon::photon_id_tight=nullptr;
-//    Photon::photon_cluster_eta_be_2=nullptr;
-//    Photon::photon_id_nn=nullptr;
-//
-//    Cluster::cluster_pt=nullptr;
-//    Cluster::cluster_eta=nullptr;
-//    Cluster::cluster_phi=nullptr;
-//    Cluster::cluster_e=nullptr;
-//
-//    Track::track_pt=nullptr;
-//    Track::track_charge=nullptr;
-//    Track::track_eta=nullptr;
-//    Track::track_phi=nullptr;
-//    Track::track_e=nullptr;
-//    Track::track_num_pixel_hits=nullptr;
-//    Track::track_num_sct_hits=nullptr;
 }
 
 FileReader::FileReader(const FileReader& other)

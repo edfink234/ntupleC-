@@ -39,10 +39,8 @@ class TruthParticle : public PhysicsObject
 {
 protected:
     double Cluster_eta;
-    int pdg_id;
     static const std::string PREFIX;
     friend class FileReader;
-public:
     static std::vector<int>* mc_pdg_id;
     static std::vector<int>* mc_barcode;
     static std::vector<int>* mc_parent_barcode;
@@ -53,7 +51,8 @@ public:
     static std::vector<double>* mc_phi;
     static std::vector<double>* mc_e;
     static std::vector<double>* mc_mass;
-    
+public:
+    int pdg_id;
     static void SetTruthParticle(TChain*);
     TruthParticle();
     TruthParticle(int);
@@ -83,11 +82,9 @@ class Electron final : public TruthParticle
 {
 private:
     static const std::string PREFIX;
-    static const int PDG_ID;
     double _systematic_pt;
     double _systematic_energy;
-    
-public:
+    friend class FileReader;
     static std::vector<double>* electron_pt;
     static std::vector<double>* electron_e;
     static std::vector<double>* electron_eta;
@@ -96,7 +93,8 @@ public:
     static std::vector<double>* electron_isolation;
     static std::vector<double>* electron_d0;
     static std::vector<double>* electron_z0;
-    
+public:
+    static const int PDG_ID;
     static void SetElectron(TChain*);
     Electron();
     Electron(int, double pt=0, double energy = 0);
@@ -120,8 +118,7 @@ private:
     static const std::string PREFIX;
     double _systematic_pt;
     double _systematic_energy;
-    
-public:
+    friend class FileReader;
     static std::vector<double>* photon_pt;
     static std::vector<double>* photon_e;
     static std::vector<double>* photon_eta;
@@ -132,8 +129,8 @@ public:
     static std::vector<int>* photon_id_tight;
     static std::vector<int>* photon_cluster_eta_be_2;
     static std::vector<int>* photon_id_nn;
+public:
     static const int PDG_ID;
-    
     static void SetPhoton(TChain*);
     Photon();
     Photon(int, double pt=0, double energy = 0);
@@ -157,13 +154,12 @@ class Cluster final : public PhysicsObject
 {
 private:
     static const std::string PREFIX;
-    
-public:
+    friend class FileReader;
     static std::vector<double>* cluster_pt;
     static std::vector<double>* cluster_eta;
     static std::vector<double>* cluster_phi;
     static std::vector<double>* cluster_e;
-    
+public:
     static void SetCluster(TChain*);
     Cluster();
     Cluster(int);
@@ -179,7 +175,7 @@ class Track final : public PhysicsObject
 {
 private:
     static const std::string PREFIX;
-public:
+    friend class FileReader;
     static std::vector<double>* track_pt;
     static std::vector<double>* track_charge;
     static std::vector<double>* track_eta;
@@ -187,7 +183,7 @@ public:
     static std::vector<double>* track_e;
     static std::vector<int>* track_num_pixel_hits;
     static std::vector<int>* track_num_sct_hits;
-    
+public:
     static void SetTrack(TChain*);
     Track();
     Track(const Track&);
