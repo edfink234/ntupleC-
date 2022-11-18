@@ -174,6 +174,7 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
     }
     
     FileReaderRange reader(input_filenames);
+    
     Event::systematic = systematic;
     
     int weight = 1;
@@ -235,17 +236,19 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
         "HLT_mu18_mu8noL1",
     };
     
-    int allEvents = 0, Z_ee = 0, Z_ee_fiducial = 0, Z_mumu = 0, Z_mumu_fiducial = 0,
-    detectableParticleCount = 0, tps_from_Z = 0, tps_from_Z_cuts = 0,
-    tp_Z_events = 0, tp_Z_event_cuts = 0;
+    int allEvents = 0, Z_ee = 0, Z_ee_fiducial = 0, Z_mumu = 0, Z_mumu_fiducial = 0;
+//    detectableParticleCount = 0, tps_from_Z = 0, tps_from_Z_cuts = 0,
+//    tp_Z_events = 0, tp_Z_event_cuts = 0;
     
-    auto inFiducialRegion = [&](std::vector<TruthParticle>& vec)
-    {
-        return std::all_of(vec.begin(), vec.end(), [&] (TruthParticle &i)
-        {
-            return ((abs(i.eta()) < 2.37) && (!((1.37 < abs(i.eta())) && (abs(i.eta()) < 1.52))));
-        });
-    };
+    int evntCnt = 0, nZee = 0, nZeeFid = 0, nZmumu = 0, nZmumuFid = 0;
+    
+//    auto inFiducialRegion = [&](std::vector<TruthParticle>& vec)
+//    {
+//        return std::all_of(vec.begin(), vec.end(), [&] (TruthParticle &i)
+//        {
+//            return ((abs(i.eta()) < 2.37) && (((1.37 < abs(i.eta())) || (abs(i.eta()) < 1.52))));
+//        });
+//    };
     
 //    auto inFiducialRegion = [&](std::vector<Electron>& vec)
 //    {
@@ -254,6 +257,57 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
 //            return ((abs(i.eta()) < 2.37) && (!((1.37 < abs(i.eta())) && (abs(i.eta()) < 1.52))));
 //        });
 //    };
+    
+    auto findParentInChain = [](int targetBarcode, std::vector<TruthParticle>& startParticles, std::vector<TruthParticle>& truthChain)
+    {
+        std::vector<TruthParticle> truthSelected;
+        bool foundParent;
+        if (truthChain.size() >= 2)
+        {
+            TruthParticle tp;
+            for (auto& tpe: startParticles)
+            {
+                tp = tpe;
+                while (true)
+                {
+                    if (tp.parent_barcode() == targetBarcode)
+                    {
+                        truthSelected.push_back(tp);
+                        break;
+                    }
+                    else
+                    {
+                        foundParent = false;
+                        for (auto& tmp: truthChain)
+                        {
+                            if (tp.parent_barcode() == tmp.barcode())
+                            {
+                                tp = tmp;
+                                foundParent = true;
+                                break;
+                            }
+                        }
+                        if (foundParent == false)
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        return truthSelected;
+    };
+    
+    auto sigElecCut = [](TruthParticle& tp)
+    {
+        return ((tp.pt()/1e3 > 20) && (abs(tp.eta()) < 2.37) && ((1.37 < abs(tp.eta())) || (abs(tp.eta()) < 1.52)));
+//        !((1.37 < abs(tp.eta())) && (abs(tp.eta()) < 1.52)));
+    };
+    
+    auto sigMuonCut = [](TruthParticle& tp)
+    {
+        return ((tp.pt()/1e3 > 20) && (abs(tp.eta()) < 2.4));
+    };
     
     int numberOfZs = 0;
     for (auto &&f: reader)
@@ -305,115 +359,163 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
         //cutflow
         if (passBeforePreselection())
         {
-            beforePreselection++;
-            std::vector<TruthParticle> truth_leptons, truth_muons, detectableParticles, possibleParents;
-            std::vector<TruthParticle>&& truth_Z = f.find_truth_particles({},{},{23},&weight, true);
-            std::vector<int> truth_Z_barcodes;
-            truth_Z_barcodes.reserve(truth_Z.size());
-            for (auto& i: truth_Z)
-            {
-                truth_Z_barcodes.push_back(i.barcode());
-            }
+//            beforePreselection++;
+            std::vector<TruthParticle> truth_leptons;
+//            truth_muons, detectableParticles, possibleParents;
+            std::vector<TruthParticle> truth_electrons,
+            truth_stableElectrons, truth_mu, truth_stableMu, truthSignalElectrons, truthSignalMu;
+            std::vector<TruthParticle>&& truth_Zbosons = f.find_truth_particles({},{},{23},&weight, true);
+//            std::vector<int> truth_Z_barcodes;
+//            truth_Z_barcodes.reserve(truth_Z.size());
+//            for (auto& i: truth_Z)
+//            {
+//                truth_Z_barcodes.push_back(i.barcode());
+//            }
 
-            if (!(truth_Z.empty()))
+            if (!(truth_Zbosons.empty()))
             {
                 numberOfZs++;
 //                R__ASSERT(std::all_of(truth_Z.begin(), truth_Z.end(), [&] (TruthParticle &i) {return i.barcode() == truth_Z[0].barcode();}));
-                truth_leptons = f.find_truth_particles({},{truth_Z[0].barcode()},{11, -11});
+                truth_leptons = f.find_truth_particles({},{truth_Zbosons[0].barcode()},{11, -11});
+//
+//                detectableParticles = f.find_truth_particles({},{},{11, -11},&weight);
+//                detectableParticleCount += detectableParticles.size();
+//
+//                truth_muons = f.find_truth_particles({},{truth_Z[0].barcode()},{13, -13});
                 
-                detectableParticles = f.find_truth_particles({},{},{11, -11},&weight);
-                detectableParticleCount += detectableParticles.size();
-                
-                possibleParents = f.find_truth_particles({},{},{11, -11, 23},&weight,true);
-                std::vector<int> possibleParents_barcodes;
-                possibleParents_barcodes.reserve(possibleParents.size());
-                for (auto& i: possibleParents)
+                truth_electrons = f.find_truth_particles({},{},{11, -11});
+                truth_stableElectrons = f.find_truth_particles({},{},{11, -11},&weight);
+                truth_mu = f.find_truth_particles({},{},{13, -13});
+                truth_stableMu = f.find_truth_particles({},{},{13, -13},&weight);
+            
+                if (truth_electrons.size() >= 2)
                 {
-                    possibleParents_barcodes.push_back(i.barcode());
-                }
-                
-                bool passedZ = true, passedZCut = true;
-                if (detectableParticles.empty())
-                {
-                    passedZ = passedZCut = false;
-                }
-                else
-                {
-                    for (auto& i: detectableParticles)
+                    truthSignalElectrons = findParentInChain(truth_Zbosons[0].barcode(), truth_stableElectrons, truth_electrons);
+                    if (truthSignalElectrons.size() == 2)
                     {
-                        if (std::find(truth_Z_barcodes.begin(),truth_Z_barcodes.end(), i.parent_barcode()) != truth_Z_barcodes.end())
-                        {
-                            tps_from_Z++;
-                            if (AcceptanceCut(i))
-                            {
-                                tps_from_Z_cuts++;
-                            }
-                        }
-                        else
-                        {
-                            int findThisBarcode = i.parent_barcode();
-                            auto it = std::find(possibleParents_barcodes.begin(), possibleParents_barcodes.end(), findThisBarcode);
-                            while (it!=possibleParents_barcodes.end())
-                            {
-                                if (std::find(truth_Z_barcodes.begin(),truth_Z_barcodes.end(),*it) != truth_Z_barcodes.end())
-                                {
-                                    tps_from_Z++;
-                                    if (AcceptanceCut(i))
-                                    {
-                                        tps_from_Z_cuts++;
-                                    }
-                                    else
-                                    {
-                                        passedZCut = false;
-                                    }
-                                    break;
-                                }
-                                else
-                                {
-                                    int index = it - possibleParents_barcodes.begin();
-                                    findThisBarcode = possibleParents[index].parent_barcode();
-                                    it = std::find(possibleParents_barcodes.begin(), possibleParents_barcodes.end(), findThisBarcode);
-                                }
-                            }
-                            if (it==possibleParents_barcodes.end())
-                            {
-                                passedZ = false;
-                                passedZCut = false;
-                            }
-                        }
+                        nZee++;
+                    }
+                    filter<TruthParticle>(truthSignalElectrons,sigElecCut);
+                    if (truthSignalElectrons.size() == 2)
+                    {
+                        nZeeFid++;
+                    }
+                }
+                if (truth_mu.size() >= 2)
+                {
+                    truthSignalMu = findParentInChain(truth_Zbosons[0].barcode(), truth_stableMu, truth_mu);
+                    if (truthSignalMu.size() == 2)
+                    {
+                        nZmumu++;
+                    }
+                    filter<TruthParticle>(truthSignalMu,sigMuonCut);
+                    if (truthSignalMu.size() == 2)
+                    {
+                        nZmumuFid++;
                     }
                 }
                 
-                if (passedZ)
-                    tp_Z_events++;
-                if (passedZCut)
-                    tp_Z_event_cuts++;
+//                if (truth_muons.size()==2)
+//                {
+//                    Z_mumu++;
+//                    if (inFiducialRegion(truth_muons))
+//                    {
+//                        Z_mumu_fiducial++;
+//                    }
+//                }
                 
-                for (auto& i: f.find_truth_particles({},{truth_Z[0].barcode()},{}))
-                {
-                    all_Z_products[i.pdg_id]++;
-                }
-
-                truth_muons = f.find_truth_particles({},{truth_Z[0].barcode()},{13, -13});
-                if (truth_muons.size()==2)
-                {
-                    Z_mumu++;
-                    if (inFiducialRegion(truth_muons))
-                    {
-                        Z_mumu_fiducial++;
-                    }
-                }
+//                possibleParents = f.find_truth_particles({},{},{11, -11, 23},&weight,true);
+//                std::vector<int> possibleParents_barcodes;
+//                possibleParents_barcodes.reserve(possibleParents.size());
+//                for (auto& i: possibleParents)
+//                {
+//                    possibleParents_barcodes.push_back(i.barcode());
+//                }
+                
+//                bool passedZ = true, passedZCut = true;
+//                if (detectableParticles.size() < 2)
+//                {
+//                    passedZ = passedZCut = false;
+//                }
+//                else
+//                {
+//                    int tmp = tps_from_Z;
+//                    for (auto& i: detectableParticles)
+//                    {
+//                        if (std::find(truth_Z_barcodes.begin(),truth_Z_barcodes.end(), i.parent_barcode()) != truth_Z_barcodes.end())
+//                        {
+//                            tps_from_Z++;
+//                            if (AcceptanceCut(i))
+//                            {
+//                                tps_from_Z_cuts++;
+//                            }
+//                            else //this was changed
+//                            {
+//                                passedZCut = false;
+//                            }
+//                        }
+//                        else
+//                        {
+//                            int findThisBarcode = i.parent_barcode();
+//                            auto it = std::find(possibleParents_barcodes.begin(), possibleParents_barcodes.end(), findThisBarcode);
+//                            while (it != possibleParents_barcodes.end())
+//                            {
+//                                if (std::find(truth_Z_barcodes.begin(),truth_Z_barcodes.end(),*it) != truth_Z_barcodes.end())
+//                                {
+//                                    tps_from_Z++;
+//                                    if (AcceptanceCut(i))
+//                                    {
+//                                        tps_from_Z_cuts++;
+//                                    }
+//                                    else
+//                                    {
+//                                        passedZCut = false;
+//                                    }
+//                                    break;
+//                                }
+//                                else
+//                                {
+//                                    int index = it - possibleParents_barcodes.begin();
+//                                    findThisBarcode = possibleParents[index].parent_barcode();
+//                                    it = std::find(possibleParents_barcodes.begin(), possibleParents_barcodes.end(), findThisBarcode);
+//                                }
+//                            }
+//                            if (it == possibleParents_barcodes.end())
+//                            {
+//                                passedZ = false;
+//                                passedZCut = false;
+//                            }
+//                        }
+//                    }
+//                    if (tps_from_Z < tmp+2) //TODO: make more stringent check
+//                    {
+//                        passedZ = false;
+//                        passedZCut = false;
+//                    }
+//                }
+//
+//                if (passedZ)
+//                    tp_Z_events++;
+//                if (passedZCut)
+//                    tp_Z_event_cuts++;
+//
+//                for (auto& i: f.find_truth_particles({},{truth_Z[0].barcode()},{}))
+//                {
+//                    all_Z_products[i.pdg_id]++;
+//                }
+//
+//
             }
             
 //            std::vector<Electron>& truth_leptons = f.__current_event.electrons;
-            
+
             if (truth_leptons.size() == 2)
             {
-                Z_ee++;
-                if (inFiducialRegion(truth_leptons))
-                {
-                    Z_ee_fiducial++;
-                }
+//                Z_ee++;
+//                if (inFiducialRegion(truth_leptons))
+//                {
+//                    Z_ee_fiducial++;
+//                }
                 two_leptons++;
                 CandidateSet<TruthParticle> candidate_dilepton(std::make_pair(truth_leptons[0],truth_leptons[1]));
 //                CandidateSet<Electron> candidate_dilepton(std::make_pair(truth_leptons[0],truth_leptons[1]));
@@ -561,8 +663,10 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
     std::ofstream outfile(prefix.substr(0,3)+"_kristoff.txt");
     outfile <<
     "All Events,$Z\\rightarrow ee$,$Z\\rightarrow ee$ fiducial,$Z\\rightarrow \\mu\\mu$,$Z\\rightarrow \\mu\\mu$ fiducial\n"
-    << allEvents << ',' << Z_ee << ',' << Z_ee_fiducial << ',' << Z_mumu << ',' << Z_mumu_fiducial << '\n';
-    
+//    << allEvents << ',' << Z_ee << ',' << Z_ee_fiducial << ',' << Z_mumu << ',' << Z_mumu_fiducial << '\n';
+    << allEvents << ',' << nZee << ',' << nZeeFid << ','
+    << nZmumu << ',' << nZmumuFid << '\n';
+        
     outfile.close();
     
     std::ofstream outfileZ("all_Z_products.txt");
@@ -578,11 +682,11 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
         plot.second.save(output_file);
     }
     
-    std::cout << "numberOfZs = " << numberOfZs << '\n'
-    << "allEvents = " << allEvents << '\n'
-    << "detectableParticleCount = " << detectableParticleCount << '\n'
-    << "tp_Z_events = " << tp_Z_events << '\n'
-    << "tp_Z_event_cuts = " << tp_Z_event_cuts << '\n';
+//    std::cout << "numberOfZs = " << numberOfZs << '\n'
+//    << "allEvents = " << allEvents << '\n'
+//    << "detectableParticleCount = " << detectableParticleCount << '\n'
+//    << "tp_Z_events = " << tp_Z_events << '\n'
+//    << "tp_Z_event_cuts = " << tp_Z_event_cuts << '\n';
 
 }
 

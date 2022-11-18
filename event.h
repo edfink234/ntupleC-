@@ -37,6 +37,7 @@ struct Event
     int event_number;
     std::vector<Photon> photons;
     std::vector<Electron> electrons;
+    std::vector<Muon> muons;
     std::vector<Cluster> clusters;
     std::vector<Track> tracks;
     std::vector<Track> pixel_tracks;
@@ -48,6 +49,7 @@ struct Event
     static bool load_reco;
     static bool load_photons;
     static bool load_electrons;
+    static bool load_muons;
     static bool load_clusters;
     static bool load_tracks;
     static bool load_triggers;

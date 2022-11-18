@@ -89,14 +89,10 @@ Long64_t FileReader::num_events()
 
 void FileReader::__load_photon_addresses()
 {
-//    __chain.SetBranchStatus("photon_pt",1);
-//    __chain.SetBranchStatus("photon_e",1);
     __chain.SetBranchStatus("photon_syst_name",1);
     __chain.SetBranchStatus("photon_syst_pt",1);
     __chain.SetBranchStatus("photon_syst_e",1);
     
-//    __chain.SetBranchAddress("photon_pt",&(__current_event.photon_pt));
-//    __chain.SetBranchAddress("photon_e",&(__current_event.photon_e));
     __chain.SetBranchAddress("photon_syst_name",&(__current_event.photon_syst_name));
     __chain.SetBranchAddress("photon_syst_pt",&(__current_event.photon_syst_pt));
     __chain.SetBranchAddress("photon_syst_e",&(__current_event.photon_syst_e));
@@ -104,14 +100,10 @@ void FileReader::__load_photon_addresses()
 
 void FileReader::__load_electron_addresses()
 {
-//    __chain.SetBranchStatus("electron_pt",1);
-//    __chain.SetBranchStatus("electron_e",1);
     __chain.SetBranchStatus("electron_syst_name",1);
     __chain.SetBranchStatus("electron_syst_pt",1);
     __chain.SetBranchStatus("electron_syst_e",1);
     
-//    __chain.SetBranchAddress("electron_pt",&(__current_event.electron_pt));
-//    __chain.SetBranchAddress("electron_e",&(__current_event.electron_e));
     __chain.SetBranchAddress("electron_syst_name",&(__current_event.electron_syst_name));
     __chain.SetBranchAddress("electron_syst_pt",&(__current_event.electron_syst_pt));
     __chain.SetBranchAddress("electron_syst_e",&(__current_event.electron_syst_e));
@@ -235,6 +227,40 @@ void FileReader::__load_electrons()
     }
 }
 
+void FileReader::__load_muons()
+{
+    auto length = (*(Muon::muon_pt)).size();
+    double pt, energy;
+    int index;
+    
+    for (size_t i = 0; i < length; i++)
+    {
+        if ((Event::systematic.empty()) || (Event::systematic == "nominal"))
+        {
+            pt = (*(Muon::muon_pt))[i];
+            energy = (*(Muon::muon_e))[i];
+        }
+        else
+        {
+            index = -1;
+            auto it = find(((*(__current_event.electron_syst_name))[i]).begin(), ((*(__current_event.electron_syst_name))[i]).end(), Event::systematic);
+
+            if (it == ((*(__current_event.electron_syst_name))[i]).end())
+            {
+                continue;
+            }
+            index = it - ((*(__current_event.electron_syst_name))[i]).begin();
+            pt = (*(__current_event.electron_syst_pt))[i][index];
+            energy = (*(__current_event.electron_syst_e))[i][index];
+        }
+        if (pt < 0)
+        {
+            continue;
+        }
+        __current_event.muons.emplace_back(Muon(i, pt, energy));
+    }
+}
+
 void FileReader::__load_clusters()
 {
     auto length = (*(Cluster::cluster_pt)).size();
@@ -320,7 +346,7 @@ std::vector<TruthParticle> FileReader::find_truth_particles
             {
                 continue;
             }
-            if (inv && status_code && (tp.status_code() == *status_code))
+            if (status_code && (tp.status_code() == *status_code) && inv)
             {
                 continue;
             }
@@ -388,6 +414,7 @@ FileReaderRange::Iterator::Iterator(int i, FileReader& f) : data{i}, F{f}
     F.__current_event.pixel_tracks.reserve(6);
     F.__current_event.clusters.reserve(6);
     F.__current_event.electrons.reserve(6);
+    F.__current_event.muons.reserve(6);
     
     //Decativate all branches
     F.__chain.SetBranchStatus("*",0);
@@ -424,6 +451,11 @@ FileReaderRange::Iterator::Iterator(int i, FileReader& f) : data{i}, F{f}
         {
             F.__load_electron_addresses();
             Electron::SetElectron(&F.__chain);
+        }
+        
+        if (Event::load_muons)
+        {
+            Muon::SetMuon(&F.__chain);
         }
         
         if (Event::load_clusters)
@@ -466,6 +498,10 @@ FileReaderRange::Iterator::Iterator(int i, FileReader& f) : data{i}, F{f}
         {
             F.__load_electrons();
         }
+        if (Event::load_muons)
+        {
+            F.__load_muons();
+        }
         if (Event::load_clusters)
         {
             F.__load_clusters();
@@ -490,6 +526,7 @@ FileReaderRange::Iterator& FileReaderRange::Iterator::operator++()
     F.__current_event.pixel_tracks.clear();
     F.__current_event.clusters.clear();
     F.__current_event.electrons.clear();
+    F.__current_event.muons.clear();
 
     F.__current_index = F.__current_event.entry_number = ++data;
     

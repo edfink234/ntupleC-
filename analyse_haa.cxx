@@ -161,7 +161,7 @@ void run_analysis(std::vector<std::string>& input_filenames, std::string systema
         
         int weight = 1;
         
-//        for (auto i: f.__current_event.triggers)
+//        for (auto i: f.__current_event.electrons)
 //        {
 //            std::cout << std::string(i) << '\n';
 //        }
