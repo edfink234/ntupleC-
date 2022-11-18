@@ -1,5 +1,9 @@
 #ifndef FILEREADERH
 #define FILEREADERH
+
+#include <vector>
+#include <string>
+
 #include "event.h"
 #include "objects.h"
 
@@ -48,7 +52,8 @@ public:
     (const std::vector<int>&& barcode = {},
      const std::vector<int>&& parent_barcode = {},
      const std::vector<int>&& pdg_id = {},
-     int* status_code = nullptr);
+     int* status_code = nullptr,
+     bool inv = false);
 };
 
 class FileReaderRange {

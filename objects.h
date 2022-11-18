@@ -65,7 +65,7 @@ public:
     int parent_barcode();
     int status_code();
     double pt() override;
-    double charge();
+    virtual double charge();
     double eta() override;
     double phi() override;
     double e() override;
@@ -85,6 +85,7 @@ private:
     double _systematic_pt;
     double _systematic_energy;
     friend class FileReader;
+    static std::vector<double>* electron_charge;
     static std::vector<double>* electron_pt;
     static std::vector<double>* electron_e;
     static std::vector<double>* electron_eta;
@@ -102,6 +103,7 @@ public:
     Electron& operator=(const Electron&);
     int Pdg_id();
     double pt() override;
+    double charge() override;
     double e() override;
     double eta() override;
     double phi() override;

@@ -42,3 +42,4 @@ double CandidateSet<T>::acoplanarity()
 
 template class CandidateSet<TruthParticle>;
 template class CandidateSet<Photon>;
+template class CandidateSet<Electron>;
