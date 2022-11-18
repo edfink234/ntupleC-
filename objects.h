@@ -114,6 +114,35 @@ public:
     operator std::string();
 };
 
+class Muon final : public TruthParticle
+{
+private:
+    static const std::string PREFIX;
+    double _systematic_pt;
+    double _systematic_energy;
+    friend class FileReader;
+    static std::vector<double>* muon_charge;
+    static std::vector<double>* muon_pt;
+    static std::vector<double>* muon_e;
+    static std::vector<double>* muon_eta;
+    static std::vector<double>* muon_phi;
+
+public:
+    static const int PDG_ID;
+    static void SetMuon(TChain*);
+    Muon();
+    Muon(int, double pt=0, double energy = 0);
+    Muon(const Muon&);
+    Muon& operator=(const Muon&);
+    int Pdg_id();
+    double pt() override;
+    double charge() override;
+    double e() override;
+    double eta() override;
+    double phi() override;
+    operator std::string();
+};
+
 class Photon final : public TruthParticle
 {
 private:

@@ -31,6 +31,7 @@ private:
 
     void __load_photons();
     void __load_electrons();
+    void __load_muons();
     void __load_clusters();
     void __load_tracks();
     void __load_truth_particles();

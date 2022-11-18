@@ -299,13 +299,11 @@ double Electron::z0()
     return (*Electron::electron_z0)[_index];
 }
 
-
-
 Electron::operator std::string()
 {
     return
     (
-    "TruthParticle(pdg_id = "+std::to_string(Pdg_id())
+    "Electron(pdg_id = "+std::to_string(Pdg_id())
     +", pT = " + std::to_string(pt())
     +", charge = " + std::to_string(charge())
     +", eta = " + std::to_string(eta())
@@ -346,6 +344,112 @@ void Electron::SetElectron(TChain* chain)
     chain->SetBranchAddress("electron_isolation",&Electron::electron_isolation);
     chain->SetBranchAddress("electron_d0",&Electron::electron_d0);
     chain->SetBranchAddress("electron_z0",&Electron::electron_z0);
+}
+
+//                *****************
+//                *      Muon     *
+//                *****************
+
+Muon::Muon() = default;
+
+Muon::Muon(int index, double pt, double energy)
+: TruthParticle::TruthParticle(index),
+  _systematic_pt{pt},
+  _systematic_energy{energy}
+{
+    
+}
+
+Muon::Muon(const Muon& other)
+{
+    pdg_id = other.pdg_id;
+    _index = other._index;
+    Cluster_eta = other.Cluster_eta;
+    _systematic_pt = other._systematic_pt;
+    _systematic_energy = other._systematic_energy;
+}
+
+Muon& Muon::operator=(const Muon& other)
+{
+    pdg_id = other.pdg_id;
+    _index = other._index;
+    Cluster_eta = other.Cluster_eta;
+    _systematic_pt = other._systematic_pt;
+    _systematic_energy = other._systematic_energy;
+    return *this;
+}
+
+int Muon::Pdg_id()
+{
+    return charge()*PDG_ID;
+}
+
+double Muon::pt()
+{
+    if (_systematic_pt) //if it's not 0
+    {
+        return _systematic_pt;
+    }
+    return (*Muon::muon_pt)[_index];
+}
+
+double Muon::charge()
+{
+    return (*Muon::muon_charge)[_index];
+}
+
+double Muon::e()
+{
+    if (_systematic_energy)
+    {
+        return _systematic_energy;
+    }
+    return (*Muon::muon_e)[_index];
+}
+
+double Muon::eta()
+{
+    return (*Muon::muon_eta)[_index];
+}
+
+double Muon::phi()
+{
+    return (*Muon::muon_phi)[_index];
+}
+
+Muon::operator std::string()
+{
+    return
+    (
+    "Muon(pdg_id = "+std::to_string(Pdg_id())
+    +", pT = " + std::to_string(pt())
+    +", charge = " + std::to_string(charge())
+    +", eta = " + std::to_string(eta())
+    +", phi = " + std::to_string(phi())
+    );
+}
+
+const int Muon::PDG_ID = 13;
+const std::string Muon::PREFIX = "muon";
+std::vector<double>* Muon::muon_charge = nullptr;
+std::vector<double>* Muon::muon_pt = nullptr;
+std::vector<double>* Muon::muon_e = nullptr;
+std::vector<double>* Muon::muon_eta = nullptr;
+std::vector<double>* Muon::muon_phi = nullptr;
+
+void Muon::SetMuon(TChain* chain)
+{
+    chain->SetBranchStatus("muon_charge",1);
+    chain->SetBranchStatus("muon_pt",1);
+    chain->SetBranchStatus("muon_e",1);
+    chain->SetBranchStatus("muon_eta",1);
+    chain->SetBranchStatus("muon_phi",1);
+
+    chain->SetBranchAddress("muon_charge",&Muon::muon_charge);
+    chain->SetBranchAddress("muon_pt",&Muon::muon_pt);
+    chain->SetBranchAddress("muon_e",&Muon::muon_e);
+    chain->SetBranchAddress("muon_eta",&Muon::muon_eta);
+    chain->SetBranchAddress("muon_phi",&Muon::muon_phi);
 }
 
 //                *****************
@@ -448,7 +552,7 @@ Photon::operator std::string()
 {
     return
     (
-    "TruthParticle(pdg_id = "+std::to_string(PDG_ID)
+    "Photon(pdg_id = "+std::to_string(PDG_ID)
     +", pT = " + std::to_string(pt())
     +", charge = " + std::to_string(charge())
     +", eta = " + std::to_string(eta())
