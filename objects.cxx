@@ -255,6 +255,11 @@ double Electron::pt()
     return (*Electron::electron_pt)[_index];
 }
 
+double Electron::charge()
+{
+    return (*Electron::electron_charge)[_index];
+}
+
 double Electron::e()
 {
     if (_systematic_energy)
@@ -294,11 +299,13 @@ double Electron::z0()
     return (*Electron::electron_z0)[_index];
 }
 
+
+
 Electron::operator std::string()
 {
     return
     (
-    "TruthParticle(pdg_id = "+std::to_string(PDG_ID)
+    "TruthParticle(pdg_id = "+std::to_string(Pdg_id())
     +", pT = " + std::to_string(pt())
     +", charge = " + std::to_string(charge())
     +", eta = " + std::to_string(eta())
@@ -308,6 +315,7 @@ Electron::operator std::string()
 
 const int Electron::PDG_ID = 11;
 const std::string Electron::PREFIX = "electron";
+std::vector<double>* Electron::electron_charge = nullptr;
 std::vector<double>* Electron::electron_pt = nullptr;
 std::vector<double>* Electron::electron_e = nullptr;
 std::vector<double>* Electron::electron_eta = nullptr;
@@ -319,6 +327,7 @@ std::vector<double>* Electron::electron_z0 = nullptr;
 
 void Electron::SetElectron(TChain* chain)
 {
+    chain->SetBranchStatus("electron_charge",1);
     chain->SetBranchStatus("electron_pt",1);
     chain->SetBranchStatus("electron_e",1);
     chain->SetBranchStatus("electron_eta",1);
@@ -328,6 +337,7 @@ void Electron::SetElectron(TChain* chain)
     chain->SetBranchStatus("electron_d0",1);
     chain->SetBranchStatus("electron_z0",1);
 
+    chain->SetBranchAddress("electron_charge",&Electron::electron_charge);
     chain->SetBranchAddress("electron_pt",&Electron::electron_pt);
     chain->SetBranchAddress("electron_e",&Electron::electron_e);
     chain->SetBranchAddress("electron_eta",&Electron::electron_eta);

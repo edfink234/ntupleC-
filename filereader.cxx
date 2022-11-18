@@ -295,7 +295,8 @@ std::vector<TruthParticle> FileReader::find_truth_particles
      (const std::vector<int>&& barcode,
       const std::vector<int>&& parent_barcode,
       const std::vector<int>&& pdg_id,
-      int* status_code)
+      int* status_code,
+      bool inv)
 {
     std::vector<TruthParticle> results;
     
@@ -315,7 +316,11 @@ std::vector<TruthParticle> FileReader::find_truth_particles
             {
                 continue;
             }
-            if (status_code && (tp.status_code() != *status_code))
+            if (status_code && (tp.status_code() != *status_code) && (!inv))
+            {
+                continue;
+            }
+            if (inv && status_code && (tp.status_code() == *status_code))
             {
                 continue;
             }

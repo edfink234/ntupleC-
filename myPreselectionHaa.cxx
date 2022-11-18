@@ -9,8 +9,8 @@
 #include <utility>
 #include <unordered_set>
 #include <fstream>
-#include <iomanip>
 #include <regex>
+#include <cstdlib>
 
 #include "TH1F.h"
 #include "TFile.h"
@@ -57,14 +57,17 @@ bool photon_selection(Photon& photon)
     return true;
 }
 
-bool lepton_selection(CandidateSet<TruthParticle>& leptons)
+template <typename T>
+bool lepton_selection(CandidateSet<T>& leptons)
 {
 //    std::cout << dR(leptons[0],leptons[1]) << '\n';
+//    std::cout << std::string(leptons.particle_a) << '\n' << std::string(leptons.particle_b) << "\n\n";
     return
      (
     (leptons.particle_a.delta_r(leptons.particle_b) > 0.01)
     &&
-    (leptons.particle_a.charge() == -1*leptons.particle_b.charge())
+//    ((leptons.particle_a.charge()*leptons.particle_b.charge()) < 0)
+      (leptons.particle_a.charge() == -1*leptons.particle_b.charge())
     &&
     ((leptons.four_momentum.M()/1e3 >= 81) &&
         (leptons.four_momentum.M()/1e3 <= 101))
@@ -88,6 +91,15 @@ void filter(std::vector<T>& vec, bool (*func) (T&))
             i--;
         }
     }
+}
+
+bool AcceptanceCut(TruthParticle& tp)
+{
+    if ((abs(tp.eta()) < 2.37) && (tp.pt() > 20e3))
+    {
+        return true;
+    }
+    return false;
 }
 
 void run_analysis(const std::vector<std::string>& input_filenames, std::string systematic = "nominal", bool mc = false, TFile* output_file = nullptr, std::string prefix = "")
@@ -167,6 +179,7 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
     int weight = 1;
     
 //    std::unordered_set<std::string> all_triggers;
+    std::unordered_map <int,int> all_Z_products;
     
     int beforePreselection = 0,
         two_leptons = 0,
@@ -175,6 +188,7 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
         lep_same_flavor = 0,
         dilep_mass = 0,
         dilep_pt = 0;
+    
     
     constexpr std::array<const char*,35> triggers = {
         "HLT_e26_lhtight_nod0_ivarloose",
@@ -221,19 +235,40 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
         "HLT_mu18_mu8noL1",
     };
     
+    int allEvents = 0, Z_ee = 0, Z_ee_fiducial = 0, Z_mumu = 0, Z_mumu_fiducial = 0,
+    detectableParticleCount = 0, tps_from_Z = 0, tps_from_Z_cuts = 0,
+    tp_Z_events = 0, tp_Z_event_cuts = 0;
+    
+    auto inFiducialRegion = [&](std::vector<TruthParticle>& vec)
+    {
+        return std::all_of(vec.begin(), vec.end(), [&] (TruthParticle &i)
+        {
+            return ((abs(i.eta()) < 2.37) && (!((1.37 < abs(i.eta())) && (abs(i.eta()) < 1.52))));
+        });
+    };
+    
+//    auto inFiducialRegion = [&](std::vector<Electron>& vec)
+//    {
+//        return std::all_of(vec.begin(), vec.end(), [&] (Electron &i)
+//        {
+//            return ((abs(i.eta()) < 2.37) && (!((1.37 < abs(i.eta())) && (abs(i.eta()) < 1.52))));
+//        });
+//    };
+    
+    int numberOfZs = 0;
     for (auto &&f: reader)
     {
         std::cout << "entry_number " << f.__current_event.entry_number  << '\n';
         //        std::copy(f.__current_event.triggers.begin(),f.__current_event.triggers.end(),std::inserter(all_triggers,all_triggers.end()));
         //        std::cout<<'\n';
         
-        
+        allEvents++;
         auto passBeforePreselection = [&](){
-            const auto trigger_found = std::find_first_of(f.__current_event.triggers.begin(), f.__current_event.triggers.end(), triggers.begin(), triggers.end());
-            if (trigger_found == f.__current_event.triggers.end())
-            {
-                return false;
-            }
+//            const auto trigger_found = std::find_first_of(f.__current_event.triggers.begin(), f.__current_event.triggers.end(), triggers.begin(), triggers.end());
+//            if (trigger_found == f.__current_event.triggers.end())
+//            {
+//                return false;
+//            }
 //            std::vector<TruthParticle>&& truth_muon_electrons = f.find_truth_particles({},{},{11,-11,13,-13},&weight);
 //            for (auto& mu_elec: truth_muon_electrons)
 //            {
@@ -267,16 +302,121 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
             return true;
         };
         
+        //cutflow
         if (passBeforePreselection())
         {
             beforePreselection++;
+            std::vector<TruthParticle> truth_leptons, truth_muons, detectableParticles, possibleParents;
+            std::vector<TruthParticle>&& truth_Z = f.find_truth_particles({},{},{23},&weight, true);
+            std::vector<int> truth_Z_barcodes;
+            truth_Z_barcodes.reserve(truth_Z.size());
+            for (auto& i: truth_Z)
+            {
+                truth_Z_barcodes.push_back(i.barcode());
+            }
+
+            if (!(truth_Z.empty()))
+            {
+                numberOfZs++;
+//                R__ASSERT(std::all_of(truth_Z.begin(), truth_Z.end(), [&] (TruthParticle &i) {return i.barcode() == truth_Z[0].barcode();}));
+                truth_leptons = f.find_truth_particles({},{truth_Z[0].barcode()},{11, -11});
+                
+                detectableParticles = f.find_truth_particles({},{},{11, -11},&weight);
+                detectableParticleCount += detectableParticles.size();
+                
+                possibleParents = f.find_truth_particles({},{},{11, -11, 23},&weight,true);
+                std::vector<int> possibleParents_barcodes;
+                possibleParents_barcodes.reserve(possibleParents.size());
+                for (auto& i: possibleParents)
+                {
+                    possibleParents_barcodes.push_back(i.barcode());
+                }
+                
+                bool passedZ = true, passedZCut = true;
+                if (detectableParticles.empty())
+                {
+                    passedZ = passedZCut = false;
+                }
+                else
+                {
+                    for (auto& i: detectableParticles)
+                    {
+                        if (std::find(truth_Z_barcodes.begin(),truth_Z_barcodes.end(), i.parent_barcode()) != truth_Z_barcodes.end())
+                        {
+                            tps_from_Z++;
+                            if (AcceptanceCut(i))
+                            {
+                                tps_from_Z_cuts++;
+                            }
+                        }
+                        else
+                        {
+                            int findThisBarcode = i.parent_barcode();
+                            auto it = std::find(possibleParents_barcodes.begin(), possibleParents_barcodes.end(), findThisBarcode);
+                            while (it!=possibleParents_barcodes.end())
+                            {
+                                if (std::find(truth_Z_barcodes.begin(),truth_Z_barcodes.end(),*it) != truth_Z_barcodes.end())
+                                {
+                                    tps_from_Z++;
+                                    if (AcceptanceCut(i))
+                                    {
+                                        tps_from_Z_cuts++;
+                                    }
+                                    else
+                                    {
+                                        passedZCut = false;
+                                    }
+                                    break;
+                                }
+                                else
+                                {
+                                    int index = it - possibleParents_barcodes.begin();
+                                    findThisBarcode = possibleParents[index].parent_barcode();
+                                    it = std::find(possibleParents_barcodes.begin(), possibleParents_barcodes.end(), findThisBarcode);
+                                }
+                            }
+                            if (it==possibleParents_barcodes.end())
+                            {
+                                passedZ = false;
+                                passedZCut = false;
+                            }
+                        }
+                    }
+                }
+                
+                if (passedZ)
+                    tp_Z_events++;
+                if (passedZCut)
+                    tp_Z_event_cuts++;
+                
+                for (auto& i: f.find_truth_particles({},{truth_Z[0].barcode()},{}))
+                {
+                    all_Z_products[i.pdg_id]++;
+                }
+
+                truth_muons = f.find_truth_particles({},{truth_Z[0].barcode()},{13, -13});
+                if (truth_muons.size()==2)
+                {
+                    Z_mumu++;
+                    if (inFiducialRegion(truth_muons))
+                    {
+                        Z_mumu_fiducial++;
+                    }
+                }
+            }
             
-            std::vector<TruthParticle>&& truth_leptons = f.find_truth_particles({},{},{11, 12, 13, 14, 15, 16, 17, 18},&weight);
+//            std::vector<Electron>& truth_leptons = f.__current_event.electrons;
             
             if (truth_leptons.size() == 2)
             {
+                Z_ee++;
+                if (inFiducialRegion(truth_leptons))
+                {
+                    Z_ee_fiducial++;
+                }
                 two_leptons++;
                 CandidateSet<TruthParticle> candidate_dilepton(std::make_pair(truth_leptons[0],truth_leptons[1]));
+//                CandidateSet<Electron> candidate_dilepton(std::make_pair(truth_leptons[0],truth_leptons[1]));
                 if (truth_leptons[0].charge() == -1*truth_leptons[1].charge())
                 {
                     opp_charge++;
@@ -300,7 +440,7 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
                             }
                         }
                     }
-                    
+
                 }
                 
                 for (int i=minBins; i<=MaxBins; i+=inc)
@@ -308,7 +448,8 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
                     plots.at(prefix+"Di-lepton p_T distribution before pre-selection, bins = " + std::to_string(i)).fill(candidate_dilepton.four_momentum.Pt()/1e3,weight);
                 }
                 
-                if (lepton_selection(candidate_dilepton))
+//                if (lepton_selection<Electron>(candidate_dilepton))
+                if (lepton_selection<TruthParticle>(candidate_dilepton))
                 {
                     for (int i=minBins; i<=MaxBins; i+=inc)
                     {
@@ -360,25 +501,19 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
                                 plots.at(prefix+"delta phi between the reconstructed Z and a systems, bins = " + std::to_string(i)).fill(VectorUtil::DeltaPhi(candidate_diphoton.four_momentum,candidate_dilepton.four_momentum));
                                 
                                 plots.at(prefix+"delta eta between the reconstructed Z and a systems, bins = " + std::to_string(i)).fill(abs(candidate_diphoton.four_momentum.Eta() - candidate_dilepton.four_momentum.Eta()));
-                                
                             }
-                            
                         }
                         
                         else if (f.__current_event.photons.size()==1)
                         {
                             plots.at(prefix+"transverse momentum of photon pre-selection, bins = " + std::to_string(i)).fill(f.__current_event.photons[0].pt()/1e3);
                         }
-                            
-                        
                     }
                 }
             }
         }
     }
-            
-    
-    
+
 //    std::ofstream out("triggers.txt", std::ios::app);
 //
 //    for (auto &&t: all_triggers)
@@ -389,61 +524,65 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
 //    std::cout << "Mean = " << Mean(points) << "\nStdDev = " << StdDev(points) << '\n';
     
     std::cout << "\n\n\n";
-    std::cout << std::right << std::string(25,' ')
-    << std::right << std::setw(25) << "beforePreselection"
-    << std::right << std::setw(25) << "two_leptons"
-    << std::right << std::setw(25) << "opp_charge"
-    << std::right << std::setw(25) << "lep1_lep2_pt"
-    << std::right << std::setw(25) << "lep_same_flavor"
-    << std::right << std::setw(25) << "dilep_mass"
-    << std::right << std::setw(25) << "dilep_pt\n";
     
-    std::cout << std::right << std::setw(25) << "My Event numbers"
-    << std::right << std::setw(25) << beforePreselection
-    << std::right << std::setw(25) << two_leptons
-    << std::right << std::setw(25) << opp_charge
-    << std::right << std::setw(25) << lep1_lep2_pt
-    << std::right << std::setw(25) << lep_same_flavor
-    << std::right << std::setw(25) << dilep_mass
-    << std::right << std::setw(25) << dilep_pt << '\n';
+    std::ofstream out(prefix.substr(0,3)+".txt");
     
-    std::cout << std::right << std::setw(25) << "My Event ratios"
-    << std::right << std::setw(25) << beforePreselection/beforePreselection
-    << std::right << std::setw(25) << static_cast<double>(two_leptons)/beforePreselection
-    << std::right << std::setw(25) << static_cast<double>(opp_charge)/beforePreselection
-    << std::right << std::setw(25) << static_cast<double>(lep1_lep2_pt)/beforePreselection
-    << std::right << std::setw(25) << static_cast<double>(lep_same_flavor)/beforePreselection
-    << std::right << std::setw(25) << static_cast<double>(dilep_mass)/beforePreselection
-    << std::right << std::setw(25) << static_cast<double>(dilep_pt)/beforePreselection << '\n';
+    out <<
+    "TwoLeptons,OppCharge,Lep1Lep2Pt,LepSameFlavor,DilepMass,DilepPt\n"
     
-    //values from paper here
-    std::cout << std::right << std::setw(25) << "Paper's Event ratios"
-    << std::right << std::setw(25) << 23580.1/23580.1
-    << std::right << std::setw(25) << 21606.75/23580.1
-    << std::right << std::setw(25) << 21505.03/23580.1
-    << std::right << std::setw(25) << 21375.48/23580.1
-    << std::right << std::setw(25) << 21375.33/23580.1
-    << std::right << std::setw(25) << 20543.06/23580.1
-    << std::right << std::setw(25) << 19516.87/23580.1 << '\n';
-    std::cout << "\n\n\n";
+    << two_leptons << ',' << opp_charge << ','
+    << lep1_lep2_pt << ',' << lep_same_flavor << ',' << dilep_mass << ','
+    << dilep_pt << '\n'
     
-//    auto df1 = ROOT::RDataFrame(1).Define("beforePreselection", [&] { return beforePreselection; }).Define("two_leptons", [&] { return two_leptons; }).Define("opp_charge", [&] { return opp_charge; }).Define("lep1_lep2_pt", [&] { return lep1_lep2_pt; }).Define("lep_same_flavor", [&] { return lep_same_flavor; }).Define("dilep_mass", [&] { return dilep_mass; }).Define("dilep_pt", [&] { return dilep_pt; });
+    << static_cast<double>(two_leptons)/static_cast<double>(two_leptons)
+    << ',' << static_cast<double>(opp_charge)/static_cast<double>(two_leptons) << ','
+    << static_cast<double>(lep1_lep2_pt)/static_cast<double>(two_leptons) << ','
+    << static_cast<double>(lep_same_flavor)/static_cast<double>(two_leptons) << ','
+    << static_cast<double>(dilep_mass)/static_cast<double>(two_leptons) << ','
+    << static_cast<double>(dilep_pt)/static_cast<double>(two_leptons) << '\n';
+    
+    switch (prefix[2]) {
+        case '1':
+            out << 21606.75/21606.75 << ',' << 21505.03/21606.75
+            << ',' << 21375.48/21606.75 << ',' << 21375.33/21606.75 << ','
+            << 20543.06/21606.75 << ',' << 19516.87/21606.75 << '\n';
+            break;
+        case '5':
+            out << 21655.38/21655.38 << ',' << 21556.03/21655.38
+            << ',' << 21424.29/21655.38 << ',' << 21424.28/21655.38 << ','
+            << 20585.09/21655.38 << ',' << 19536.68/21655.38 << '\n';
+        default:
+            break;
+    }
     
     
-//    auto df1 = ROOT::RDataFrame(1).Define("beforePreselection", [&] { return 1; }).Define("two_leptons", [&] { return 2; }).Define("opp_charge", [&] { return 3; }).Define("lep1_lep2_pt", [&] { return 4; }).Define("lep_same_flavor", [&] { return 5; }).Define("dilep_mass", [&] { return 6; }).Define("dilep_pt", [&] { return 7; });
+    out.close();
     
+    std::ofstream outfile(prefix.substr(0,3)+"_kristoff.txt");
+    outfile <<
+    "All Events,$Z\\rightarrow ee$,$Z\\rightarrow ee$ fiducial,$Z\\rightarrow \\mu\\mu$,$Z\\rightarrow \\mu\\mu$ fiducial\n"
+    << allEvents << ',' << Z_ee << ',' << Z_ee_fiducial << ',' << Z_mumu << ',' << Z_mumu_fiducial << '\n';
     
-//    std::cout << df1.Display({"beforePreselection","two_leptons","opp_charge","lep1_lep2_pt","lep_same_flavor","dilep_mass","dilep_pt"},1)->AsString() << '\n';
+    outfile.close();
     
-//    std::cout << df1.Display({"beforePreselection","two_leptons","opp_charge","lep1_lep2_pt","lep_same_flavor","dilep_mass","dilep_pt"},1)->AsString() << '\n';
-//
-  
-//    df1.Redefine("beforePreselection", [] {return 2;});
+    std::ofstream outfileZ("all_Z_products.txt");
+    for (auto& i: all_Z_products)
+    {
+        outfileZ << i.first << '\t' << i.second << '\n';
+    }
+    
+    outfileZ.close();
     
     for (auto& plot: plots)
     {
         plot.second.save(output_file);
     }
+    
+    std::cout << "numberOfZs = " << numberOfZs << '\n'
+    << "allEvents = " << allEvents << '\n'
+    << "detectableParticleCount = " << detectableParticleCount << '\n'
+    << "tp_Z_events = " << tp_Z_events << '\n'
+    << "tp_Z_event_cuts = " << tp_Z_event_cuts << '\n';
 
 }
 
@@ -452,10 +591,17 @@ void myPreselectionHaa()
     auto start_time = Clock::now();
     std::cout << "Run over MC\n";
     
-    std::vector<std::vector<std::string>> input_filenames = {{"/home/common/Haa/ntuples/Za/mc16_13TeV.600909.PhPy8EG_AZNLO_ggH125_mA5p0_Cyy0p01_Czh1p0.merge.AOD.e8324_e7400_s3126_r10724_r10726_v2.root"},
-    {"/home/common/Haa/ntuples/Za/mc16_13TeV.600750.PhPy8EG_AZNLO_ggH125_mA1p0_Cyy0p01_Czh1p0.NTUPLE.e8324_e7400_s3126_r10724_r10726_v2.root"}};
+//    std::vector<std::vector<std::string>> input_filenames = {{"/home/common/Haa/ntuples/Za/mc16_13TeV.600909.PhPy8EG_AZNLO_ggH125_mA5p0_Cyy0p01_Czh1p0.merge.AOD.e8324_e7400_s3126_r10724_r10726_v2.root"},
+//    {"/home/common/Haa/ntuples/Za/mc16_13TeV.600750.PhPy8EG_AZNLO_ggH125_mA1p0_Cyy0p01_Czh1p0.NTUPLE.e8324_e7400_s3126_r10724_r10726_v2.root"}};
+    
+    
+//    std::vector<std::vector<std::string>> input_filenames =
+//    {{"mc16_13TeV.600909.PhPy8EG_AZNLO_ggH125_mA5p0_Cyy0p01_Czh1p0.merge.AOD.e8324_e7400_s3126_r10724_r10726_v2.root"},{"mc16_13TeV.600750.PhPy8EG_AZNLO_ggH125_mA1p0_Cyy0p01_Czh1p0.NTUPLE.e8324_e7400_s3126_r10724_r10726_v2.root"}};
+    
+    std::vector<std::vector<std::string>> input_filenames = {{"mc16_13TeV.600750.PhPy8EG_AZNLO_ggH125_mA1p0_Cyy0p01_Czh1p0_allTruth_Test.root"}};
     
     const char* output_filename = "mc16_13TeV.600750.PhPy8EG_AZNLO_ggH125_mA_p0_Cyy0p01_Czh1p0.NTUPLE.e8324_e7400_s3126_r10724_r10726_v2_out.root";
+//    const char* output_filename = "mc16_13TeV.600750.PhPy8EG_AZNLO_ggH125_mA1p0_Cyy0p01_Czh1p0_allTruth_Test_out.root";
     
     TFile* output_file = TFile::Open(output_filename, "RECREATE");
     if (!output_file) {
@@ -470,7 +616,29 @@ void myPreselectionHaa()
         
         run_analysis(input_filename, "nominal", true, output_file, input_filename[0].substr(m.position(),m.length())+" ");
     }
-        
+    std::ofstream out("someFile.txt",std::ios::app);
+    out << "\\textbf{mA1} \\par \\hspace{-4cm}\n";
+    out.close();
+    system("python3 -c 'import pandas as pd; print(pd.read_csv(r\"mA1.txt\").rename(index={0:r\"my events\",1:r\"my ratios\",2:r\"paper ratios\"}).style.format(precision=3).to_latex( hrules=True));' >> someFile.txt");
+    
+//    out.open("someFile.txt",std::ios::app);
+//    out << "\\vspace{2cm} \\textbf{mA5} \\par \\hspace{-4cm}\n";
+//    out.close();
+//    system("python3 -c 'import pandas as pd; print(pd.read_csv(r\"mA5.txt\").rename(index={0:r\"my events\",1:r\"my ratios\",2:r\"paper ratios\"}).style.format(precision=3).to_latex( hrules=True));' >> someFile.txt");
+    
+    out.open("someFile.txt",std::ios::app);
+    out << "\\vspace{2cm} \\textbf{mA1} \\par \\hspace{-4cm}\n";
+    out.close();
+    system("python3 -c 'import pandas as pd; print(pd.read_csv(r\"mA1_kristoff.txt\").rename(index={0:r\"events\"}).style.format(precision=3).to_latex(hrules=True));' >> someFile.txt");
+    
+//    out.open("someFile.txt",std::ios::app);
+//    out << "\\vspace{2cm} \\textbf{mA5} \\par \\hspace{-4cm}\n";
+//    out.close();
+//    system("python3 -c 'import pandas as pd; print(pd.read_csv(r\"mA5_kristoff.txt\").rename(index={0:r\"events\"}).style.format(precision=3).to_latex(hrules=True));' >> someFile.txt");
+    
+    system("cat someFile.txt");
+//    system("rm mA1.txt mA5.txt someFile.txt");
+    system("rm mA1.txt mA1_kristoff.txt someFile.txt");
 
     output_file->Close();
     auto end_time = Clock::now();

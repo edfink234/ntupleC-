@@ -1,6 +1,9 @@
 #ifndef EVENTH
 #define EVENTH
 
+#include <vector>
+#include <string>
+
 #include "objects.h"
 
 struct Event
