@@ -284,6 +284,11 @@ int Electron::id_()
     return (*Electron::electron_id)[_index];
 }
 
+int Electron::id_medium()
+{
+    return (*Electron::electron_id_medium)[_index];
+}
+
 double Electron::isolation()
 {
     return (*Electron::electron_isolation)[_index];
@@ -319,6 +324,7 @@ std::vector<double>* Electron::electron_e = nullptr;
 std::vector<double>* Electron::electron_eta = nullptr;
 std::vector<double>* Electron::electron_phi = nullptr;
 std::vector<int>* Electron::electron_id = nullptr;
+std::vector<int>* Electron::electron_id_medium = nullptr;
 std::vector<double>* Electron::electron_isolation = nullptr;
 std::vector<double>* Electron::electron_d0 = nullptr;
 std::vector<double>* Electron::electron_z0 = nullptr;
@@ -334,6 +340,7 @@ void Electron::SetElectron(TChain* chain)
     chain->SetBranchStatus("electron_isolation",1);
     chain->SetBranchStatus("electron_d0",1);
     chain->SetBranchStatus("electron_z0",1);
+    chain->SetBranchStatus("electron_id_medium",1);
 
     chain->SetBranchAddress("electron_charge",&Electron::electron_charge);
     chain->SetBranchAddress("electron_pt",&Electron::electron_pt);
@@ -344,6 +351,7 @@ void Electron::SetElectron(TChain* chain)
     chain->SetBranchAddress("electron_isolation",&Electron::electron_isolation);
     chain->SetBranchAddress("electron_d0",&Electron::electron_d0);
     chain->SetBranchAddress("electron_z0",&Electron::electron_z0);
+    chain->SetBranchAddress("electron_id_medium",&Electron::electron_id_medium);
 }
 
 //                *****************

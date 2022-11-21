@@ -6,8 +6,6 @@
 
 //#include "TLorentzVector.h"
 #include "Math/Vector4D.h"
-#include "TTree.h"
-#include "TBranch.h"
 #include "TChain.h"
 
 using namespace ROOT::Math;
@@ -94,6 +92,7 @@ private:
     static std::vector<double>* electron_isolation;
     static std::vector<double>* electron_d0;
     static std::vector<double>* electron_z0;
+    static std::vector<int>* electron_id_medium;
 public:
     static const int PDG_ID;
     static void SetElectron(TChain*);
@@ -109,6 +108,7 @@ public:
     double phi() override;
     int id_() override;
     double isolation();
+    int id_medium();
     double d0();
     double z0();
     operator std::string();
