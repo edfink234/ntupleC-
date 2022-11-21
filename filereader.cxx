@@ -10,16 +10,12 @@ __event_info_chain{"full_event_info"},
 __has_event_info_chain{true}
 
 {
-//    puts("called");
     for (const auto& f: __files)
     {
-//        puts(f.c_str());
         __chain.Add(f.c_str());
-//        __chain.GetListOfBranches()->Print();
         __event_info_chain.Add(f.c_str());
     }
-//    __chain.GetListOfFiles()->Print();
-//    __event_info_chain.GetListOfFiles()->Print();
+
     if ((num_events<0) || (num_events>__chain.GetEntries()))
     {
         __num_events = __chain.GetEntries();
