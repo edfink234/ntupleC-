@@ -33,6 +33,10 @@ std::string GetXTitle(std::string& title)
     {
         return "#Delta #eta_{ll}";
     }
+    else if (title.find("delta R")!=std::string::npos)
+    {
+        return "#Delta R";
+    }
     return "";
 }
 
@@ -44,6 +48,7 @@ void recursiveTH1Fsave(TList* f)
         {
             TCanvas c1;
             std::string str = (static_cast<TKey*>(i)->GetName()+std::string(".png"));
+            std::cout << str << '\n';
             str.erase(std::remove(str.begin(), str.end(), '/'), str.end());
             TH1F* h = static_cast<TH1F*>(static_cast<TKey*>(i)->ReadObj());
             
@@ -61,6 +66,8 @@ void recursiveTH1Fsave(TList* f)
 void recursivesave()
 {
     TFile f("mc16_13TeV.600750.PhPy8EG_AZNLO_ggH125_mA_p0_Cyy0p01_Czh1p0.NTUPLE.e8324_e7400_s3126_r10724_r10726_v2_out.root");
+//    TFile f("Ntuple_data_test_out.root");
+//    TFile f("Ntuple_MC_Za_mA5p0_v4_out.root");
     recursiveTH1Fsave(f.GetListOfKeys());
 }
 

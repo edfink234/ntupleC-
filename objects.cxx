@@ -1,9 +1,12 @@
 #include "objects.h"
+#include "event.h"
 
 //#include "TLorentzVector.h"
 #include "TMath.h"
 #include "Math/Vector4D.h"
 #include "Math/VectorUtil.h"
+
+#include <climits>
 
 using namespace ROOT::Math;
               
@@ -53,7 +56,7 @@ PhysicsObject::operator std::string() //const
     "Particle(pT = "+std::to_string(pt())
     +", eta = " + std::to_string(eta())
     +", phi = " + std::to_string(phi())
-    );
+    +") ");
 }
 
 const std::string PhysicsObject::PREFIX = "";
@@ -70,8 +73,15 @@ TruthParticle::TruthParticle(int index)
 {
     //https://root-forum.cern.ch/t/looping-over-a-ttree/19899/5
     //https://root.cern/root/html534/tutorials/tree/hvector.C.html
-
-    pdg_id = (*TruthParticle::mc_pdg_id)[_index];
+    if (Event::cache_truth)
+    {
+        pdg_id = (*TruthParticle::mc_pdg_id)[_index];
+    }
+    else
+    {
+        pdg_id = INT_MIN;
+    }
+    
 }
 
 TruthParticle::TruthParticle(const TruthParticle& particle_temp)
@@ -126,7 +136,11 @@ double TruthParticle::pt()
 
 double TruthParticle::charge()
 {
-    return (*TruthParticle::mc_charge)[_index];
+    if (Event::cache_truth)
+    {
+        return (*TruthParticle::mc_charge)[_index];
+    }
+    return 0; //photon
 }
 
 double TruthParticle::eta()
@@ -164,7 +178,7 @@ TruthParticle::operator std::string()
     +", charge = " + std::to_string(charge())
     +", eta = " + std::to_string(eta())
     +", phi = " + std::to_string(phi())
-    );
+    +") ");
 }
 
 int TruthParticle::id_(){return true;}
@@ -313,7 +327,7 @@ Electron::operator std::string()
     +", charge = " + std::to_string(charge())
     +", eta = " + std::to_string(eta())
     +", phi = " + std::to_string(phi())
-    );
+    +") ");
 }
 
 const int Electron::PDG_ID = 11;
@@ -434,7 +448,7 @@ Muon::operator std::string()
     +", charge = " + std::to_string(charge())
     +", eta = " + std::to_string(eta())
     +", phi = " + std::to_string(phi())
-    );
+    +") ");
 }
 
 const int Muon::PDG_ID = 13;
@@ -565,7 +579,7 @@ Photon::operator std::string()
     +", charge = " + std::to_string(charge())
     +", eta = " + std::to_string(eta())
     +", phi = " + std::to_string(phi())
-    );
+    +") ");
 }
 
 const int Photon::PDG_ID = 22;
@@ -735,7 +749,7 @@ Track::operator std::string()
     +", charge = " + std::to_string(charge())
     +", eta = " + std::to_string(eta())
     +", phi = " + std::to_string(phi())
-    );
+    +") ");
 }
 
 const std::string Track::PREFIX = "track";
