@@ -194,7 +194,7 @@ void FileReader::__load_electrons()
     auto length = (*(Electron::electron_pt)).size();
     double pt, energy;
     int index;
-    
+//    printf("length = %ld\n",length);
     for (size_t i = 0; i < length; i++)
     {
         if ((Event::systematic.empty()) || (Event::systematic == "nominal"))
@@ -202,6 +202,7 @@ void FileReader::__load_electrons()
             pt = (*(Electron::electron_pt))[i];
             energy = (*(Electron::electron_e))[i];
         }
+       
         else
         {
             index = -1;

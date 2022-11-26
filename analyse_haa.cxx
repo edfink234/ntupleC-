@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <array>
+#include <fstream>
 #include <iostream>
 
 #include "TH1F.h"
@@ -176,7 +177,7 @@ void run_analysis(std::vector<std::string>& input_filenames, std::string systema
             }
             int temp = 1;
             std::vector<TruthParticle>&& truth_photons = f.find_truth_particles({},{},{22},&temp);
-//
+            
 //            for (auto i: truth_photons)
 //            {
 //                std::cout << std::string(i) << '\n';
@@ -212,6 +213,8 @@ void run_analysis(std::vector<std::string>& input_filenames, std::string systema
     
     std::cout << "# events for " << systematic << " = " << num_passed_events
     << '\n';
+    
+
 }
 
 void analyse_haa()

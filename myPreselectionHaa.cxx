@@ -1,4 +1,5 @@
 #include <unordered_map>
+#include <map>
 #include <cmath>
 #include <algorithm>
 #include <chrono>
@@ -91,6 +92,19 @@ void filter(std::vector<T>& vec, bool (*func) (T&))
     }
 }
 
+template <typename T, typename U>
+void filter(std::vector<T>& vec, bool (*func) (T&, U&), U& p)
+{
+    for (auto i = vec.begin(); i != vec.end(); ++i)
+    {
+        if (!func(*i, p))
+        {
+            vec.erase(i);
+            i--;
+        }
+    }
+}
+
 void run_analysis(const std::vector<std::string>& input_filenames, std::string systematic = "nominal", bool mc = false, TFile* output_file = nullptr, std::string prefix = "")
 {
     plots.clear();
@@ -166,7 +180,7 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
         
         plots.emplace(prefix+"eta distribution of all electron objects, bins = " + std::to_string(i),
             Plot(prefix+"eta distribution of all electron objects, bins = " + std::to_string(i),
-                 prefix+"eta distribution of all electron objects, bins = " + std::to_string(i), i, -0.0075, 0.0075));
+                 prefix+"eta distribution of all electron objects, bins = " + std::to_string(i), i, -7.5, 7.5));
         
         plots.emplace(prefix+"dilep pt before dilep cuts electrons objects, bins = " + std::to_string(i),
             Plot(prefix+"dilep pt before dilep cuts electrons objects, bins = " + std::to_string(i),
@@ -199,7 +213,42 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
         plots.emplace(prefix+"dilep delta eta after all dilep cuts electrons objects, bins = " + std::to_string(i),
             Plot(prefix+"dilep delta eta after all dilep cuts electrons objects, bins = " + std::to_string(i),
                  prefix+"dilep delta eta after all dilep cuts electrons objects, bins = " + std::to_string(i), i, 0, 6.25));
+        
+        plots.emplace(prefix+"pt distribution of all electron objects after all dilep cuts, bins = " + std::to_string(i),
+            Plot(prefix+"pt distribution of all electron objects after all dilep cuts, bins = " + std::to_string(i),
+                 prefix+"pt distribution of all electron objects after all dilep cuts, bins = " + std::to_string(i), i, 0, 200));
+        
+        plots.emplace(prefix+"eta distribution of all electron objects after all dilep cuts, bins = " + std::to_string(i),
+            Plot(prefix+"eta distribution of all electron objects after all dilep cuts, bins = " + std::to_string(i),
+                 prefix+"eta distribution of all electron objects after all dilep cuts, bins = " + std::to_string(i), i, -7.5, 7.5));
+        
+        plots.emplace(prefix+"pt distribution of all photon objects, bins = " + std::to_string(i),
+            Plot(prefix+"pt distribution of all photon objects, bins = " + std::to_string(i),
+                 prefix+"pt distribution of all photon objects, bins = " + std::to_string(i), i, 0, 200));
+        
+        plots.emplace(prefix+"eta distribution of all photon objects, bins = " + std::to_string(i),
+            Plot(prefix+"eta distribution of all photon objects, bins = " + std::to_string(i),
+                 prefix+"eta distribution of all photon objects, bins = " + std::to_string(i), i, -7.5, 7.5));
+        
+        plots.emplace(prefix+"delta R of reco photons with truth axion, bins = " + std::to_string(i),
+            Plot(prefix+"delta R of reco photons with truth axion, bins = " + std::to_string(i),
+                 prefix+"delta R of reco photons with truth axion, bins = " + std::to_string(i), i, 0, 6.5));
+        
+        plots.emplace(prefix+"delta R of reco-photon pairs with #Delta R_{#gamma_{1,2},a} < 0.2 and/or min#left(#Delta R_{#gamma_{1,2},a}#right), bins = " + std::to_string(i),
+            Plot(prefix+"delta R of reco-photon pairs with #Delta R_{#gamma_{1,2},a} < 0.2 and/or min#left(#Delta R_{#gamma_{1,2},a}#right), bins = " + std::to_string(i),
+                 prefix+"delta R of reco-photon pairs with #Delta R_{#gamma_{1,2},a} < 0.2 and/or min#left(#Delta R_{#gamma_{1,2},a}#right), bins = " + std::to_string(i), i, 0, 0.2));
+        
+        plots.emplace(prefix+"delta R of reco-photon pairs with #Delta R_{#gamma_{1,2},a} < 0.2 and/or min#left(#Delta R_{#gamma_{1,2},a}#right) after cuts, bins = " + std::to_string(i),
+            Plot(prefix+"delta R of reco-photon pairs with #Delta R_{#gamma_{1,2},a} < 0.2 and/or min#left(#Delta R_{#gamma_{1,2},a}#right) after cuts, bins = " + std::to_string(i),
+                 prefix+"delta R of reco-photon pairs with #Delta R_{#gamma_{1,2},a} < 0.2 and/or min#left(#Delta R_{#gamma_{1,2},a}#right) after cuts, bins = " + std::to_string(i), i, 0, 0.2));
+        
+        plots.emplace(prefix+"delta R of photon 1 and photon 2 after all cuts, bins = " + std::to_string(i),
+            Plot(prefix+"delta R of photon 1 and photon 2 after all cuts, bins = " + std::to_string(i),
+                 prefix+"delta R of photon 1 and photon 2 after all cuts, bins = " + std::to_string(i), i, 0, 0.2));
+        
+        
     }
+    Event::cache_truth = true;
     
     FileReaderRange reader(input_filenames);
     
@@ -208,7 +257,8 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
     int weight = 1;
     
 //    std::unordered_set<std::string> all_triggers;
-    std::unordered_map <int,int> all_Z_products;
+//    std::map <int,int> all_pdg_ids;
+//    std::unordered_map <int,int> all_Z_products;
     
     int beforePreselection = 0,
         two_leptons = 0,
@@ -218,6 +268,7 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
         dilep_mass = 0,
         dilep_pt = 0;
     
+    int events_two_photons_in_direction_of_axion = 0, events_one_photons_in_direction_of_axion = 0;
     
     constexpr std::array<const char*,35> triggers = {
         "HLT_e26_lhtight_nod0_ivarloose",
@@ -327,13 +378,18 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
                 (ep.id_medium() == 1));
     };
     
+    auto photonObjCuts = [](Photon& p)
+    {
+        return ((p.pt()/1e3 > 10) && (p.id_loose()==1) && (abs(p.eta()) < 2.37));
+    };
+//    int diphotonPairs=0, pdg_id35 = 0;
     
     for (auto &&f: reader)
     {
         std::cout << "entry_number " << f.__current_event.entry_number  << '\n';
         //        std::copy(f.__current_event.triggers.begin(),f.__current_event.triggers.end(),std::inserter(all_triggers,all_triggers.end()));
         //        std::cout<<'\n';
-        
+
         allEvents++;
         auto passBeforePreselection = [&](){
 //            const auto trigger_found = std::find_first_of(f.__current_event.triggers.begin(), f.__current_event.triggers.end(), triggers.begin(), triggers.end());
@@ -377,48 +433,48 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
         //cutflow
         if (passBeforePreselection())
         {
-            std::vector<TruthParticle> truth_leptons;
-            std::vector<TruthParticle> truth_electrons,
-            truth_stableElectrons, truth_mu, truth_stableMu, truthSignalElectrons, truthSignalMu;
-            std::vector<TruthParticle>&& truth_Zbosons = f.find_truth_particles({},{},{23},&weight, true);
-
-            if (!(truth_Zbosons.empty()))
-            {
-                truth_leptons = f.find_truth_particles({},{truth_Zbosons[0].barcode()},{11, -11});
-                
-                truth_electrons = f.find_truth_particles({},{},{11, -11});
-                truth_stableElectrons = f.find_truth_particles({},{},{11, -11},&weight);
-                truth_mu = f.find_truth_particles({},{},{13, -13});
-                truth_stableMu = f.find_truth_particles({},{},{13, -13},&weight);
-            
-                if (truth_electrons.size() >= 2)
-                {
-                    truthSignalElectrons = findParentInChain(truth_Zbosons[0].barcode(), truth_stableElectrons, truth_electrons);
-                    if (truthSignalElectrons.size() == 2)
-                    {
-                        nZee++;
-                    }
-                    filter<TruthParticle>(truthSignalElectrons,sigElecCut);
-                    if (truthSignalElectrons.size() == 2)
-                    {
-                        nZeeFid++;
-                    }
-                }
-                if (truth_mu.size() >= 2)
-                {
-                    truthSignalMu = findParentInChain(truth_Zbosons[0].barcode(), truth_stableMu, truth_mu);
-                    if (truthSignalMu.size() == 2)
-                    {
-                        nZmumu++;
-                    }
-                    filter<TruthParticle>(truthSignalMu,sigMuonCut);
-                    if (truthSignalMu.size() == 2)
-                    {
-                        nZmumuFid++;
-                    }
-                }
-            }
-            
+//            std::vector<TruthParticle> truth_leptons;
+//            std::vector<TruthParticle> truth_electrons,
+//            truth_stableElectrons, truth_mu, truth_stableMu, truthSignalElectrons, truthSignalMu;
+//            std::vector<TruthParticle>&& truth_Zbosons = f.find_truth_particles({},{},{23},&weight, true);
+//
+//            if (!(truth_Zbosons.empty()))
+//            {
+//                truth_leptons = f.find_truth_particles({},{truth_Zbosons[0].barcode()},{11, -11});
+//
+//                truth_electrons = f.find_truth_particles({},{},{11, -11});
+//                truth_stableElectrons = f.find_truth_particles({},{},{11, -11},&weight);
+//                truth_mu = f.find_truth_particles({},{},{13, -13});
+//                truth_stableMu = f.find_truth_particles({},{},{13, -13},&weight);
+//
+//                if (truth_electrons.size() >= 2)
+//                {
+//                    truthSignalElectrons = findParentInChain(truth_Zbosons[0].barcode(), truth_stableElectrons, truth_electrons);
+//                    if (truthSignalElectrons.size() == 2)
+//                    {
+//                        nZee++;
+//                    }
+//                    filter<TruthParticle>(truthSignalElectrons,sigElecCut);
+//                    if (truthSignalElectrons.size() == 2)
+//                    {
+//                        nZeeFid++;
+//                    }
+//                }
+//                if (truth_mu.size() >= 2)
+//                {
+//                    truthSignalMu = findParentInChain(truth_Zbosons[0].barcode(), truth_stableMu, truth_mu);
+//                    if (truthSignalMu.size() == 2)
+//                    {
+//                        nZmumu++;
+//                    }
+//                    filter<TruthParticle>(truthSignalMu,sigMuonCut);
+//                    if (truthSignalMu.size() == 2)
+//                    {
+//                        nZmumuFid++;
+//                    }
+//                }
+//            }
+            //Electrons
             std::vector<Electron>& reco_electrons = f.__current_event.electrons;
 
             for (int i=minBins; i<=MaxBins; i+=inc)
@@ -426,8 +482,10 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
                 for (auto& j: reco_electrons)
                 {
                     plots.at(prefix+"pt distribution of all electron objects, bins = " + std::to_string(i)).fill(j.pt()/1e3,weight);
-                    plots.at(prefix+"eta distribution of all electron objects, bins = " + std::to_string(i)).fill(j.eta()/1e3,weight);
+                    plots.at(prefix+"eta distribution of all electron objects, bins = " + std::to_string(i)).fill(j.eta(),weight);
                 }
+                
+                
             }
             
             filter<Electron>(reco_electrons, elecObjCuts);
@@ -475,15 +533,107 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
                                             plots.at(prefix+"dilep delta R after all dilep cuts electrons objects, bins = " + std::to_string(i)).fill(reco_electrons[0].delta_r(reco_electrons[1]),weight);
                                             plots.at(prefix+"dilep delta eta after all dilep cuts electrons objects, bins = " + std::to_string(i)).fill(candidateDiElectron.delta_eta(),weight);
                                         }
+                                        for (int i=minBins; i<=MaxBins; i+=inc)
+                                        {
+                                            for (auto& j: reco_electrons)
+                                            {
+                                                plots.at(prefix+"pt distribution of all electron objects after all dilep cuts, bins = " + std::to_string(i)).fill(j.pt()/1e3,weight);
+                                                plots.at(prefix+"eta distribution of all electron objects after all dilep cuts, bins = " + std::to_string(i)).fill(j.eta(),weight);
+                                            }
+                                        }
                                     }
                                 }
                             }
-                            
                         }
                     }
                 }
             }
             
+            //Photons
+            std::vector<Photon>& reco_photons = f.__current_event.photons;
+            std::vector<TruthParticle> truth_axions = f.find_truth_particles({},{},{35});
+            
+            auto dR_lt_0point2 = [](Photon& p, TruthParticle& t){return p.delta_r(t) < 0.2;};
+            
+            for (int i=minBins; i<=MaxBins; i+=inc)
+            {
+                for (auto& j: reco_photons)
+                {
+                    plots.at(prefix+"pt distribution of all photon objects, bins = " + std::to_string(i)).fill(j.pt()/1e3,weight);
+                    plots.at(prefix+"eta distribution of all photon objects, bins = " + std::to_string(i)).fill(j.eta(),weight);
+                    if (!truth_axions.empty())
+                    {
+                        plots.at(prefix+"delta R of reco photons with truth axion, bins = " + std::to_string(i)).fill(j.delta_r(truth_axions[0]),weight);
+                    }
+                }
+                if (!truth_axions.empty())
+                {
+                    filter<Photon,TruthParticle>(reco_photons, dR_lt_0point2, truth_axions[0]);
+                }
+                
+                if (reco_photons.size()==2 && !truth_axions.empty())
+                {
+                    plots.at(prefix+"delta R of reco-photon pairs with #Delta R_{#gamma_{1,2},a} < 0.2 and/or min#left(#Delta R_{#gamma_{1,2},a}#right), bins = " + std::to_string(i)).fill(reco_photons[0].delta_r(truth_axions[0]),weight);
+                    plots.at(prefix+"delta R of reco-photon pairs with #Delta R_{#gamma_{1,2},a} < 0.2 and/or min#left(#Delta R_{#gamma_{1,2},a}#right), bins = " + std::to_string(i)).fill(reco_photons[1].delta_r(truth_axions[0]),weight);
+                    filter<Photon>(reco_photons,photonObjCuts);
+                    if (reco_photons.size()==2)
+                    {
+//                        CandidateSet<Photon> passed_photons(std::make_pair(reco_photons[0],reco_photons[1]));
+                        plots.at(prefix+"delta R of reco-photon pairs with #Delta R_{#gamma_{1,2},a} < 0.2 and/or min#left(#Delta R_{#gamma_{1,2},a}#right) after cuts, bins = " + std::to_string(i)).fill(reco_photons[0].delta_r(truth_axions[0]),weight);
+                        plots.at(prefix+"delta R of reco-photon pairs with #Delta R_{#gamma_{1,2},a} < 0.2 and/or min#left(#Delta R_{#gamma_{1,2},a}#right) after cuts, bins = " + std::to_string(i)).fill(reco_photons[1].delta_r(truth_axions[0]),weight);
+                        plots.at(prefix+ "delta R of photon 1 and photon 2 after all cuts, bins = " + std::to_string(i)).fill(reco_photons[1].delta_r(reco_photons[0]),weight);
+                       
+                        
+                    }
+                    
+                    events_two_photons_in_direction_of_axion++;
+                }
+                else if (reco_photons.size()>2  && !truth_axions.empty())//find two smallest ΔR's
+                {
+                    double firstSmallest = reco_photons[0].delta_r(truth_axions[0]), secondSmallest = firstSmallest;
+                    
+                    size_t firstSmallestIdx = 0, secondSmallestIdx = 0;
+                    
+                    for (size_t i = 0; i<reco_photons.size(); ++i)
+                    {
+                        double curr = reco_photons[i].delta_r(truth_axions[0]);
+                        if (curr < firstSmallest)
+                        {
+                            secondSmallest = firstSmallest;
+                            firstSmallest = curr;
+                            secondSmallestIdx = firstSmallestIdx;
+                            firstSmallest = i;
+                        }
+                        else if (curr < secondSmallest && curr >= firstSmallest)
+                        {
+                            secondSmallest = curr;
+                            secondSmallestIdx = i;
+                        }
+                    }
+                    plots.at(prefix+"delta R of reco-photon pairs with #Delta R_{#gamma_{1,2},a} < 0.2 and/or min#left(#Delta R_{#gamma_{1,2},a}#right), bins = " + std::to_string(i)).fill(reco_photons[0].delta_r(truth_axions[0]),weight);
+                    plots.at(prefix+"delta R of reco-photon pairs with #Delta R_{#gamma_{1,2},a} < 0.2 and/or min#left(#Delta R_{#gamma_{1,2},a}#right), bins = " + std::to_string(i)).fill(reco_photons[1].delta_r(truth_axions[0]),weight);
+                    filter<Photon>(reco_photons,photonObjCuts);
+                    if (reco_photons.size()==2)
+                    {
+//                        CandidateSet<Photon> passed_photons(std::make_pair(reco_photons[0],reco_photons[1]));
+                        plots.at(prefix+"delta R of reco-photon pairs with #Delta R_{#gamma_{1,2},a} < 0.2 and/or min#left(#Delta R_{#gamma_{1,2},a}#right) after cuts, bins = " + std::to_string(i)).fill(reco_photons[0].delta_r(truth_axions[0]),weight);
+                        plots.at(prefix+"delta R of reco-photon pairs with #Delta R_{#gamma_{1,2},a} < 0.2 and/or min#left(#Delta R_{#gamma_{1,2},a}#right) after cuts, bins = " + std::to_string(i)).fill(reco_photons[1].delta_r(truth_axions[0]),weight);
+                        plots.at(prefix+ "delta R of photon 1 and photon 2 after all cuts, bins = " + std::to_string(i)).fill(reco_photons[1].delta_r(reco_photons[0]),weight);
+                    }
+                    events_two_photons_in_direction_of_axion++;
+                    
+                }
+                else if (reco_photons.size() == 1  && !truth_axions.empty())
+                {
+                    events_one_photons_in_direction_of_axion++;
+                }
+            }
+            
+            
+            
+            
+            
+//            
             
 //            if (truth_leptons.size() == 2)
 //            {
@@ -644,13 +794,29 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
         
     outfile.close();
     
-    std::ofstream outfileZ("all_Z_products.txt");
-    for (auto& i: all_Z_products)
-    {
-        outfileZ << i.first << '\t' << i.second << '\n';
-    }
+//    std::ofstream outfileZ("all_Z_products.txt");
+//    for (auto& i: all_Z_products)
+//    {
+//        outfileZ << i.first << '\t' << i.second << '\n';
+//    }
+//
+//    outfileZ.close();
     
-    outfileZ.close();
+//    std::ofstream outfilePDG("all_pdgids.txt");
+    
+//    for (auto& i: all_pdg_ids)
+//    {
+//        outfilePDG << i.first << '\t' << i.second << '\n';
+//    }
+
+//    outfilePDG.close();
+
+    
+//    std::cout << "events w/ exactly two photons = " << diphotonPairs << '/' << allEvents << '='
+//    << diphotonPairs/static_cast<double>(allEvents)
+//    << "\nevents w/ exactly one pdg_id = 35 given exactly two photons = " << pdg_id35 << '/' << diphotonPairs << '=' << pdg_id35/static_cast<double>(diphotonPairs) << '\n';
+    std::cout << "Events with atleast two reco-photons within ΔR < 0.2 of axion = " << events_two_photons_in_direction_of_axion
+    << "\nEvents with exactly one reco-photon within ΔR < 0.2 of axion = " << events_one_photons_in_direction_of_axion << '\n';
     
     for (auto& plot: plots)
     {
@@ -671,9 +837,18 @@ void myPreselectionHaa()
 //    std::vector<std::vector<std::string>> input_filenames =
 //    {{"mc16_13TeV.600909.PhPy8EG_AZNLO_ggH125_mA5p0_Cyy0p01_Czh1p0.merge.AOD.e8324_e7400_s3126_r10724_r10726_v2.root"},{"mc16_13TeV.600750.PhPy8EG_AZNLO_ggH125_mA1p0_Cyy0p01_Czh1p0.NTUPLE.e8324_e7400_s3126_r10724_r10726_v2.root"}};
     
-    std::vector<std::vector<std::string>> input_filenames = {{"mc16_13TeV.600750.PhPy8EG_AZNLO_ggH125_mA1p0_Cyy0p01_Czh1p0_allTruth_Test.root"}};
+    std::vector<std::vector<std::string>> input_filenames = {
+        {"mc16_13TeV.600750.PhPy8EG_AZNLO_ggH125_mA1p0_Cyy0p01_Czh1p0_allTruth_Test.root"}
+//        {"Ntuple_data_test.root"}
+//        {"Ntuple_MC_Za_mA5p0_v4.root"}
+        
+    };
     
-    const char* output_filename = "mc16_13TeV.600750.PhPy8EG_AZNLO_ggH125_mA_p0_Cyy0p01_Czh1p0.NTUPLE.e8324_e7400_s3126_r10724_r10726_v2_out.root";
+    const char* output_filename =
+//    "mc16_13TeV.600750.PhPy8EG_AZNLO_ggH125_mA_p0_Cyy0p01_Czh1p0.NTUPLE.e8324_e7400_s3126_r10724_r10726_v2_out.root";
+//    "Ntuple_data_test_out.root";
+    "Ntuple_MC_Za_mA5p0_v4_out.root";
+    
 //    const char* output_filename = "mc16_13TeV.600750.PhPy8EG_AZNLO_ggH125_mA1p0_Cyy0p01_Czh1p0_allTruth_Test_out.root";
     
     TFile* output_file = TFile::Open(output_filename, "RECREATE");
@@ -689,35 +864,35 @@ void myPreselectionHaa()
         
         run_analysis(input_filename, "nominal", true, output_file, input_filename[0].substr(m.position(),m.length())+" ");
     }
-    std::ofstream out("someFile.txt",std::ios::app);
-    out << "\\textbf{mA1} \\par \\hspace{-4cm} \\scalebox{0.9}{\n";
-    out.close();
+//    std::ofstream out("someFile.txt",std::ios::app);
+//    out << "\\textbf{mA1} \\par \\hspace{-4cm} \\scalebox{0.9}{\n";
+//    out.close();
 //    system("python3 -c 'import pandas as pd; print(pd.read_csv(r\"mA1.txt\").rename(index={0:r\"my events\",1:r\"my ratios\",2:r\"paper ratios\"}).style.format(precision=3).to_latex( hrules=True));' >> someFile.txt");
-    
-    system("python3 -c 'import pandas as pd; print(pd.read_csv(r\"mA1.txt\").rename(index={0:r\"events\"}).style.format(precision=3).to_latex( hrules=True));' >> someFile.txt");
-    
-    out.open("someFile.txt",std::ios::app);
-    out << "}\n";
-    out.close();
-    
+//
+//    system("python3 -c 'import pandas as pd; print(pd.read_csv(r\"mA1.txt\").rename(index={0:r\"events\"}).style.format(precision=3).to_latex( hrules=True));' >> someFile.txt");
+//
+//    out.open("someFile.txt",std::ios::app);
+//    out << "}\n\n";
+//    out.close();
+//
 //    out.open("someFile.txt",std::ios::app);
 //    out << "\\vspace{2cm} \\textbf{mA5} \\par \\hspace{-4cm}\n";
 //    out.close();
 //    system("python3 -c 'import pandas as pd; print(pd.read_csv(r\"mA5.txt\").rename(index={0:r\"my events\",1:r\"my ratios\",2:r\"paper ratios\"}).style.format(precision=3).to_latex( hrules=True));' >> someFile.txt");
-    
-    out.open("someFile.txt",std::ios::app);
-    out << "\\vspace{2cm} \\textbf{mA1} \\par \\hspace{-4cm}\n";
-    out.close();
-    system("python3 -c 'import pandas as pd; print(pd.read_csv(r\"mA1_kristoff.txt\").rename(index={0:r\"events\"}).style.format(precision=3).to_latex(hrules=True));' >> someFile.txt");
-    
+//
+//    out.open("someFile.txt",std::ios::app);
+//    out << "\\vspace{2cm} \\textbf{mA1} \\par \\hspace{-4cm}\n";
+//    out.close();
+//    system("python3 -c 'import pandas as pd; print(pd.read_csv(r\"mA1_kristoff.txt\").rename(index={0:r\"events\"}).style.format(precision=3).to_latex(hrules=True));' >> someFile.txt");
+//
 //    out.open("someFile.txt",std::ios::app);
 //    out << "\\vspace{2cm} \\textbf{mA5} \\par \\hspace{-4cm}\n";
 //    out.close();
 //    system("python3 -c 'import pandas as pd; print(pd.read_csv(r\"mA5_kristoff.txt\").rename(index={0:r\"events\"}).style.format(precision=3).to_latex(hrules=True));' >> someFile.txt");
-    
-    system("cat someFile.txt");
+//
+//    system("cat someFile.txt");
 //    system("rm mA1.txt mA5.txt someFile.txt");
-    system("rm mA1.txt mA1_kristoff.txt someFile.txt");
+//    system("rm mA1.txt mA1_kristoff.txt someFile.txt");
 
     output_file->Close();
     auto end_time = Clock::now();
