@@ -41,7 +41,6 @@ bool lepton_selection(std::vector<TruthParticle>& leptons)
     (
      (leptons.size() == 2)
     &&
-//    (dR(leptons[0],leptons[1]) > 0.01)
      (leptons[0].delta_r(leptons[1]) > 0.01)
     &&
     (leptons[0].charge() == -1*leptons[1].charge())
@@ -60,9 +59,11 @@ bool lepton_selection(std::vector<TruthParticle>& leptons)
 
 bool photon_selection(Photon& photon)
 {
-    return ((photon.id_()) && (photon.pt() > 10000)
+    return ((photon.id_())
+            && (photon.pt() > 10000)
     && (abs(photon.eta()) < 2.37)
-            && (!((1.37 < abs(photon.eta())) && (1.52 > abs(photon.eta())))));
+            && (!((1.37 < abs(photon.eta())) && (1.52 > abs(photon.eta()))))
+            );
 }
 
 bool track_selection(Track& track)
@@ -156,6 +157,7 @@ void run_analysis(std::vector<std::string>& input_filenames, std::string systema
     Event::load_tracks = true;
     int num_passed_events = 0;
     
+    auto start_time = Clock::now();
     for (auto &&f: reader)
     {
         std::cout << "entry_number " << f.__current_event.entry_number  << '\n';
@@ -169,12 +171,12 @@ void run_analysis(std::vector<std::string>& input_filenames, std::string systema
         
         if (mc)
         {
-            std::vector<TruthParticle>&& truth_higgs = f.find_truth_particles({},{},{35});
-            if (!(truth_higgs.empty()))
-            {
-                std::cout << "found!";
-                std::vector<TruthParticle>&& truth_axions = f.find_truth_particles({},{truth_higgs[0].barcode()}, {36});
-            }
+//            std::vector<TruthParticle>&& truth_higgs = f.find_truth_particles({},{},{35});
+//            if (!(truth_higgs.empty()))
+//            {
+//                std::cout << "found!";
+//                std::vector<TruthParticle>&& truth_axions = f.find_truth_particles({},{truth_higgs[0].barcode()}, {36});
+//            }
             int temp = 1;
             std::vector<TruthParticle>&& truth_photons = f.find_truth_particles({},{},{22},&temp);
             
@@ -210,7 +212,9 @@ void run_analysis(std::vector<std::string>& input_filenames, std::string systema
             num_passed_events++;
         }
     }
-    
+    auto end_time = Clock::now();
+    std::cout << "Time difference:"
+       << std::chrono::duration_cast<std::chrono::nanoseconds>(end_time - start_time).count() << " nanoseconds" << std::endl;
     std::cout << "# events for " << systematic << " = " << num_passed_events
     << '\n';
     

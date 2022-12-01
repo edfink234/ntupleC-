@@ -105,12 +105,29 @@ void filter(std::vector<T>& vec, bool (*func) (T&, U&), U& p)
     }
 }
 
+template <typename T, typename U>
+void filter(std::vector<T>& vec, bool (*func) (T&, U&), U p)
+{
+    for (auto i = vec.begin(); i != vec.end(); ++i)
+    {
+        if (!func(*i, p))
+        {
+            vec.erase(i);
+            i--;
+        }
+    }
+}
+
 void run_analysis(const std::vector<std::string>& input_filenames, std::string systematic = "nominal", bool mc = false, TFile* output_file = nullptr, std::string prefix = "")
 {
     plots.clear();
 //    ROOT::RVec<double> points;
     std::cout <<"systematic = " << systematic << '\n';
-    const int MaxBins = 100, minBins = 100, inc = 100;
+    const int MaxBins = 200, minBins = 200, inc = 100;
+    static std::unordered_map<int,double> twoPhotonsMatchedEff; //prefix[2]-'0'
+    static std::unordered_map<int,double> onePhotonMatchedEff;  //prefix[2]-'0'
+    int truthPhotonsFiducialCount = 0;
+    
     
     for (int i=minBins; i<=MaxBins; i+=inc)
     {
@@ -246,6 +263,22 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
             Plot(prefix+"delta R of photon 1 and photon 2 after all cuts, bins = " + std::to_string(i),
                  prefix+"delta R of photon 1 and photon 2 after all cuts, bins = " + std::to_string(i), i, 0, 0.2));
         
+        plots.emplace(prefix+"Actual delta R of photon 1 and photon 2 decayed from axion, bins = " + std::to_string(i),
+            Plot(prefix+"Actual delta R of photon 1 and photon 2 decayed from axion, bins = " + std::to_string(i),
+                 prefix+"Actual delta R of photon 1 and photon 2 decayed from axion, bins = " + std::to_string(i), i, 0, 6.5));
+        
+        plots.emplace(prefix+"delta R of all reco photons with two truth photons that decayed from axion, bins = " + std::to_string(i),
+            Plot(prefix+"delta R of all reco photons with two truth photons that decayed from axion, bins = " + std::to_string(i),
+                 prefix+"delta R of all reco photons with two truth photons that decayed from axion, bins = " + std::to_string(i), i, 0, 1.75));
+        
+        plots.emplace(prefix+"P_{t}#left(#gamma_{1,a}^{t} + #gamma_{2,a}^{t}#right), bins = " + std::to_string(i),
+            Plot(prefix+"P_{t}#left(#gamma_{1,a}^{t} + #gamma_{2,a}^{t}#right), bins = " + std::to_string(i),
+                 prefix+"P_{t}#left(#gamma_{1,a}^{t} + #gamma_{2,a}^{t}#right), bins = " + std::to_string(i), i, 0, 200));
+        
+        plots.emplace(prefix+"P_{t}#left(#gamma_{1,a}^{t} + #gamma_{2,a}^{t} - #gamma_{reco}#right), bins = " + std::to_string(i),
+            Plot(prefix+"P_{t}#left(#gamma_{1,a}^{t} + #gamma_{2,a}^{t} - #gamma_{reco}#right), bins = " + std::to_string(i),
+                 prefix+"P_{t}#left(#gamma_{1,a}^{t} + #gamma_{2,a}^{t} - #gamma_{reco}#right), bins = " + std::to_string(i), i, 0, 200));
+        
         
     }
     Event::cache_truth = true;
@@ -324,7 +357,7 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
     {
         std::vector<TruthParticle> truthSelected;
         bool foundParent;
-        if (truthChain.size() >= 2)
+        if (truthChain.size() >= 1)
         {
             TruthParticle tp;
             for (auto& tpe: startParticles)
@@ -383,13 +416,38 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
         return ((p.pt()/1e3 > 10) && (p.id_loose()==1) && (abs(p.eta()) < 2.37));
     };
 //    int diphotonPairs=0, pdg_id35 = 0;
+        
+    auto truthPhotonsFiducial = [](std::vector<TruthParticle>& tps)
+    {
+        for (auto& i: tps)
+        {
+            if ((abs(i.eta()) >= 2.37) || (i.pt() <= 10))
+            {
+                return false;
+            }
+        }
+        return true;
+    };
+    
+    auto recoPhotonsFiducial = [](std::vector<Photon>& tps)
+    {
+        for (auto& i: tps)
+        {
+            if ((abs(i.eta()) >= 2.37) || (i.pt() <= 10) || (abs(i.eta()) > 1.37
+                && abs(i.eta()) < 1.52))
+            {
+                return false;
+            }
+        }
+        return true;
+    };
     
     for (auto &&f: reader)
     {
         std::cout << "entry_number " << f.__current_event.entry_number  << '\n';
         //        std::copy(f.__current_event.triggers.begin(),f.__current_event.triggers.end(),std::inserter(all_triggers,all_triggers.end()));
         //        std::cout<<'\n';
-
+        bool photons_from_axion_found;
         allEvents++;
         auto passBeforePreselection = [&](){
 //            const auto trigger_found = std::find_first_of(f.__current_event.triggers.begin(), f.__current_event.triggers.end(), triggers.begin(), triggers.end());
@@ -550,10 +608,13 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
             }
             
             //Photons
-            std::vector<Photon>& reco_photons = f.__current_event.photons;
+            std::vector<Photon> reco_photons = f.__current_event.photons;
             std::vector<TruthParticle> truth_axions = f.find_truth_particles({},{},{35});
             
             auto dR_lt_0point2 = [](Photon& p, TruthParticle& t){return p.delta_r(t) < 0.2;};
+            auto dR_lt_0point1 = [](Photon& p, TruthParticle& t){return p.delta_r(t) < 0.1;};
+            
+            auto both_dR_lt_0point1 = [](Photon& p, std::pair<TruthParticle,TruthParticle>& t){return ((p.delta_r(t.first) < 0.1) || (p.delta_r(t.second) < 0.1));};
             
             for (int i=minBins; i<=MaxBins; i+=inc)
             {
@@ -566,13 +627,50 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
                         plots.at(prefix+"delta R of reco photons with truth axion, bins = " + std::to_string(i)).fill(j.delta_r(truth_axions[0]),weight);
                     }
                 }
+                std::vector<TruthParticle> photons_from_axion;
                 if (!truth_axions.empty())
                 {
-                    filter<Photon,TruthParticle>(reco_photons, dR_lt_0point2, truth_axions[0]);
+                    
+//                    filter<Photon,TruthParticle>(reco_photons, dR_lt_0point1, truth_axions[0]);
+                    
+                    std::vector<TruthParticle> stable_photons = f.find_truth_particles({},{},{22}, &weight);
+                    photons_from_axion = findParentInChain(truth_axions[0].barcode(), stable_photons, truth_axions);
+                    
+                    if (photons_from_axion.size() == 2)
+                    {
+                        
+                        plots.at(prefix+"Actual delta R of photon 1 and photon 2 decayed from axion, bins = " + std::to_string(i)).fill(photons_from_axion[0].delta_r(truth_axions[0]),weight);
+                        plots.at(prefix+"Actual delta R of photon 1 and photon 2 decayed from axion, bins = " + std::to_string(i)).fill(photons_from_axion[1].delta_r(truth_axions[0]),weight);
+                        
+                        for (auto& rp : f.__current_event.photons)
+                        {
+                            plots.at(prefix+"delta R of all reco photons with two truth photons that decayed from axion, bins = " + std::to_string(i)).fill(rp.delta_r(photons_from_axion[0]),weight);
+                            plots.at(prefix+"delta R of all reco photons with two truth photons that decayed from axion, bins = " + std::to_string(i)).fill(rp.delta_r(photons_from_axion[1]),weight);
+                        }
+                        
+                        filter<Photon,std::pair<TruthParticle,TruthParticle>>(reco_photons, both_dR_lt_0point1, std::make_pair(photons_from_axion[0],photons_from_axion[1]));
+                        
+                        if (truthPhotonsFiducial(photons_from_axion))
+                        {
+                            photons_from_axion_found = true;
+                            truthPhotonsFiducialCount++;
+                        }
+                        else
+                        {
+                            photons_from_axion_found = false;
+                        }
+                        
+                    }
                 }
                 
                 if (reco_photons.size()==2 && !truth_axions.empty())
                 {
+                    if (recoPhotonsFiducial(reco_photons))
+                    {
+                        twoPhotonsMatchedEff[prefix[2]-'0']++;
+                    }
+                    
+                    
                     plots.at(prefix+"delta R of reco-photon pairs with #Delta R_{#gamma_{1,2},a} < 0.2 and/or min#left(#Delta R_{#gamma_{1,2},a}#right), bins = " + std::to_string(i)).fill(reco_photons[0].delta_r(truth_axions[0]),weight);
                     plots.at(prefix+"delta R of reco-photon pairs with #Delta R_{#gamma_{1,2},a} < 0.2 and/or min#left(#Delta R_{#gamma_{1,2},a}#right), bins = " + std::to_string(i)).fill(reco_photons[1].delta_r(truth_axions[0]),weight);
                     filter<Photon>(reco_photons,photonObjCuts);
@@ -625,6 +723,22 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
                 }
                 else if (reco_photons.size() == 1  && !truth_axions.empty())
                 {
+                    if (recoPhotonsFiducial(reco_photons))
+                    {
+                        onePhotonMatchedEff[prefix[2]-'0']++;
+                        if (photons_from_axion_found)
+                        {
+                            double pt = (photons_from_axion[0].Vector() + photons_from_axion[1].Vector()).Pt();
+                            double diff_pt =
+                            (photons_from_axion[0].Vector() + photons_from_axion[1].Vector()
+                             - reco_photons[0].Vector()).Pt();
+                            if (diff_pt < 0.3*pt)
+                            {
+                                plots.at(prefix+"P_{t}#left(#gamma_{1,a}^{t} + #gamma_{2,a}^{t}#right), bins = " + std::to_string(i)).fill(pt/1e3,weight);
+                                plots.at(prefix+"P_{t}#left(#gamma_{1,a}^{t} + #gamma_{2,a}^{t} - #gamma_{reco}#right), bins = " + std::to_string(i)).fill(diff_pt/1e3,weight);
+                            }
+                        }
+                    }
                     events_one_photons_in_direction_of_axion++;
                 }
             }
@@ -818,6 +932,23 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
     std::cout << "Events with atleast two reco-photons within ΔR < 0.2 of axion = " << events_two_photons_in_direction_of_axion
     << "\nEvents with exactly one reco-photon within ΔR < 0.2 of axion = " << events_one_photons_in_direction_of_axion << '\n';
     
+    twoPhotonsMatchedEff[prefix[2]-'0'] /= (1.0*truthPhotonsFiducialCount); //prefix[2]-'0'
+    onePhotonMatchedEff[prefix[2]-'0'] /= (1.0*truthPhotonsFiducialCount);
+    
+    std::cout << "two photon reco-efficiency\n" << std::string(26,'=') << '\n';
+    for (auto& i: twoPhotonsMatchedEff)
+    {
+        std::cout << i.first << " GeV \t" << i.second << '\n';
+    }
+    
+    std::cout << "\n\n";
+    
+    std::cout << "one photon reco-efficiency\n" << std::string(26,'=') << '\n';
+    for (auto& i: onePhotonMatchedEff)
+    {
+        std::cout << i.first << " GeV \t" << i.second << '\n';
+    }
+    
     for (auto& plot: plots)
     {
         plot.second.save(output_file);
@@ -838,16 +969,16 @@ void myPreselectionHaa()
 //    {{"mc16_13TeV.600909.PhPy8EG_AZNLO_ggH125_mA5p0_Cyy0p01_Czh1p0.merge.AOD.e8324_e7400_s3126_r10724_r10726_v2.root"},{"mc16_13TeV.600750.PhPy8EG_AZNLO_ggH125_mA1p0_Cyy0p01_Czh1p0.NTUPLE.e8324_e7400_s3126_r10724_r10726_v2.root"}};
     
     std::vector<std::vector<std::string>> input_filenames = {
-        {"mc16_13TeV.600750.PhPy8EG_AZNLO_ggH125_mA1p0_Cyy0p01_Czh1p0_allTruth_Test.root"}
+        {"mc16_13TeV.600750.PhPy8EG_AZNLO_ggH125_mA1p0_Cyy0p01_Czh1p0_allTruth_Test.root"},
 //        {"Ntuple_data_test.root"}
-//        {"Ntuple_MC_Za_mA5p0_v4.root"}
+        {"Ntuple_MC_Za_mA5p0_v4.root"}
         
     };
     
     const char* output_filename =
-//    "mc16_13TeV.600750.PhPy8EG_AZNLO_ggH125_mA_p0_Cyy0p01_Czh1p0.NTUPLE.e8324_e7400_s3126_r10724_r10726_v2_out.root";
+    "mc16_13TeV.600750.PhPy8EG_AZNLO_ggH125_mA_p0_Cyy0p01_Czh1p0.NTUPLE.e8324_e7400_s3126_r10724_r10726_v2_out.root";
 //    "Ntuple_data_test_out.root";
-    "Ntuple_MC_Za_mA5p0_v4_out.root";
+//    "Ntuple_MC_Za_mA5p0_v4_out.root";
     
 //    const char* output_filename = "mc16_13TeV.600750.PhPy8EG_AZNLO_ggH125_mA1p0_Cyy0p01_Czh1p0_allTruth_Test_out.root";
     
@@ -904,3 +1035,6 @@ int main()
 {
     myPreselectionHaa();
 }
+
+
+//TODO: Match two reco-photons to two-truth photons
