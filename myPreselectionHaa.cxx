@@ -728,15 +728,15 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
                         onePhotonMatchedEff[prefix[2]-'0']++;
                         if (photons_from_axion_found)
                         {
-                            double pt = (photons_from_axion[0].Vector() + photons_from_axion[1].Vector()).Pt();
+                            double pt = (photons_from_axion[0].pt() + photons_from_axion[1].pt());
                             double diff_pt =
-                            (photons_from_axion[0].Vector() + photons_from_axion[1].Vector()
-                             - reco_photons[0].Vector()).Pt();
-                            if (diff_pt < 0.3*pt)
-                            {
+                            (photons_from_axion[0].pt() + photons_from_axion[1].pt()
+                             - reco_photons[0].pt());
+//                            if (diff_pt < 0.3*pt)
+//                            {
                                 plots.at(prefix+"P_{t}#left(#gamma_{1,a}^{t} + #gamma_{2,a}^{t}#right), bins = " + std::to_string(i)).fill(pt/1e3,weight);
                                 plots.at(prefix+"P_{t}#left(#gamma_{1,a}^{t} + #gamma_{2,a}^{t} - #gamma_{reco}#right), bins = " + std::to_string(i)).fill(diff_pt/1e3,weight);
-                            }
+//                            }
                         }
                     }
                     events_one_photons_in_direction_of_axion++;
