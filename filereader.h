@@ -74,9 +74,9 @@ public:
          Iterator& operator++();
 
          FileReader& operator*();
-         
-         private:
          friend bool operator!=(const Iterator& a, const Iterator& b);
+         private:
+         
          int data;
          FileReader F;
      };
@@ -86,3 +86,6 @@ public:
 };
 
 #endif
+
+
+

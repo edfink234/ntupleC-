@@ -190,7 +190,7 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
     int num_passed_events = 0;
     int weight = 1;
     
-    for (auto &&f: reader)
+    for (auto &&f: reader) //syntactic sugar
     {
         std::cout << "entry_number " << f.__current_event.entry_number  << '\n';
         
