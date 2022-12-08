@@ -126,8 +126,10 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
     const int MaxBins = 200, minBins = 200, inc = 100;
     static std::unordered_map<int,double> twoPhotonsMatchedEff; //prefix[2]-'0'
     static std::unordered_map<int,double> onePhotonMatchedEff;  //prefix[2]-'0'
+    static std::unordered_map<int,double> twoPhotonsMatchedEffLeptons; //prefix[2]-'0'
+    static std::unordered_map<int,double> onePhotonMatchedEffLeptons;  //prefix[2]-'0'
     int truthPhotonsFiducialCount = 0;
-    
+    int truthPhotonsFiducialCountLepton = 0;
     
     for (int i=minBins; i<=MaxBins; i+=inc)
     {
@@ -448,6 +450,8 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
         //        std::copy(f.__current_event.triggers.begin(),f.__current_event.triggers.end(),std::inserter(all_triggers,all_triggers.end()));
         //        std::cout<<'\n';
         bool photons_from_axion_found;
+        bool lepton_passed = false;
+        
         allEvents++;
         auto passBeforePreselection = [&](){
 //            const auto trigger_found = std::find_first_of(f.__current_event.triggers.begin(), f.__current_event.triggers.end(), triggers.begin(), triggers.end());
@@ -584,6 +588,7 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
                                     if (candidateDiElectron.four_momentum.Pt()/1e3 > 10)
                                     {
                                         pTLL++;
+                                        lepton_passed=true;
                                         for (int i=minBins; i<=MaxBins; i+=inc)
                                         {
                                             plots.at(prefix+"dilep pt after all dilep cuts electrons objects, bins = " + std::to_string(i)).fill(candidateDiElectron.four_momentum.Pt()/1e3,weight);
@@ -654,6 +659,11 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
                         {
                             photons_from_axion_found = true;
                             truthPhotonsFiducialCount++;
+                            if (lepton_passed)
+                            {
+                                truthPhotonsFiducialCountLepton++;
+                            }
+                            
                         }
                         else
                         {
@@ -668,6 +678,10 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
                     if (recoPhotonsFiducial(reco_photons))
                     {
                         twoPhotonsMatchedEff[prefix[2]-'0']++;
+                        if (lepton_passed)
+                        {
+                            twoPhotonsMatchedEffLeptons[prefix[2]-'0']++;
+                        }
                     }
                     
                     
@@ -726,17 +740,21 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
                     if (recoPhotonsFiducial(reco_photons))
                     {
                         onePhotonMatchedEff[prefix[2]-'0']++;
+                        if (lepton_passed)
+                        {
+                            onePhotonMatchedEffLeptons[prefix[2]-'0']++;  //prefix[2]-'0'
+                        }
                         if (photons_from_axion_found)
                         {
                             double pt = (photons_from_axion[0].pt() + photons_from_axion[1].pt());
                             double diff_pt =
                             (photons_from_axion[0].pt() + photons_from_axion[1].pt()
                              - reco_photons[0].pt());
-//                            if (diff_pt < 0.3*pt)
-//                            {
+                            if (diff_pt < 0.3*pt)
+                            {
                                 plots.at(prefix+"P_{t}#left(#gamma_{1,a}^{t} + #gamma_{2,a}^{t}#right), bins = " + std::to_string(i)).fill(pt/1e3,weight);
                                 plots.at(prefix+"P_{t}#left(#gamma_{1,a}^{t} + #gamma_{2,a}^{t} - #gamma_{reco}#right), bins = " + std::to_string(i)).fill(diff_pt/1e3,weight);
-//                            }
+                            }
                         }
                     }
                     events_one_photons_in_direction_of_axion++;
@@ -941,10 +959,29 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
         std::cout << i.first << " GeV \t" << i.second << '\n';
     }
     
-    std::cout << "\n\n";
+    std::cout << '\n';
     
     std::cout << "one photon reco-efficiency\n" << std::string(26,'=') << '\n';
     for (auto& i: onePhotonMatchedEff)
+    {
+        std::cout << i.first << " GeV \t" << i.second << '\n';
+    }
+    
+    std::cout << "\n\n";
+    
+    twoPhotonsMatchedEffLeptons[prefix[2]-'0'] /= (1.0*truthPhotonsFiducialCountLepton); //prefix[2]-'0'
+    onePhotonMatchedEffLeptons[prefix[2]-'0'] /= (1.0*truthPhotonsFiducialCountLepton);
+    
+    std::cout << "two photon reco-efficiency with leptons\n" << std::string(26,'=') << '\n';
+    for (auto& i: twoPhotonsMatchedEffLeptons)
+    {
+        std::cout << i.first << " GeV \t" << i.second << '\n';
+    }
+    
+    std::cout << '\n';
+    
+    std::cout << "one photon reco-efficiency with leptons\n" << std::string(26,'=') << '\n';
+    for (auto& i: onePhotonMatchedEffLeptons)
     {
         std::cout << i.first << " GeV \t" << i.second << '\n';
     }
@@ -953,6 +990,8 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
     {
         plot.second.save(output_file);
     }
+    
+    
 
 }
 
