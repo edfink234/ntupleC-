@@ -124,10 +124,15 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
 //    ROOT::RVec<double> points;
     std::cout <<"systematic = " << systematic << '\n';
     const int MaxBins = 200, minBins = 200, inc = 100;
+    
+    static std::unordered_map<int,double> zeroPhotonsMatchedEff; //prefix[2]-'0'
     static std::unordered_map<int,double> twoPhotonsMatchedEff; //prefix[2]-'0'
     static std::unordered_map<int,double> onePhotonMatchedEff;  //prefix[2]-'0'
+    static std::unordered_map<int,double> moreThanTwoPhotonMatchedEff;  //prefix[2]-'0'
+    static std::unordered_map<int,double> zeroPhotonsMatchedEffLeptons; //prefix[2]-'0'
     static std::unordered_map<int,double> twoPhotonsMatchedEffLeptons; //prefix[2]-'0'
     static std::unordered_map<int,double> onePhotonMatchedEffLeptons;  //prefix[2]-'0'
+    static std::unordered_map<int,double> moreThanTwoPhotonMatchedEffLeptons; //prefix[2]-'0'
     int truthPhotonsFiducialCount = 0;
     int truthPhotonsFiducialCountLepton = 0;
     
@@ -193,6 +198,18 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
 //            Plot(prefix+"delta eta between the reconstructed Z and a systems, bins = " + std::to_string(i),
 //                 prefix+"delta eta between the reconstructed Z and a systems, bins = " + std::to_string(i), i, 0, 6.25));
         
+        plots.emplace(prefix+"dilep + photon mass before dilep and photon cuts electrons objects, bins = " + std::to_string(i),
+            Plot(prefix+"dilep + photon mass before dilep and photon cuts electrons objects, bins = " + std::to_string(i),
+                 prefix+"dilep + photon mass before dilep and photon cuts electrons objects, bins = " + std::to_string(i), i, 0, 200));
+        
+        plots.emplace(prefix+"dilep + photon mass after dilep cuts and before photon cuts electrons objects, bins = " + std::to_string(i),
+            Plot(prefix+"dilep + photon mass after dilep cuts and before photon cuts electrons objects, bins = " + std::to_string(i),
+                 prefix+"dilep + photon mass after dilep cuts and before photon cuts electrons objects, bins = " + std::to_string(i), i, 0, 200));
+        
+        plots.emplace(prefix+"dilep + photon mass after dilep cuts and photon cuts electrons objects, bins = " + std::to_string(i),
+            Plot(prefix+"dilep + photon mass after dilep cuts and photon cuts electrons objects, bins = " + std::to_string(i),
+                 prefix+"dilep + photon mass after dilep cuts and photon cuts electrons objects, bins = " + std::to_string(i), i, 0, 200));
+        
         plots.emplace(prefix+"pt distribution of all electron objects, bins = " + std::to_string(i),
             Plot(prefix+"pt distribution of all electron objects, bins = " + std::to_string(i),
                  prefix+"pt distribution of all electron objects, bins = " + std::to_string(i), i, 0, 200));
@@ -225,6 +242,10 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
             Plot(prefix+"dilep mass after all dilep cuts electrons objects, bins = " + std::to_string(i),
                  prefix+"dilep mass after all dilep cuts electrons objects, bins = " + std::to_string(i), i, 60, 120));
         
+        plots.emplace(prefix+"dilep mass after all dilep and photon cuts electrons objects, bins = " + std::to_string(i),
+            Plot(prefix+"dilep mass after all dilep and photon cuts electrons objects, bins = " + std::to_string(i),
+                 prefix+"dilep mass after all dilep and photon cuts electrons objects, bins = " + std::to_string(i), i, 60, 120));
+    
         plots.emplace(prefix+"dilep delta R after all dilep cuts electrons objects, bins = " + std::to_string(i),
             Plot(prefix+"dilep delta R after all dilep cuts electrons objects, bins = " + std::to_string(i),
                  prefix+"dilep delta R after all dilep cuts electrons objects, bins = " + std::to_string(i), i, 0, 6.5));
@@ -283,7 +304,7 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
         
         
     }
-    Event::cache_truth = true;
+    Event::cache_truth = false;
     
     FileReaderRange reader(input_filenames);
     
@@ -454,91 +475,51 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
         
         allEvents++;
         auto passBeforePreselection = [&](){
-//            const auto trigger_found = std::find_first_of(f.__current_event.triggers.begin(), f.__current_event.triggers.end(), triggers.begin(), triggers.end());
-//            if (trigger_found == f.__current_event.triggers.end())
-//            {
-//                return false;
-//            }
-//            std::vector<TruthParticle>&& truth_muon_electrons = f.find_truth_particles({},{},{11,-11,13,-13},&weight);
-//            for (auto& mu_elec: truth_muon_electrons)
-//            {
-//                if (abs(mu_elec.pdg_id)==11)
-//                {
-//                    if (abs(mu_elec.eta()) >= 2.37)
-//                    {
-//                        return false;
-//                    }
-//                    if ((1.37 < abs(mu_elec.eta())) && (abs(mu_elec.eta()) < 1.52))
-//                    {
-//                        return false;
-//                    }
-//                    if (mu_elec.pt() <= 20e3)
-//                    {
-//                        return false;
-//                    }
-//                }
-//                else if (abs(mu_elec.pdg_id)==13)
-//                {
-//                    if (abs(mu_elec.eta()) >= 2.5)
-//                    {
-//                        return false;
-//                    }
-//                    if (mu_elec.pt() <= 15e3)
-//                    {
-//                        return false;
-//                    }
-//                }
-//            }
+            //            const auto trigger_found = std::find_first_of(f.__current_event.triggers.begin(), f.__current_event.triggers.end(), triggers.begin(), triggers.end());
+            //            if (trigger_found == f.__current_event.triggers.end())
+            //            {
+            //                return false;
+            //            }
+            //            std::vector<TruthParticle>&& truth_muon_electrons = f.find_truth_particles({},{},{11,-11,13,-13},&weight);
+            //            for (auto& mu_elec: truth_muon_electrons)
+            //            {
+            //                if (abs(mu_elec.pdg_id)==11)
+            //                {
+            //                    if (abs(mu_elec.eta()) >= 2.37)
+            //                    {
+            //                        return false;
+            //                    }
+            //                    if ((1.37 < abs(mu_elec.eta())) && (abs(mu_elec.eta()) < 1.52))
+            //                    {
+            //                        return false;
+            //                    }
+            //                    if (mu_elec.pt() <= 20e3)
+            //                    {
+            //                        return false;
+            //                    }
+            //                }
+            //                else if (abs(mu_elec.pdg_id)==13)
+            //                {
+            //                    if (abs(mu_elec.eta()) >= 2.5)
+            //                    {
+            //                        return false;
+            //                    }
+            //                    if (mu_elec.pt() <= 15e3)
+            //                    {
+            //                        return false;
+            //                    }
+            //                }
+            //            }
             return true;
         };
         
         //cutflow
         if (passBeforePreselection())
         {
-//            std::vector<TruthParticle> truth_leptons;
-//            std::vector<TruthParticle> truth_electrons,
-//            truth_stableElectrons, truth_mu, truth_stableMu, truthSignalElectrons, truthSignalMu;
-//            std::vector<TruthParticle>&& truth_Zbosons = f.find_truth_particles({},{},{23},&weight, true);
-//
-//            if (!(truth_Zbosons.empty()))
-//            {
-//                truth_leptons = f.find_truth_particles({},{truth_Zbosons[0].barcode()},{11, -11});
-//
-//                truth_electrons = f.find_truth_particles({},{},{11, -11});
-//                truth_stableElectrons = f.find_truth_particles({},{},{11, -11},&weight);
-//                truth_mu = f.find_truth_particles({},{},{13, -13});
-//                truth_stableMu = f.find_truth_particles({},{},{13, -13},&weight);
-//
-//                if (truth_electrons.size() >= 2)
-//                {
-//                    truthSignalElectrons = findParentInChain(truth_Zbosons[0].barcode(), truth_stableElectrons, truth_electrons);
-//                    if (truthSignalElectrons.size() == 2)
-//                    {
-//                        nZee++;
-//                    }
-//                    filter<TruthParticle>(truthSignalElectrons,sigElecCut);
-//                    if (truthSignalElectrons.size() == 2)
-//                    {
-//                        nZeeFid++;
-//                    }
-//                }
-//                if (truth_mu.size() >= 2)
-//                {
-//                    truthSignalMu = findParentInChain(truth_Zbosons[0].barcode(), truth_stableMu, truth_mu);
-//                    if (truthSignalMu.size() == 2)
-//                    {
-//                        nZmumu++;
-//                    }
-//                    filter<TruthParticle>(truthSignalMu,sigMuonCut);
-//                    if (truthSignalMu.size() == 2)
-//                    {
-//                        nZmumuFid++;
-//                    }
-//                }
-//            }
             //Electrons
             std::vector<Electron>& reco_electrons = f.__current_event.electrons;
-
+            std::vector<Photon>& reco_photons = f.__current_event.photons;
+            
             for (int i=minBins; i<=MaxBins; i+=inc)
             {
                 for (auto& j: reco_electrons)
@@ -546,8 +527,6 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
                     plots.at(prefix+"pt distribution of all electron objects, bins = " + std::to_string(i)).fill(j.pt()/1e3,weight);
                     plots.at(prefix+"eta distribution of all electron objects, bins = " + std::to_string(i)).fill(j.eta(),weight);
                 }
-                
-                
             }
             
             filter<Electron>(reco_electrons, elecObjCuts);
@@ -565,7 +544,17 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
                         plots.at(prefix+"dilep mass before dilep cuts electrons objects, bins = " + std::to_string(i)).fill(candidateDiElectron.four_momentum.M()/1e3,weight);
                         plots.at(prefix+"dilep delta R before dilep cuts electrons objects, bins = " + std::to_string(i)).fill(reco_electrons[0].delta_r(reco_electrons[1]),weight);
                         plots.at(prefix+"dilep delta eta before dilep cuts electrons objects, bins = " + std::to_string(i)).fill(candidateDiElectron.delta_eta(),weight);
+                        if (reco_photons.size() == 2)
+                        {
+                            CandidateSet<Photon> candidateDiPhoton(std::make_pair(reco_photons[0],reco_photons[1]));
+                            
+                            plots.at(prefix+"dilep + photon mass before dilep and photon cuts electrons objects, bins = " + std::to_string(i)).fill((candidateDiElectron.four_momentum+candidateDiPhoton.four_momentum).M()/1e3,weight);
+    //                        dilep + photon mass before dilep and photon cuts electrons objects, bins =
+                        }
                     }
+                    
+
+                    
                     
                     
                     if (reco_electrons[0].charge()*reco_electrons[1].charge() < 0)
@@ -595,6 +584,12 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
                                             plots.at(prefix+"dilep mass after all dilep cuts electrons objects, bins = " + std::to_string(i)).fill(candidateDiElectron.four_momentum.M()/1e3,weight);
                                             plots.at(prefix+"dilep delta R after all dilep cuts electrons objects, bins = " + std::to_string(i)).fill(reco_electrons[0].delta_r(reco_electrons[1]),weight);
                                             plots.at(prefix+"dilep delta eta after all dilep cuts electrons objects, bins = " + std::to_string(i)).fill(candidateDiElectron.delta_eta(),weight);
+                                            if (reco_photons.size() == 2)
+                                            {
+                                                // dilep + photon mass after dilep cuts and before photon cuts electrons objects, bins =
+                                                CandidateSet<Photon> candidateDiPhoton(std::make_pair(reco_photons[0],reco_photons[1]));
+                                                plots.at(prefix+"dilep + photon mass after dilep cuts and before photon cuts electrons objects, bins = " + std::to_string(i)).fill((candidateDiElectron.four_momentum+candidateDiPhoton.four_momentum).M()/1e3,weight);
+                                            }
                                         }
                                         for (int i=minBins; i<=MaxBins; i+=inc)
                                         {
@@ -613,13 +608,8 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
             }
             
             //Photons
-            std::vector<Photon> reco_photons = f.__current_event.photons;
-            std::vector<TruthParticle> truth_axions = f.find_truth_particles({},{},{35});
-            
-            auto dR_lt_0point2 = [](Photon& p, TruthParticle& t){return p.delta_r(t) < 0.2;};
-            auto dR_lt_0point1 = [](Photon& p, TruthParticle& t){return p.delta_r(t) < 0.1;};
-            
-            auto both_dR_lt_0point1 = [](Photon& p, std::pair<TruthParticle,TruthParticle>& t){return ((p.delta_r(t.first) < 0.1) || (p.delta_r(t.second) < 0.1));};
+//            std::vector<Photon> reco_photons = f.__current_event.photons;
+            //            std::vector<TruthParticle> truth_axions = f.find_truth_particles({},{},{35});
             
             for (int i=minBins; i<=MaxBins; i+=inc)
             {
@@ -627,256 +617,22 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
                 {
                     plots.at(prefix+"pt distribution of all photon objects, bins = " + std::to_string(i)).fill(j.pt()/1e3,weight);
                     plots.at(prefix+"eta distribution of all photon objects, bins = " + std::to_string(i)).fill(j.eta(),weight);
-                    if (!truth_axions.empty())
-                    {
-                        plots.at(prefix+"delta R of reco photons with truth axion, bins = " + std::to_string(i)).fill(j.delta_r(truth_axions[0]),weight);
-                    }
                 }
-                std::vector<TruthParticle> photons_from_axion;
-                if (!truth_axions.empty())
+                filter<Photon>(reco_photons,photonObjCuts);
+                if (reco_photons.size()==2 && lepton_passed)
                 {
+                    plots.at(prefix+ "delta R of photon 1 and photon 2 after all cuts, bins = " + std::to_string(i)).fill(reco_photons[1].delta_r(reco_photons[0]),weight);
+                    CandidateSet<Electron> candidateDiElectron(std::make_pair(reco_electrons[0],reco_electrons[1]));
                     
-//                    filter<Photon,TruthParticle>(reco_photons, dR_lt_0point1, truth_axions[0]);
+                    plots.at(prefix+ "dilep mass after all dilep and photon cuts electrons objects, bins = " + std::to_string(i)).fill(candidateDiElectron.four_momentum.M()/1e3,weight);
                     
-                    std::vector<TruthParticle> stable_photons = f.find_truth_particles({},{},{22}, &weight);
-                    photons_from_axion = findParentInChain(truth_axions[0].barcode(), stable_photons, truth_axions);
-                    
-                    if (photons_from_axion.size() == 2)
-                    {
-                        
-                        plots.at(prefix+"Actual delta R of photon 1 and photon 2 decayed from axion, bins = " + std::to_string(i)).fill(photons_from_axion[0].delta_r(truth_axions[0]),weight);
-                        plots.at(prefix+"Actual delta R of photon 1 and photon 2 decayed from axion, bins = " + std::to_string(i)).fill(photons_from_axion[1].delta_r(truth_axions[0]),weight);
-                        
-                        for (auto& rp : f.__current_event.photons)
-                        {
-                            plots.at(prefix+"delta R of all reco photons with two truth photons that decayed from axion, bins = " + std::to_string(i)).fill(rp.delta_r(photons_from_axion[0]),weight);
-                            plots.at(prefix+"delta R of all reco photons with two truth photons that decayed from axion, bins = " + std::to_string(i)).fill(rp.delta_r(photons_from_axion[1]),weight);
-                        }
-                        
-                        filter<Photon,std::pair<TruthParticle,TruthParticle>>(reco_photons, both_dR_lt_0point1, std::make_pair(photons_from_axion[0],photons_from_axion[1]));
-                        
-                        if (truthPhotonsFiducial(photons_from_axion))
-                        {
-                            photons_from_axion_found = true;
-                            truthPhotonsFiducialCount++;
-                            if (lepton_passed)
-                            {
-                                truthPhotonsFiducialCountLepton++;
-                            }
-                            
-                        }
-                        else
-                        {
-                            photons_from_axion_found = false;
-                        }
-                        
-                    }
-                }
-                
-                if (reco_photons.size()==2 && !truth_axions.empty())
-                {
-                    if (recoPhotonsFiducial(reco_photons))
-                    {
-                        twoPhotonsMatchedEff[prefix[2]-'0']++;
-                        if (lepton_passed)
-                        {
-                            twoPhotonsMatchedEffLeptons[prefix[2]-'0']++;
-                        }
-                    }
-                    
-                    
-                    plots.at(prefix+"delta R of reco-photon pairs with #Delta R_{#gamma_{1,2},a} < 0.2 and/or min#left(#Delta R_{#gamma_{1,2},a}#right), bins = " + std::to_string(i)).fill(reco_photons[0].delta_r(truth_axions[0]),weight);
-                    plots.at(prefix+"delta R of reco-photon pairs with #Delta R_{#gamma_{1,2},a} < 0.2 and/or min#left(#Delta R_{#gamma_{1,2},a}#right), bins = " + std::to_string(i)).fill(reco_photons[1].delta_r(truth_axions[0]),weight);
-                    filter<Photon>(reco_photons,photonObjCuts);
-                    if (reco_photons.size()==2)
-                    {
-//                        CandidateSet<Photon> passed_photons(std::make_pair(reco_photons[0],reco_photons[1]));
-                        plots.at(prefix+"delta R of reco-photon pairs with #Delta R_{#gamma_{1,2},a} < 0.2 and/or min#left(#Delta R_{#gamma_{1,2},a}#right) after cuts, bins = " + std::to_string(i)).fill(reco_photons[0].delta_r(truth_axions[0]),weight);
-                        plots.at(prefix+"delta R of reco-photon pairs with #Delta R_{#gamma_{1,2},a} < 0.2 and/or min#left(#Delta R_{#gamma_{1,2},a}#right) after cuts, bins = " + std::to_string(i)).fill(reco_photons[1].delta_r(truth_axions[0]),weight);
-                        plots.at(prefix+ "delta R of photon 1 and photon 2 after all cuts, bins = " + std::to_string(i)).fill(reco_photons[1].delta_r(reco_photons[0]),weight);
-                       
-                        
-                    }
-                    
-                    events_two_photons_in_direction_of_axion++;
-                }
-                else if (reco_photons.size()>2  && !truth_axions.empty())//find two smallest ΔR's
-                {
-                    double firstSmallest = reco_photons[0].delta_r(truth_axions[0]), secondSmallest = firstSmallest;
-                    
-                    size_t firstSmallestIdx = 0, secondSmallestIdx = 0;
-                    
-                    for (size_t i = 0; i<reco_photons.size(); ++i)
-                    {
-                        double curr = reco_photons[i].delta_r(truth_axions[0]);
-                        if (curr < firstSmallest)
-                        {
-                            secondSmallest = firstSmallest;
-                            firstSmallest = curr;
-                            secondSmallestIdx = firstSmallestIdx;
-                            firstSmallest = i;
-                        }
-                        else if (curr < secondSmallest && curr >= firstSmallest)
-                        {
-                            secondSmallest = curr;
-                            secondSmallestIdx = i;
-                        }
-                    }
-                    plots.at(prefix+"delta R of reco-photon pairs with #Delta R_{#gamma_{1,2},a} < 0.2 and/or min#left(#Delta R_{#gamma_{1,2},a}#right), bins = " + std::to_string(i)).fill(reco_photons[0].delta_r(truth_axions[0]),weight);
-                    plots.at(prefix+"delta R of reco-photon pairs with #Delta R_{#gamma_{1,2},a} < 0.2 and/or min#left(#Delta R_{#gamma_{1,2},a}#right), bins = " + std::to_string(i)).fill(reco_photons[1].delta_r(truth_axions[0]),weight);
-                    filter<Photon>(reco_photons,photonObjCuts);
-                    if (reco_photons.size()==2)
-                    {
-//                        CandidateSet<Photon> passed_photons(std::make_pair(reco_photons[0],reco_photons[1]));
-                        plots.at(prefix+"delta R of reco-photon pairs with #Delta R_{#gamma_{1,2},a} < 0.2 and/or min#left(#Delta R_{#gamma_{1,2},a}#right) after cuts, bins = " + std::to_string(i)).fill(reco_photons[0].delta_r(truth_axions[0]),weight);
-                        plots.at(prefix+"delta R of reco-photon pairs with #Delta R_{#gamma_{1,2},a} < 0.2 and/or min#left(#Delta R_{#gamma_{1,2},a}#right) after cuts, bins = " + std::to_string(i)).fill(reco_photons[1].delta_r(truth_axions[0]),weight);
-                        plots.at(prefix+ "delta R of photon 1 and photon 2 after all cuts, bins = " + std::to_string(i)).fill(reco_photons[1].delta_r(reco_photons[0]),weight);
-                    }
-                    events_two_photons_in_direction_of_axion++;
-                    
-                }
-                else if (reco_photons.size() == 1  && !truth_axions.empty())
-                {
-                    if (recoPhotonsFiducial(reco_photons))
-                    {
-                        onePhotonMatchedEff[prefix[2]-'0']++;
-                        if (lepton_passed)
-                        {
-                            onePhotonMatchedEffLeptons[prefix[2]-'0']++;  //prefix[2]-'0'
-                        }
-                        if (photons_from_axion_found)
-                        {
-                            double pt = (photons_from_axion[0].pt() + photons_from_axion[1].pt());
-                            double diff_pt =
-                            (photons_from_axion[0].pt() + photons_from_axion[1].pt()
-                             - reco_photons[0].pt());
-                            if (diff_pt < 0.3*pt)
-                            {
-                                plots.at(prefix+"P_{t}#left(#gamma_{1,a}^{t} + #gamma_{2,a}^{t}#right), bins = " + std::to_string(i)).fill(pt/1e3,weight);
-                                plots.at(prefix+"P_{t}#left(#gamma_{1,a}^{t} + #gamma_{2,a}^{t} - #gamma_{reco}#right), bins = " + std::to_string(i)).fill(diff_pt/1e3,weight);
-                            }
-                        }
-                    }
-                    events_one_photons_in_direction_of_axion++;
+                    //dilep + photon mass after dilep cuts and photon cuts electrons objects, bins =
+                    CandidateSet<Photon> candidateDiPhoton(std::make_pair(reco_photons[0],reco_photons[1]));
+                    plots.at(prefix+"dilep + photon mass after dilep cuts and photon cuts electrons objects, bins = " + std::to_string(i)).fill((candidateDiElectron.four_momentum+candidateDiPhoton.four_momentum).M()/1e3,weight);
                 }
             }
-            
-            
-            
-            
-            
-//            
-            
-//            if (truth_leptons.size() == 2)
-//            {
-//                two_leptons++;
-//                CandidateSet<TruthParticle> candidate_dilepton(std::make_pair(truth_leptons[0],truth_leptons[1]));
-////                CandidateSet<Electron> candidate_dilepton(std::make_pair(truth_leptons[0],truth_leptons[1]));
-//                if (truth_leptons[0].charge() == -1*truth_leptons[1].charge())
-//                {
-//                    opp_charge++;
-//                    if ((truth_leptons[0].pt() > 20e3 && truth_leptons[1].pt() > 27e3)
-//                        ||
-//                        (truth_leptons[1].pt() > 20e3 && truth_leptons[0].pt() > 27e3))
-//                    {
-//                        lep1_lep2_pt++;
-//                        if (truth_leptons[0].same_flavour(truth_leptons[1]))
-//                        {
-//                            //https://particle.wiki/wiki/PDG_particle_numbering_scheme
-//                            lep_same_flavor++;
-//                            if ((candidate_dilepton.four_momentum.M()/1e3 >= 81) &&
-//                                (candidate_dilepton.four_momentum.M()/1e3 <= 101))
-//                            {
-//                                dilep_mass++;
-//                                if (candidate_dilepton.four_momentum.Pt()/1e3 > 10)
-//                                {
-//                                    dilep_pt++;
-//                                }
-//                            }
-//                        }
-//                    }
-//
-//                }
-//
-//                for (int i=minBins; i<=MaxBins; i+=inc)
-//                {
-//                    plots.at(prefix+"Di-lepton p_T distribution before pre-selection, bins = " + std::to_string(i)).fill(candidate_dilepton.four_momentum.Pt()/1e3,weight);
-//                }
-//
-////                if (lepton_selection<Electron>(candidate_dilepton))
-//                if (lepton_selection<TruthParticle>(candidate_dilepton))
-//                {
-//                    for (int i=minBins; i<=MaxBins; i+=inc)
-//                    {
-//                        plots.at(prefix+"Transverse momentum of leading and subleading leptons after pre-selection, bins = " + std::to_string(i)).fill(candidate_dilepton.particle_a.pt()/1e3,weight);
-//                        plots.at(prefix+"Transverse momentum of leading and subleading leptons after pre-selection, bins = " + std::to_string(i)).fill(candidate_dilepton.particle_b.pt()/1e3,weight);
-//                        if (candidate_dilepton.particle_b.pt() > candidate_dilepton.particle_a.pt())
-//                        {
-//                            plots.at(prefix+"Transverse momentum of leading lepton after pre-selection, bins = " + std::to_string(i)).fill(candidate_dilepton.particle_b.pt()/1e3,weight);
-//                            plots.at(prefix+"Transverse momentum of subleading lepton after pre-selection, bins = " + std::to_string(i)).fill(candidate_dilepton.particle_a.pt()/1e3,weight);
-//                        }
-//                        else
-//                        {
-//                            plots.at(prefix+"Transverse momentum of leading lepton after pre-selection, bins = " + std::to_string(i)).fill(candidate_dilepton.particle_a.pt()/1e3,weight);
-//                            plots.at(prefix+"Transverse momentum of subleading lepton after pre-selection, bins = " + std::to_string(i)).fill(candidate_dilepton.particle_b.pt()/1e3,weight);
-//                        }
-//
-//                        plots.at(prefix+"Preselectrion di-lepton mass distribution, bins = " + std::to_string(i)).fill(candidate_dilepton.four_momentum.M()/1e3,weight);
-//
-//                        plots.at(prefix+"transverse momentum of Z-boson pre-selection, bins = " + std::to_string(i)).fill(candidate_dilepton.four_momentum.Pt()/1e3,weight);
-//
-//                        filter<Photon>(f.__current_event.photons,&photon_selection);
-//
-//                        if (f.__current_event.photons.size()==2)
-//                        {
-//                            plots.at(prefix+"Transverse momentum of leading and subleading photons after pre-selection, bins = " + std::to_string(i)).fill(f.__current_event.photons[0].pt()/1e3);
-//                            plots.at(prefix+"Transverse momentum of leading and subleading photons after pre-selection, bins = " + std::to_string(i)).fill(f.__current_event.photons[1].pt()/1e3);
-//                            if (f.__current_event.photons[0].pt() > f.__current_event.photons[1].pt())
-//                            {
-//                                plots.at(prefix+"Transverse momentum of leading photon after pre-selection, bins = " + std::to_string(i)).fill(f.__current_event.photons[0].pt()/1e3);
-//                                plots.at(prefix+"Transverse momentum of subleading photon after pre-selection, bins = " + std::to_string(i)).fill(f.__current_event.photons[1].pt()/1e3);
-//                            }
-//                            else
-//                            {
-//                                plots.at(prefix+"Transverse momentum of leading photon after pre-selection, bins = " + std::to_string(i)).fill(f.__current_event.photons[1].pt()/1e3);
-//                                plots.at(prefix+"Transverse momentum of subleading photon after pre-selection, bins = " + std::to_string(i)).fill(f.__current_event.photons[0].pt()/1e3);
-//                            }
-//
-//                            CandidateSet<Photon> candidate_diphoton(std::make_pair(f.__current_event.photons[0],f.__current_event.photons[1]));
-//                            if ((candidate_diphoton.four_momentum.Pt()/1e3) > 20)
-//                            {
-//                                plots.at(prefix+"transverse momentum of axion pre-selection, bins = " + std::to_string(i)).fill(candidate_diphoton.four_momentum.Pt()/1e3,weight);
-//
-//                                PtEtaPhiEVector tVecBoson = candidate_diphoton.four_momentum + candidate_dilepton.four_momentum;
-//
-//                                plots.at(prefix+"transverse momentum of higgs pre-selection, bins = " + std::to_string(i)).fill(tVecBoson.Pt()/1e3,weight);
-//
-//                                plots.at(prefix+"delta R between the reconstructed Z and a systems, bins = " + std::to_string(i)).fill(VectorUtil::DeltaR(candidate_diphoton.four_momentum,candidate_dilepton.four_momentum));
-//
-//                                plots.at(prefix+"delta phi between the reconstructed Z and a systems, bins = " + std::to_string(i)).fill(VectorUtil::DeltaPhi(candidate_diphoton.four_momentum,candidate_dilepton.four_momentum));
-//
-//                                plots.at(prefix+"delta eta between the reconstructed Z and a systems, bins = " + std::to_string(i)).fill(abs(candidate_diphoton.four_momentum.Eta() - candidate_dilepton.four_momentum.Eta()));
-//                            }
-//                        }
-//
-//                        else if (f.__current_event.photons.size()==1)
-//                        {
-//                            plots.at(prefix+"transverse momentum of photon pre-selection, bins = " + std::to_string(i)).fill(f.__current_event.photons[0].pt()/1e3);
-//                        }
-//                    }
-//                }
-//            }
         }
     }
-
-//    std::ofstream out("triggers.txt", std::ios::app);
-//
-//    for (auto &&t: all_triggers)
-//    {
-//        out << t << '\n';
-//    }
-//    out.close();
-//    std::cout << "Mean = " << Mean(points) << "\nStdDev = " << StdDev(points) << '\n';
     
     std::cout << "\n\n\n";
     
@@ -890,31 +646,6 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
     << allEvents << ',' << elecObj << ',' << exactlyTwo << ',' <<
     oppCharge << ',' << leadingPt << ',' << dR << ',' << mLL << ',' << pTLL << '\n';
     
-//    << two_leptons << ',' << opp_charge << ','
-//    << lep1_lep2_pt << ',' << lep_same_flavor << ',' << dilep_mass << ','
-//    << dilep_pt << '\n'
-    
-//    << static_cast<double>(two_leptons)/static_cast<double>(two_leptons)
-//    << ',' << static_cast<double>(opp_charge)/static_cast<double>(two_leptons) << ','
-//    << static_cast<double>(lep1_lep2_pt)/static_cast<double>(two_leptons) << ','
-//    << static_cast<double>(lep_same_flavor)/static_cast<double>(two_leptons) << ','
-//    << static_cast<double>(dilep_mass)/static_cast<double>(two_leptons) << ','
-//    << static_cast<double>(dilep_pt)/static_cast<double>(two_leptons) << '\n';
-//
-//    switch (prefix[2]) {
-//        case '1':
-//            out << 21606.75/21606.75 << ',' << 21505.03/21606.75
-//            << ',' << 21375.48/21606.75 << ',' << 21375.33/21606.75 << ','
-//            << 20543.06/21606.75 << ',' << 19516.87/21606.75 << '\n';
-//            break;
-//        case '5':
-//            out << 21655.38/21655.38 << ',' << 21556.03/21655.38
-//            << ',' << 21424.29/21655.38 << ',' << 21424.28/21655.38 << ','
-//            << 20585.09/21655.38 << ',' << 19536.68/21655.38 << '\n';
-//        default:
-//            break;
-//    }
-    
     
     out.close();
     
@@ -926,32 +657,13 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
         
     outfile.close();
     
-//    std::ofstream outfileZ("all_Z_products.txt");
-//    for (auto& i: all_Z_products)
-//    {
-//        outfileZ << i.first << '\t' << i.second << '\n';
-//    }
-//
-//    outfileZ.close();
-    
-//    std::ofstream outfilePDG("all_pdgids.txt");
-    
-//    for (auto& i: all_pdg_ids)
-//    {
-//        outfilePDG << i.first << '\t' << i.second << '\n';
-//    }
-
-//    outfilePDG.close();
-
-    
-//    std::cout << "events w/ exactly two photons = " << diphotonPairs << '/' << allEvents << '='
-//    << diphotonPairs/static_cast<double>(allEvents)
-//    << "\nevents w/ exactly one pdg_id = 35 given exactly two photons = " << pdg_id35 << '/' << diphotonPairs << '=' << pdg_id35/static_cast<double>(diphotonPairs) << '\n';
     std::cout << "Events with atleast two reco-photons within ΔR < 0.2 of axion = " << events_two_photons_in_direction_of_axion
     << "\nEvents with exactly one reco-photon within ΔR < 0.2 of axion = " << events_one_photons_in_direction_of_axion << '\n';
     
     twoPhotonsMatchedEff[prefix[2]-'0'] /= (1.0*truthPhotonsFiducialCount); //prefix[2]-'0'
     onePhotonMatchedEff[prefix[2]-'0'] /= (1.0*truthPhotonsFiducialCount);
+    moreThanTwoPhotonMatchedEff[prefix[2]-'0'] /= (1.0*truthPhotonsFiducialCount);
+    zeroPhotonsMatchedEff[prefix[2]-'0'] /= (1.0*truthPhotonsFiducialCount);
     
     std::cout << "two photon reco-efficiency\n" << std::string(26,'=') << '\n';
     for (auto& i: twoPhotonsMatchedEff)
@@ -967,10 +679,28 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
         std::cout << i.first << " GeV \t" << i.second << '\n';
     }
     
+    std::cout << '\n';
+    
+    std::cout << "more than two photon reco-efficiency\n" << std::string(26,'=') << '\n';
+    for (auto& i: moreThanTwoPhotonMatchedEff)
+    {
+        std::cout << i.first << " GeV \t" << i.second << '\n';
+    }
+    
+    std::cout << '\n';
+    
+    std::cout << "fraction of signal-events within acceptance with no reco photons\n" << std::string(26,'=') << '\n';
+    for (auto& i: zeroPhotonsMatchedEff)
+    {
+        std::cout << i.first << " GeV \t" << i.second << '\n';
+    }
+    
     std::cout << "\n\n";
     
     twoPhotonsMatchedEffLeptons[prefix[2]-'0'] /= (1.0*truthPhotonsFiducialCountLepton); //prefix[2]-'0'
     onePhotonMatchedEffLeptons[prefix[2]-'0'] /= (1.0*truthPhotonsFiducialCountLepton);
+    moreThanTwoPhotonMatchedEffLeptons[prefix[2]-'0'] /= (1.0*truthPhotonsFiducialCountLepton);
+    zeroPhotonsMatchedEffLeptons[prefix[2]-'0'] /= (1.0*truthPhotonsFiducialCountLepton);
     
     std::cout << "two photon reco-efficiency with leptons\n" << std::string(26,'=') << '\n';
     for (auto& i: twoPhotonsMatchedEffLeptons)
@@ -982,6 +712,22 @@ void run_analysis(const std::vector<std::string>& input_filenames, std::string s
     
     std::cout << "one photon reco-efficiency with leptons\n" << std::string(26,'=') << '\n';
     for (auto& i: onePhotonMatchedEffLeptons)
+    {
+        std::cout << i.first << " GeV \t" << i.second << '\n';
+    }
+    
+    std::cout << '\n';
+    
+    std::cout << "more than two photon reco-efficiency with leptons\n" << std::string(26,'=') << '\n';
+    for (auto& i: moreThanTwoPhotonMatchedEffLeptons)
+    {
+        std::cout << i.first << " GeV \t" << i.second << '\n';
+    }
+    
+    std::cout << '\n';
+    
+    std::cout << "fraction of signal-events within acceptance & w/ leptons with no reco photons\n" << std::string(26,'=') << '\n';
+    for (auto& i: zeroPhotonsMatchedEffLeptons)
     {
         std::cout << i.first << " GeV \t" << i.second << '\n';
     }
@@ -1008,15 +754,15 @@ void myPreselectionHaa()
 //    {{"mc16_13TeV.600909.PhPy8EG_AZNLO_ggH125_mA5p0_Cyy0p01_Czh1p0.merge.AOD.e8324_e7400_s3126_r10724_r10726_v2.root"},{"mc16_13TeV.600750.PhPy8EG_AZNLO_ggH125_mA1p0_Cyy0p01_Czh1p0.NTUPLE.e8324_e7400_s3126_r10724_r10726_v2.root"}};
     
     std::vector<std::vector<std::string>> input_filenames = {
-        {"mc16_13TeV.600750.PhPy8EG_AZNLO_ggH125_mA1p0_Cyy0p01_Czh1p0_allTruth_Test.root"},
-//        {"Ntuple_data_test.root"}
-        {"Ntuple_MC_Za_mA5p0_v4.root"}
+//        {"mc16_13TeV.600750.PhPy8EG_AZNLO_ggH125_mA1p0_Cyy0p01_Czh1p0_allTruth_Test.root"},
+        {"Ntuple_data_test.root"}
+//        {"Ntuple_MC_Za_mA5p0_v4.root"}
         
     };
     
     const char* output_filename =
-    "mc16_13TeV.600750.PhPy8EG_AZNLO_ggH125_mA_p0_Cyy0p01_Czh1p0.NTUPLE.e8324_e7400_s3126_r10724_r10726_v2_out.root";
-//    "Ntuple_data_test_out.root";
+//    "mc16_13TeV.600750.PhPy8EG_AZNLO_ggH125_mA_p0_Cyy0p01_Czh1p0.NTUPLE.e8324_e7400_s3126_r10724_r10726_v2_out.root";
+    "Ntuple_data_test_out.root";
 //    "Ntuple_MC_Za_mA5p0_v4_out.root";
     
 //    const char* output_filename = "mc16_13TeV.600750.PhPy8EG_AZNLO_ggH125_mA1p0_Cyy0p01_Czh1p0_allTruth_Test_out.root";
