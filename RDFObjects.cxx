@@ -1,9 +1,9 @@
 #include "RDFObjects.h"
 
-const std::string TruthParticle::prefix = "mc";
-const std::string Electron::prefix = "electron";
-const std::string Photon::prefix = "photon";
-const std::string Muon::prefix = "muon";
-const std::string Track::prefix = "track";
-const std::string Cluster::prefix = "cluster";
+const std::string TruthParticle::PREFIX = "mc";
+const std::string Electron::PREFIX = "electron";
+const std::string Photon::PREFIX = "photon";
+const std::string Muon::PREFIX = "muon";
+const std::string Track::PREFIX = "track";
+const std::string Cluster::PREFIX = "cluster";
 
