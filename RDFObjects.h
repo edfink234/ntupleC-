@@ -7,23 +7,22 @@
 #include "Math/Vector4D.h"
 #include "ROOT/RDataFrame.hxx"
 
-using namespace ROOT::Math;
-using namespace ROOT::VecOps;
+//using namespace ROOT::Math;
 
 struct TruthParticle
 {
     static const std::string PREFIX;
     
-    RVec<int>   mc_pdg_id;
-    RVec<int>   mc_barcode;
-    RVec<int>   mc_parent_barcode;
-    RVec<int>   mc_status;
-    RVec<float> mc_pt;
-    RVec<float> mc_charge;
-    RVec<float> mc_eta;
-    RVec<float> mc_phi;
-    RVec<float> mc_e;
-    RVec<float> mc_mass;
+    int   mc_pdg_id;
+    int   mc_barcode;
+    int   mc_parent_barcode;
+    int   mc_status;
+    float mc_pt;
+    float mc_charge;
+    float mc_eta;
+    float mc_phi;
+    float mc_e;
+    float mc_mass;
 };
 
 struct Electron final : public TruthParticle
@@ -31,67 +30,68 @@ struct Electron final : public TruthParticle
     static const std::string PREFIX;
     static const int PDG_ID;
     
-    RVec<float> electron_charge;
-    RVec<float> electron_pt;
-    RVec<float> electron_e;
-    RVec<float> electron_eta;
-    RVec<float> electron_phi;
-    RVec<int>   electron_id;
-    RVec<float> electron_isolation;
-    RVec<float> electron_d0;
-    RVec<float> electron_z0;
-    RVec<int>   electron_id_medium;
+    float electron_charge;
+    float electron_pt;
+    float electron_e;
+    float electron_eta;
+    float electron_phi;
+//    int   electron_id;
+    float electron_isolation;
+    float electron_d0;
+    float electron_z0;
+//    int   electron_id_medium;
 };
 
 struct Muon final : public TruthParticle
 {
-    const std::string PREFIX;
+    static const std::string PREFIX;
     static const int PDG_ID;
     
-    RVec<float> muon_charge;
-    RVec<float> muon_pt;
-    RVec<float> muon_e;
-    RVec<float> muon_eta;
-    RVec<float> muon_phi;
+    float muon_charge;
+    float muon_pt;
+    float muon_e;
+    float muon_eta;
+    float muon_phi;
 };
 
 struct Photon final : public TruthParticle
 {
+    static const std::string PREFIX;
     static const int PDG_ID;
 
-    RVec<float> photon_pt;
-    RVec<float> photon_e;
-    RVec<float> photon_eta;
-    RVec<float> photon_phi;
-    RVec<float> photon_etcone40;
-    RVec<int>   photon_id;
-    RVec<int>   photon_id_loose;
-    RVec<int>   photon_id_tight;
-    RVec<int>   photon_cluster_eta_be_2;
-    RVec<int>   photon_id_nn;
+    float photon_pt;
+    float photon_e;
+    float photon_eta;
+    float photon_phi;
+    float photon_etcone40;
+    int   photon_id;
+    int   photon_id_loose;
+    int   photon_id_tight;
+    int   photon_cluster_eta_be_2;
+    int   photon_id_nn;
 };
 
-struct Cluster final : public PhysicsObject
+struct Cluster final
 {
     static const std::string PREFIX;
     
-    RVec<float> cluster_pt;
-    RVec<float> cluster_eta;
-    RVec<float> cluster_phi;
-    RVec<float> cluster_e;
+    float cluster_pt;
+    float cluster_eta;
+    float cluster_phi;
+    float cluster_e;
 };
 
-struct Track final : public PhysicsObject
+struct Track final
 {
     static const std::string PREFIX;
     
-    RVec<float> track_pt;
-    RVec<float> track_charge;
-    RVec<float> track_eta;
-    RVec<float> track_phi;
-    RVec<float> track_e;
-    RVec<int>   track_num_pixel_hits;
-    RVec<int>   track_num_sct_hits;
+    float track_pt;
+    float track_charge;
+    float track_eta;
+    float track_phi;
+//    float track_e;
+    int   track_num_pixel_hits;
+    int   track_num_sct_hits;
 };
 
 #endif

@@ -38,6 +38,7 @@ __event_info_chain{"full_event_info"}
     
     df = std::make_unique<ROOT::RDataFrame>(__chain);
     
+//    df->Describe().Print();
 //    auto filtered_df = df.Filter([](RVec<int> pdg_ids, RVec<int> pdg_ids status_codes)
 //    {
 //        return std::
