@@ -237,23 +237,23 @@ void FileReader::__load_muons()
             pt = (*(Muon::muon_pt))[i];
             energy = (*(Muon::muon_e))[i];
         }
-        else
-        {
-            index = -1;
-            auto it = find(((*(__current_event.electron_syst_name))[i]).begin(), ((*(__current_event.electron_syst_name))[i]).end(), Event::systematic);
-
-            if (it == ((*(__current_event.electron_syst_name))[i]).end())
-            {
-                continue;
-            }
-            index = it - ((*(__current_event.electron_syst_name))[i]).begin();
-            pt = (*(__current_event.electron_syst_pt))[i][index];
-            energy = (*(__current_event.electron_syst_e))[i][index];
-        }
-        if (pt < 0)
-        {
-            continue;
-        }
+//        else
+//        {
+//            index = -1;
+//            auto it = find(((*(__current_event.electron_syst_name))[i]).begin(), ((*(__current_event.electron_syst_name))[i]).end(), Event::systematic);
+//
+//            if (it == ((*(__current_event.electron_syst_name))[i]).end())
+//            {
+//                continue;
+//            }
+//            index = it - ((*(__current_event.electron_syst_name))[i]).begin();
+//            pt = (*(__current_event.electron_syst_pt))[i][index];
+//            energy = (*(__current_event.electron_syst_e))[i][index];
+//        }
+//        if (pt < 0)
+//        {
+//            continue;
+//        }
         __current_event.muons.emplace_back(Muon(i, pt, energy));
     }
 }
@@ -547,6 +547,10 @@ FileReaderRange::Iterator& FileReaderRange::Iterator::operator++()
         if (Event::load_electrons)
         {
             F.__load_electrons();
+        }
+        if (Event::load_muons)
+        {
+            F.__load_muons();
         }
         if (Event::load_clusters)
         {

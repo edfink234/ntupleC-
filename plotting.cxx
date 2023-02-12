@@ -4,6 +4,10 @@
 
 #include "TH1F.h"
 
+/*
+function to recursively create a directory structure in the ROOT file
+for the different TH1F's based on systematics and cuts
+*/
 void _mkdir_recursive(TFile* out_file, const std::string& full_path)
 {
     size_t pos = 0;
@@ -25,6 +29,19 @@ void _mkdir_recursive(TFile* out_file, const std::string& full_path)
 //                ******************
 //                *      Plot      *
 //                ******************
+
+/*
+Constuctor to create a Plot object that wraps a TH1F, requires the name, title,
+number of bins, and the lower and upper bounds x-bounds (x_min and x_max) for
+the TH1F, as well three optional arguments for the x-axis title, y-axis title,
+and an array of bin edges
+
+e.g.
+
+Plot test("name","title",10,0,10);
+Plot test("name","title",10,0,10,std::make_tuple("mass (GeV)","events",std::vector<double>()));
+Plot test("name","title",10,0,10,std::make_tuple("mass (GeV)","events",std::vector<double>({1.1,2.2,3.3})));
+*/
 
 Plot::Plot(const std::string name, std::string title, int nbins, double x_min, double x_max, std::tuple<std::string, std::string, std::vector<double>>&& kwargs)
 :

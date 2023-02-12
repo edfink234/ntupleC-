@@ -1,3 +1,14 @@
+/*
+ A utility file to help save arbitrarily nested TH1F objects into separate
+ image files, specifically, anything that is allowed by TPad::SaveAs
+ 
+ Simply run this in the ROOT prompt via
+ 
+ root [0] .x recursivesave.cxx
+ 
+ and it will save the
+ */
+
 #include <iostream>
 #include <algorithm>
 
@@ -7,6 +18,7 @@
 #include "TDirectoryFile.h"
 #include "TCanvas.h"
 
+//Function to infer x-axis title from histogram title
 std::string GetXTitle(std::string& title)
 {
     if (title.find("pt distribution")!=std::string::npos)
@@ -43,7 +55,7 @@ std::string GetXTitle(std::string& title)
     }
     return "";
 }
-
+//function to recursively save TH1F objects from the given root file keys
 void recursiveTH1Fsave(TList* f)
 {
     for (auto i: *f)
@@ -51,14 +63,14 @@ void recursiveTH1Fsave(TList* f)
         if (static_cast<TKey*>(i)->GetClassName()==std::string("TH1F"))
         {
             TCanvas c1;
-            std::string str = (static_cast<TKey*>(i)->GetName()+std::string(".pdf"));
+            std::string str = (static_cast<TKey*>(i)->GetName()+std::string(".png"));
             std::cout << str << '\n';
             str.erase(std::remove(str.begin(), str.end(), '/'), str.end());
             TH1F* h = static_cast<TH1F*>(static_cast<TKey*>(i)->ReadObj());
             
             h->SetXTitle(GetXTitle(str).c_str());
             h->Draw();
-            c1.SaveAs((""+str).c_str());
+            c1.SaveAs((str).c_str());
         }
         else
         {
@@ -69,12 +81,9 @@ void recursiveTH1Fsave(TList* f)
 
 void recursivesave()
 {
-//    TFile f("mc16_13TeV.600750.PhPy8EG_AZNLO_ggH125_mA_p0_Cyy0p01_Czh1p0.NTUPLE.e8324_e7400_s3126_r10724_r10726_v2_out.root");
-    TFile f("Ntuple_data_test_out.root");
-//    TFile f("Ntuple_MC_Za_mA5p0_v4_out.root");
-//    TFile f("example_mc_haa_out_testcpp.root");
-    recursiveTH1Fsave(f.GetListOfKeys());
-    system("convert *pdf -quality 100 file.pdf"); //Only if imagemagick is installed.
-    system(R"--(ls *pdf | grep -xv "file.pdf" | parallel rm)--"); //Only if GNU parallel is installed
+    TFile f("example_mc_haa_out_test1cppdummy.root"); //the file we want the TH1F's from
+    recursiveTH1Fsave(f.GetListOfKeys()); //calling the function
+//    system("convert *pdf -quality 100 file.pdf"); //Only if imagemagick is installed, converts all pngs into a single pdf
+//    system(R"--(ls *pdf | grep -xv "file.pdf" | parallel rm)--"); //Only if GNU parallel is installed, removes all pdfs except file.pdf
 }
 

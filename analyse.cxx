@@ -308,8 +308,6 @@ void analyse()
         run_analysis(input_filenames, systematic.c_str(), true, output_file);
     }
     
-
-    
     output_file->Close();
     auto end_time = Clock::now();
     std::cout << "Time difference:"
