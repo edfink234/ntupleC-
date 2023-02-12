@@ -69,7 +69,7 @@ private:
 public:
     Plot2D();
     ~Plot2D();
-    Plot2D(std::string name, std::string title="", int xbins = 40, double x_min = 0, double x_max = 20, int ybins = 40, double y_min = 0, double y_max = 20, std::tuple<std::string, std::string, std::vector<double>>&& kwargs = {});
+    Plot2D(std::string name, std::string title="", int xbins = 40, double x_min = 0, double x_max = 20, int ybins = 40, double y_min = 0, double y_max = 20, std::tuple<std::string, std::string>&& kwargs = {});
     
     Plot2D(const Plot2D&);
     Plot2D& operator=(const Plot2D&);

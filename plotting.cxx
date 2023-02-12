@@ -6,7 +6,7 @@
 
 /*
 function to recursively create a directory structure in the ROOT file
-for the different TH1F's based on systematics and cuts
+for the different TH1F's, in practice based on systematics and cuts
 */
 void _mkdir_recursive(TFile* out_file, const std::string& full_path)
 {
@@ -34,7 +34,8 @@ void _mkdir_recursive(TFile* out_file, const std::string& full_path)
 Constuctor to create a Plot object that wraps a TH1F, requires the name, title,
 number of bins, and the lower and upper bounds x-bounds (x_min and x_max) for
 the TH1F, as well three optional arguments for the x-axis title, y-axis title,
-and an array of bin edges
+and an array of bin edges. The path is everything before the last '/' and the write_name
+is everything after the last '/'
 
 e.g.
 
@@ -129,6 +130,10 @@ void Plot::fill(double value, double weight)
     __hist->Fill(value,weight);
 }
 
+/*
+ Utility function to save Plot object to an output ROOT file at
+ the location specified by the path attribute
+ */
 void Plot::save(TFile* out_file)
 {
     if (!out_file)
@@ -163,7 +168,21 @@ TH1F Plot::hist()
 //                *      Plot2D      *
 //                ********************
 
-Plot2D::Plot2D(std::string name, std::string title, int xbins, double x_min, double x_max, int ybins, double y_min, double y_max, std::tuple<std::string, std::string, std::vector<double>>&& kwargs)
+/*
+Constuctor to create a Plot2D object that wraps a TH2F, requires the name, title,
+number of bins, and the lower and upper bounds x-bounds and y_bounds
+(x_min, y_min and x_max, y_max) for the TH2F, as well
+two optional arguments for the x-axis title and the y-axis title,
+The path is everything before the last '/' and the write_name
+name is everything after the last '/'
+
+e.g.
+
+Plot2D test("name","title",10,0,10,10,0,10);
+Plot2D test1("name","title",10,0,10,10,0,10,std::make_tuple("name","title"));
+*/
+
+Plot2D::Plot2D(std::string name, std::string title, int xbins, double x_min, double x_max, int ybins, double y_min, double y_max, std::tuple<std::string, std::string>&& kwargs)
 :
     name{name},
     path{"/"},
@@ -188,7 +207,7 @@ Plot2D::Plot2D(std::string name, std::string title, int xbins, double x_min, dou
     {
         title = name;
     }
-    __hist.reset(new TH2F(name.c_str(), title.c_str(),__xbins, __x_min, __x_max, __ybins, __y_min, __y_max));
+    __hist.reset(new TH2F(name.c_str(), title.c_str(), __xbins, __x_min, __x_max, __ybins, __y_min, __y_max));
 
     __hist->GetXaxis()->SetTitle(__x_label.c_str());
     __hist->GetYaxis()->SetTitle(__y_label.c_str());
@@ -280,6 +299,15 @@ TH2F Plot2D::hist()
 //                *      PlotGroup      *
 //                ***********************
 
+/*
+ Constructor to create a group of Plot objects
+ */
+
+PlotGroup::PlotGroup(std::vector<Plot>&& hists)
+{
+    __hists = hists;
+}
+
 PlotGroup::PlotGroup() = default;
 PlotGroup::~PlotGroup() = default;
 
@@ -294,10 +322,10 @@ PlotGroup& PlotGroup::operator=(const PlotGroup& plot_group)
     return *this;
 }
 
-PlotGroup::PlotGroup(std::vector<Plot>&& hists)
-{
-    __hists = hists;
-}
+/*
+ Performs TH1::Add on all the Plots in the Plotgroup,
+ given that __hists and plots have the same size
+ */
 
 void PlotGroup::add(const PlotGroup& plots)
 {
