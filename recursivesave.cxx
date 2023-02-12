@@ -6,7 +6,7 @@
  
  root [0] .x recursivesave.cxx
  
- and it will save the
+ and it will save the TH1F's as image files in the current working directory.
  */
 
 #include <iostream>
@@ -63,6 +63,7 @@ void recursiveTH1Fsave(TList* f)
         if (static_cast<TKey*>(i)->GetClassName()==std::string("TH1F"))
         {
             TCanvas c1;
+            //".png" here can be changed to anything allowed by TPad::SaveAs, e.g. ".pdf"
             std::string str = (static_cast<TKey*>(i)->GetName()+std::string(".png"));
             std::cout << str << '\n';
             str.erase(std::remove(str.begin(), str.end(), '/'), str.end());
