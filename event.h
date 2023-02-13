@@ -6,6 +6,10 @@
 
 #include "objects.h"
 
+/*
+ Event: C-style struct that stores some relevant info about a particle physics event
+ */
+
 struct Event
 {
     UInt_t m_RunNumber;

@@ -265,6 +265,11 @@ void Plot2D::fill(double x, double y, double weight)
     __hist->Fill(x,y,weight);
 }
 
+/*
+ Utility function to save Plot2D object to an output ROOT file at
+ the location specified by the path attribute
+ */
+
 void Plot2D::save(TFile* out_file)
 {
     if (!out_file)
@@ -301,6 +306,13 @@ TH2F Plot2D::hist()
 
 /*
  Constructor to create a group of Plot objects
+ 
+ e.g.
+ 
+PlotGroup test({
+ Plot("name","title", 20, 0, 25),
+ Plot("name1","title1", 100, 0, 10),
+});
  */
 
 PlotGroup::PlotGroup(std::vector<Plot>&& hists)
@@ -345,6 +357,13 @@ void PlotGroup::fill(double value, double weight)
     }
 }
 
+/*
+ Utility function to save all Plot objects in the attribute
+ for the vector of Plot objects
+ for this PlotGroup to an output ROOT file at
+ the location specified by the path attribute
+ */
+
 void PlotGroup::save(TFile* out_file)
 {
     for (auto& hist: __hists)
@@ -362,6 +381,22 @@ std::vector<Plot> PlotGroup::hists()
 //                *      PlotGroup2D      *
 //                *************************
 
+/*
+ Constructor to create a group of Plot objects
+ 
+ e.g.
+ 
+PlotGroup2D test1({
+ Plot2D("name","title", 20, 0, 25, 100, 0, 10),
+ Plot2D("name1","title1", 100, 0, 10, 20, 0, 20),
+});
+*/
+
+PlotGroup2D::PlotGroup2D(std::vector<Plot2D>&& hists)
+{
+    __hists = hists;
+}
+
 PlotGroup2D::PlotGroup2D() = default;
 PlotGroup2D::~PlotGroup2D() = default;
 
@@ -376,10 +411,10 @@ PlotGroup2D& PlotGroup2D::operator=(const PlotGroup2D& plot_group)
     return *this;
 }
 
-PlotGroup2D::PlotGroup2D(std::vector<Plot2D>&& hists)
-{
-    __hists = hists;
-}
+/*
+ Performs TH1::Add on all the Plots in the Plotgroup,
+ given that __hists and plots have the same size
+ */
 
 void PlotGroup2D::add(const PlotGroup2D& plots)
 {
@@ -398,6 +433,13 @@ void PlotGroup2D::fill(double x, double y, double weight)
         hist.fill(x,y,weight);
     }
 }
+
+/*
+ Utility function to save all Plot objects in the attribute
+ for the vector of Plot objects
+ for this PlotGroup to an output ROOT file at
+ the location specified by the path attribute
+ */
 
 void PlotGroup2D::save(TFile* out_file)
 {

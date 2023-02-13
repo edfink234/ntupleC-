@@ -9,6 +9,12 @@
 
 using namespace ROOT::Math;
 
+/*
+ CandidateSet: Templated class to easily store info about
+ 2 particle systems, either two TruthParticle,
+ Electron, or Photon objects atm.
+ */
+
 template <typename T>
 class CandidateSet {
 public:

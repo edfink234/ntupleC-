@@ -13,14 +13,26 @@ using namespace ROOT::Math;
 //                *****************
 //                * PhysicsObject *
 //                *****************
-                 
-PhysicsObject::PhysicsObject() = default;
+
+/*
+ Create a PhysicsObject that corresponds to an event
+ in a TTree. The index argument refers to the element
+ the static vector attributes to index/return, if
+ one creates an object that derives from PhysicsObject,
+ i.e., TruthParticle, Electron, Photon, Muon, Cluster, Track
+ 
+ e.g.
+ 
+ PhysicsObject p{1};
+ */
 
 PhysicsObject::PhysicsObject(int index)
 :  _index{index}
 {
 
 }
+
+PhysicsObject::PhysicsObject() = default;
 
 PhysicsObject::~PhysicsObject() = default;
 
@@ -30,6 +42,11 @@ PhysicsObject::~PhysicsObject() = default;
 //    vec.SetPtEtaPhiE(pt(),eta(),phi(),e());
 //    return vec;
 //}
+
+/*
+ As recommend by the docs, ROOT::Math::LorentzVector is the ``superior alternative''
+ to TLorentzVector (commented out above)
+ */
 PtEtaPhiEVector PhysicsObject::Vector()
 {
     PtEtaPhiEVector vec;
@@ -65,7 +82,19 @@ const std::string PhysicsObject::PREFIX = "";
 //                * TruthParticle *
 //                *****************
 
-TruthParticle::TruthParticle() = default;
+/*
+ Create a TruthParticle that corresponds to an event
+ in a TTree. The index argument refers to the element
+ the static vector attributes index/return.
+ If the static variable Event::cache_truth
+ is set to true, then its pdg_id is set to the _index'th
+ element of the event's mc_pdg_id vector, else, it's
+ set to INT_MIN, which no particle corresponds to.
+ 
+ e.g.
+ 
+ TruthParticle tp{1};
+ */
 
 TruthParticle::TruthParticle(int index)
 :   PhysicsObject::PhysicsObject(index),
@@ -79,10 +108,12 @@ TruthParticle::TruthParticle(int index)
     }
     else
     {
-        pdg_id = INT_MIN;
+        pdg_id = INT_MIN; //so undefined :)
     }
     
 }
+
+TruthParticle::TruthParticle() = default;
 
 TruthParticle::TruthParticle(const TruthParticle& particle_temp)
 {
@@ -197,6 +228,11 @@ std::vector<double>* TruthParticle::mc_phi = nullptr;
 std::vector<double>* TruthParticle::mc_e = nullptr;
 std::vector<double>* TruthParticle::mc_mass = nullptr;
 
+/*
+ Sets the branch status of branches in the TChain `chain', as
+ well as set the static attributes of Truthparticle
+ to the addresses of those branches.
+ */
 void TruthParticle::SetTruthParticle(TChain* chain)
 {
     chain->SetBranchStatus("mc_pdg_id",1);
@@ -226,7 +262,16 @@ void TruthParticle::SetTruthParticle(TChain* chain)
 //                *    Electron   *
 //                *****************
 
-Electron::Electron() = default;
+/*
+ Create an Electron that corresponds to an event
+ in a TTree. The index argument refers to the element
+ the static vector attributes index/return.
+ The pt and the energy are in MeV.
+ 
+ e.g.
+ 
+ Electron e{1, 1.1, 1.1};
+ */
 
 Electron::Electron(int index, double pt, double energy)
 : TruthParticle::TruthParticle(index),
@@ -235,6 +280,8 @@ Electron::Electron(int index, double pt, double energy)
 {
     
 }
+
+Electron::Electron() = default;
 
 Electron::Electron(const Electron& other)
 {
@@ -343,6 +390,12 @@ std::vector<double>* Electron::electron_isolation = nullptr;
 std::vector<double>* Electron::electron_d0 = nullptr;
 std::vector<double>* Electron::electron_z0 = nullptr;
 
+/*
+ Sets the branch status of branches in the TChain `chain', as
+ well as set the static attributes of Electron
+ to the addresses of those branches.
+ */
+
 void Electron::SetElectron(TChain* chain)
 {
     chain->SetBranchStatus("electron_charge",1);
@@ -372,7 +425,16 @@ void Electron::SetElectron(TChain* chain)
 //                *      Muon     *
 //                *****************
 
-Muon::Muon() = default;
+/*
+ Create an Muon that corresponds to an event
+ in a TTree. The index argument refers to the element
+ the static vector attributes index/return.
+ The pt and the energy are in MeV.
+ 
+ e.g.
+ 
+ Muon m{1, 1.1, 1.1};
+ */
 
 Muon::Muon(int index, double pt, double energy)
 : TruthParticle::TruthParticle(index),
@@ -381,6 +443,8 @@ Muon::Muon(int index, double pt, double energy)
 {
     
 }
+
+Muon::Muon() = default;
 
 Muon::Muon(const Muon& other)
 {
@@ -459,6 +523,12 @@ std::vector<double>* Muon::muon_e = nullptr;
 std::vector<double>* Muon::muon_eta = nullptr;
 std::vector<double>* Muon::muon_phi = nullptr;
 
+/*
+ Sets the branch status of branches in the TChain `chain', as
+ well as set the static attributes of Muon
+ to the addresses of those branches.
+ */
+
 void Muon::SetMuon(TChain* chain)
 {
     chain->SetBranchStatus("muon_charge",1);
@@ -478,7 +548,16 @@ void Muon::SetMuon(TChain* chain)
 //                *    Photon     *
 //                *****************
 
-Photon::Photon() = default;
+/*
+ Create a Photon that corresponds to an event
+ in a TTree. The index argument refers to the element
+ the static vector attributes index/return.
+ The pt and the energy are in MeV.
+ 
+ e.g.
+ 
+ Photon p{1, 1.1, 1.1};
+ */
 
 Photon::Photon(int index, double pt, double energy)
 : TruthParticle::TruthParticle(index),
@@ -487,6 +566,8 @@ Photon::Photon(int index, double pt, double energy)
 {
     
 }
+
+Photon::Photon() = default;
 
 Photon::Photon(const Photon& other)
 {
@@ -596,6 +677,12 @@ std::vector<int>* Photon::photon_id_tight = nullptr;
 std::vector<int>* Photon::photon_cluster_eta_be_2 = nullptr;
 std::vector<int>* Photon::photon_id_nn = nullptr;
 
+/*
+ Sets the branch status of branches in the TChain `chain', as
+ well as set the static attributes of Photon
+ to the addresses of those branches.
+ */
+
 void Photon::SetPhoton(TChain* chain)
 {
     chain->SetBranchStatus("photon_pt",1);
@@ -624,13 +711,23 @@ void Photon::SetPhoton(TChain* chain)
 //                *    Cluster    *
 //                *****************
 
-Cluster::Cluster() = default;
+/*
+ Create a Cluster that corresponds to an event
+ in a TTree. The index argument refers to the element
+ the static vector attributes index/return.
+ 
+ e.g.
+ 
+ Cluster c{1};
+ */
 
 Cluster::Cluster(int index)
 :   PhysicsObject::PhysicsObject(index)
 {
     
 }
+
+Cluster::Cluster() = default;
 
 Cluster::Cluster(const Cluster& particle_temp)
 {
@@ -670,6 +767,12 @@ std::vector<double>* Cluster::cluster_eta = nullptr;
 std::vector<double>* Cluster::cluster_phi = nullptr;
 std::vector<double>* Cluster::cluster_e = nullptr;
 
+/*
+ Sets the branch status of branches in the TChain `chain', as
+ well as set the static attributes of Cluster
+ to the addresses of those branches.
+ */
+
 void Cluster::SetCluster(TChain* chain)
 {
     chain->SetBranchStatus("cluster_pt",1);
@@ -687,13 +790,23 @@ void Cluster::SetCluster(TChain* chain)
 //                *    Track      *
 //                *****************
 
-Track::Track() = default;
+/*
+ Create a Track that corresponds to an event
+ in a TTree. The index argument refers to the element
+ the static vector attributes index/return.
+ 
+ e.g.
+ 
+ Track t{1};
+ */
 
 Track::Track(int index)
 :   PhysicsObject::PhysicsObject(index)
 {
     
 }
+
+Track::Track() = default;
 
 Track::Track(const Track& particle_temp)
 {
@@ -761,6 +874,12 @@ std::vector<double>* Track::track_phi = nullptr;
 std::vector<double>* Track::track_e = nullptr;
 std::vector<int>* Track::track_num_pixel_hits = nullptr;
 std::vector<int>* Track::track_num_sct_hits = nullptr;
+
+/*
+ Sets the branch status of branches in the TChain `chain', as
+ well as set the static attributes of Track
+ to the addresses of those branches.
+ */
 
 void Track::SetTrack(TChain* chain)
 {

@@ -1,5 +1,18 @@
 #include "filereader.h"
 
+//                ************************
+//                *      FileReader      *
+//                ************************
+
+/*
+ FileReader constructor: Takes in a vector of files, and, optionally, the tree name,
+ the number of events to process, and the number of initial events to skip. An additional
+ TTree called full_event_info is always assumed to be inside all of the ROOT files.
+ 
+ The constructor adds the files to the internal chain attributes, initializes
+ the number of events to skip and to process.
+ */
+
 FileReader::FileReader(const std::vector<std::string>& files, const char* tree_name, Long64_t num_events, int skip_first_events) :
 
 __files{move(files)},
@@ -51,12 +64,20 @@ FileReader::FileReader(const FileReader& other)
     __num_events = other.__num_events;
 }
 
+/*
+ Utility function to add bool(TChain&) functions
+ to filter events
+ */
 template <typename T>
 void FileReader::add_event_filter(T& filter)
 {
     __event_filters.push_back(filter);
 }
 
+/*
+ Checks if the event passes all event filters
+ added by FileReader::add_event_filter
+ */
 bool FileReader::__passes_event_filters()
 {
     if (__event_filters.empty())
@@ -83,6 +104,12 @@ Long64_t FileReader::num_events()
     return __num_events;
 }
 
+/*
+ Sets the branch status of branches in the TChain `__chain', as
+ well as set the Photon static attributes of Event
+ to the addresses of those branches.
+ */
+
 void FileReader::__load_photon_addresses()
 {
     __chain.SetBranchStatus("photon_syst_name",1);
@@ -93,6 +120,12 @@ void FileReader::__load_photon_addresses()
     __chain.SetBranchAddress("photon_syst_pt",&(__current_event.photon_syst_pt));
     __chain.SetBranchAddress("photon_syst_e",&(__current_event.photon_syst_e));
 }
+
+/*
+ Sets the branch status of branches in the TChain `__chain', as
+ well as set the Electron static attributes of Event
+ to the addresses of those branches.
+ */
 
 void FileReader::__load_electron_addresses()
 {
@@ -105,11 +138,26 @@ void FileReader::__load_electron_addresses()
     __chain.SetBranchAddress("electron_syst_e",&(__current_event.electron_syst_e));
 }
 
+/*
+ Sets the branch status of branches in the TChain `__chain', as
+ well as set the Cluster static attributes of Event
+ to the addresses of those branches. Currently only applies to branch
+ cluster_pt 😅
+ */
+
 void FileReader::__load_cluster_addresses()
 {
     __chain.SetBranchStatus("cluster_pt",1);
     __chain.SetBranchAddress("cluster_pt",&(__current_event.cluster_pt));
 }
+
+/*
+ Sets the branch status of branches in the TChain `__chain', as
+ well as set the Track static attributes of Event
+ to the addresses of those branches. Currently only applies to branch
+ track_type, but it's not as common so we check if it exists before
+ trying to set it to avoid a possible run-time error.
+ */
 
 void FileReader::__load_track_addresses()
 {
@@ -122,15 +170,16 @@ void FileReader::__load_track_addresses()
     }
 }
 
+/*
+ Sets the branch status of branches in the TChain `__chain', as
+ well as set the TruthParticle static attributes of Event
+ to the addresses of those branches. Only applies if the
+ cache_truth static variable is set to false
+ */
+
 void FileReader::__load_truth_particle_addresses(bool cache_truth)
 {
-//    if (cache_truth)
-//    {
-//        __chain.SetBranchStatus("mc_pt",1);
-//        __chain.SetBranchAddress("mc_pt",&(__current_event.mc_pt));
-//    }
     if (!cache_truth)
-//    else
     {
         __chain.SetBranchStatus("mc_pdg_id",1);
         __chain.SetBranchStatus("mc_barcode",1);
@@ -144,6 +193,13 @@ void FileReader::__load_truth_particle_addresses(bool cache_truth)
     }
 }
 
+/*
+ if trigger_passed_triggers is in the list of branches, then turns the
+ trigger_passed_triggers branch status to "on", and sets the FileReader's
+ event's trigger_passed_triggers attribute's address to the
+ trigger_passed_triggers branch.
+ */
+
 void FileReader::__load_trigger_addresses()
 {
     
@@ -153,6 +209,13 @@ void FileReader::__load_trigger_addresses()
         __chain.SetBranchAddress("trigger_passed_triggers",&(__current_event.trigger_passed_triggers));
     }
 }
+
+/*
+ Physically loads Photon objects into the FileReader's event
+ attribute (in practice, for the current event). Will set the pt and
+ energy of the Photon objects to the systematic values
+ if Event::systematic is set to something besides "nominal" or "".
+ */
 
 void FileReader::__load_photons()
 {
@@ -189,6 +252,13 @@ void FileReader::__load_photons()
     }
 }
 
+/*
+ Physically loads Electron objects into the FileReader's event
+ attribute (in practice, for the current event). Will set the pt and
+ energy of the Electron objects to the systematic values
+ if Event::systematic is set to something besides "nominal" or "".
+ */
+
 void FileReader::__load_electrons()
 {
     auto length = (*(Electron::electron_pt)).size();
@@ -224,6 +294,15 @@ void FileReader::__load_electrons()
     }
 }
 
+/*
+ Physically loads Muon objects into the FileReader's event
+ attribute (in practice, for the current event). Will set the pt and
+ energy of the Muon objects to the systematic values
+ if Event::systematic is set to something besides "nominal" or "".
+ However, currently there are no systematics implemented for Muons
+ for our analysis, so that code is commented out.
+ */
+
 void FileReader::__load_muons()
 {
     auto length = (*(Muon::muon_pt)).size();
@@ -258,6 +337,14 @@ void FileReader::__load_muons()
     }
 }
 
+/*
+ Physically loads Cluster objects into the FileReader's event
+ attribute (in practice, for the current event). Specifically, loops over
+ the static cluster_pt attribute of cluster and pushes back Cluster
+ objects from i = 0 to i = cluster_pt.size()-1 into the FileReader's
+ Event's clusters vector attribute
+ */
+
 void FileReader::__load_clusters()
 {
     auto length = (*(Cluster::cluster_pt)).size();
@@ -267,6 +354,15 @@ void FileReader::__load_clusters()
         __current_event.clusters.emplace_back(Cluster(i));
     }
 }
+
+/*
+ Physically loads Track objects into the FileReader's event
+ attribute (in practice, for the current event). Specifically,
+ loops over the static track_pt attribute of cluster and pushes back Cluster
+ objects from i = 0 to i = cluster_pt.size()-1 into the FileReader's
+ Event's tracks or pixel_tracks vector attributes, depending on if
+ Event.track_type is 0 or 1 respectively
+ */
 
 void FileReader::__load_tracks()
 {
@@ -293,6 +389,14 @@ void FileReader::__load_tracks()
     }
 }
 
+/*
+ Physically loads TruthParticle objects into the FileReader's event
+ attribute (in practice, for the current event). Specifically, loops over
+ the static mc_pt attribute of TruthParticle and pushes back TruthParticle
+ objects from i = 0 to i = mc_pt.size()-1 into the FileReader's
+ Event's truth_particles vector attribute
+ */
+
 void FileReader::__load_truth_particles()
 {
     auto length = (*(TruthParticle::mc_pt)).size();
@@ -301,6 +405,18 @@ void FileReader::__load_truth_particles()
         __current_event.truth_particles.emplace_back(TruthParticle(i));
     }
 }
+
+/*
+ Physically loads std::strings of triggers into the FileReader's event
+ attribute (in practice, for the current event). Specifically, if the
+ FileReader's Event's trigger_passed_triggers attribute was set by
+ __load_trigger_addresses (because the branch trigger_passed_triggers
+ exists in the __chain TTree), then __load_triggers loops
+ over the static trigger_passed_triggers attribute
+ of Event and pushes back std::strings of triggers from i = 0 to
+ i = trigger_passed_triggers.size()-1 into the FileReader's
+ Event's triggers vector attribute
+ */
 
 void FileReader::__load_triggers()
 {
@@ -313,6 +429,27 @@ void FileReader::__load_triggers()
         }
     }
 }
+
+/*
+ if Event::cache_truth (meaning if the user has specified loading truth_particles)
+ ---------------------------------------------------------------------------------
+ In this case, this function will return a list of truth particles whose barcodes,
+ parent barcodes, and absolute values of the pdg ids are contained within the respective
+ arguments passed to this function if they're not empty.
+ Also in this case, the truth particles returned
+ will all have status code equal to the status code passed to this function,
+ unless none was passed. In the case inv = True, then truth particles returned
+ will all have status code not equal to the one passed to this funciton
+ 
+ if not Event::cache_truth (meaning if the user has specified to not load truth_particles)
+ -----------------------------------------------------------------------------------------
+ In this case, this function will loop over the mc_pdg_id branch stored in
+ the FileReader's Event attribute (which is loaded by __load_truth_particle_addresses
+ if Event::cache_truth = false), and will return a list of truth particles whose barcodes,
+ parent barcodes, and absolute values of the pdg ids are contained by the corresponding mc
+ branches and within the respective arguments passed to this function
+ if they're not empty (or null in the case of status_code).
+ */
 
 std::vector<TruthParticle> FileReader::find_truth_particles
      (const std::vector<int>&& barcode,
@@ -390,6 +527,31 @@ std::vector<TruthParticle> FileReader::find_truth_particles
     return results;
 }
 
+//                *****************************
+//                *      FileReaderRange      *
+//                *****************************
+
+/*
+ FileReaderRange constructor: Takes in a vector of files, and, optionally, the tree name,
+ the number of events to process, and the number of initial events to skip. An additional
+ TTree called full_event_info is always assumed to be inside all of the ROOT files.
+ 
+ The constructor calls the copy constructor of FileReader to initialize its
+ internal FileReader attribute
+ 
+ FileReaderRange allows the user to loop over TChains of files in an efficient and
+ hassle-free manner.
+ 
+ e.g.
+ 
+ FileReaderRange reader(input_filenames); //create FileReaderRange object
+ 
+ for (auto&& f: reader) //now iterate, easy as that!
+ {
+    //do something
+ }
+ */
+
 FileReaderRange::FileReaderRange(const std::vector<std::string>& files,
        const char* tree_name,
        Long64_t num_events, int skip_first_events) :
@@ -398,8 +560,21 @@ f(files,tree_name, num_events, skip_first_events)
     
 }
 
+/*
+ Iterator constructor called by end() method, takes in number of events to process
+ and initalizes internal data attribute to this value.
+ */
 FileReaderRange::Iterator::Iterator(int i) : data{i} {}
 
+/*
+ Iterator constructor called by begin() method, takes in number of events to skip
+ (event number to start at) and the internal FileReader object of FileReaderRange
+ used to initialize the Iterator's data and FileReader attributes, respectively.
+ 
+ Starts by deactivating all of the branches, then sets only the ones specified by
+ the static attributes of Event. Then calls GetEntry once and subsequently loads
+ the relevant objects into the FileReader's Event's vector attributes.
+ */
 FileReaderRange::Iterator::Iterator(int i, FileReader& f) : data{i}, F{f}
 {
     F.__current_index = F.__current_event.entry_number = data;
@@ -514,6 +689,13 @@ FileReaderRange::Iterator::Iterator(int i, FileReader& f) : data{i}, F{f}
     }
 }
 
+/*
+ ++ operator of the custom iterator, describes how to procede to the
+ next iteration, similar to Python's __next__ dunder method. First starts
+ by clearing the vector attributes of the current event, increases the data
+ attribute, calls GetEntry to load the addresses for the next event, and
+ finally loads the relevant objects into the FileReader's Event's vector attributes.
+ */
 FileReaderRange::Iterator& FileReaderRange::Iterator::operator++()
 {
     F.__current_event.truth_particles.clear();
@@ -568,22 +750,44 @@ FileReaderRange::Iterator& FileReaderRange::Iterator::operator++()
     
     return *this;
 }
-
+/*
+ When you iterate over a FileReaderRange object, i.e.
+ 
+ for (auto&& i: FileReaderRange(filenames))
+ {
+    //...
+ }
+ the variable 'i' is described by this derefencing operator,
+ i.e., it's a FileReader reference.
+ */
 FileReader& FileReaderRange::Iterator::operator*()
 {
     return F;
 }
 
+/*
+ Determines when the iteration stops, i.e., when the data of
+ the Iterator object constructed by begin() is equal to
+ the Iterator object constructed by end()
+ */
 bool operator!=(const FileReaderRange::Iterator& a, const FileReaderRange::Iterator& b)
 {
     return a.data != b.data;
 }
 
+/*
+ Function that generates an Iterator object to describe how the iteration
+ over a FileReaderRange object begins.
+ */
 FileReaderRange::Iterator FileReaderRange::begin()
 {
     return Iterator(f.__skip_first_events, f);
 }
 
+/*
+ Function that generates an Iterator object to describe how the iteration
+ over a FileReaderRange object ends.
+ */
 FileReaderRange::Iterator FileReaderRange::end()
 {
     return Iterator(f.__num_events);

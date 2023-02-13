@@ -12,6 +12,9 @@ using namespace ROOT::Math;
 
 class TruthParticle;
 
+/*
+ PhysicsObject: base class for all objects of actual interest
+ */
 class PhysicsObject
 {
 protected:
@@ -33,6 +36,10 @@ public:
     virtual double e() = 0;
 };
 
+/*
+ TruthParticle: class that stores info for the particles that were actually involved
+ in a particle physics event, only availabe in simulation
+ */
 class TruthParticle : public PhysicsObject
 {
 protected:
@@ -76,6 +83,9 @@ public:
     virtual int id_tight();
 };
 
+/*
+ Electron: class that stores info for reconstructed electrons
+ */
 class Electron final : public TruthParticle
 {
 private:
@@ -114,6 +124,9 @@ public:
     operator std::string();
 };
 
+/*
+ Muon: class that stores info for reconstructed muons
+ */
 class Muon final : public TruthParticle
 {
 private:
@@ -143,6 +156,9 @@ public:
     operator std::string();
 };
 
+/*
+ Photon: class that stores info for reconstructed photons
+ */
 class Photon final : public TruthParticle
 {
 private:
@@ -181,6 +197,9 @@ public:
     operator std::string();
 };
 
+/*
+ Cluster: class that stores info for reconstructed clusters
+ */
 class Cluster final : public PhysicsObject
 {
 private:
@@ -202,6 +221,9 @@ public:
     double e() override;
 };
 
+/*
+ Track: class that stores info for reconstructed tracks
+ */
 class Track final : public PhysicsObject
 {
 private:

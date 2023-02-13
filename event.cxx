@@ -1,5 +1,10 @@
 #include "event.h"
 
+/*
+ Default values for static attributes of Event, can be changed by the
+ user.
+ */
+
 bool Event::cache_truth = true;
 bool Event::load_reco = true;
 bool Event::load_photons = true;

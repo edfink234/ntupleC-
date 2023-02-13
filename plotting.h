@@ -12,9 +12,13 @@
 #include "TError.h"
 
 //TODO: make these enum classes, item 10 Effective Modern C++
-enum plotOptions{x_label,y_label,bin_edges};
+enum plotOptions{x_label,y_label,bin_edges}; //instead of 0, 1, 2 for the kwargs std::tuple
 
-void _mkdir_recursive(TFile*, const std::string&);
+void _mkdir_recursive(TFile*, const std::string&); //helper function for Plot::save and Plot2D::save
+
+/*
+ Plot: A utility class that gives a nice interface for a TH1F object
+ */
 
 class Plot
 {
@@ -48,7 +52,9 @@ public:
     TH1F hist();
 };
 
-//FIXME:
+/*
+ Plot2D: A utility class that gives a nice interface for a TH2F object
+ */
 class Plot2D
 {
 private:
@@ -84,6 +90,9 @@ public:
     TH2F hist();
 };
 
+/*
+ PlotGroup: A utility class that gives a nice interface for a vector of Plot objects
+ */
 class PlotGroup //1D
 {
 private:
@@ -102,6 +111,9 @@ public:
     std::vector<Plot> hists();
 };
 
+/*
+ PlotGroup2D: A utility class that gives a nice interface for a vector of Plot2D objects
+ */
 class PlotGroup2D //2D
 {
 private:

@@ -7,8 +7,11 @@
 #include "event.h"
 #include "objects.h"
 
-using FT = bool(TChain&);
+using FT = bool(TChain&); //alias for filter function type
 
+/*
+ FileReader: helper class for FileReaderRange
+ */
 class FileReader
 {
 private:
@@ -57,6 +60,9 @@ public:
      bool inv = false);
 };
 
+/*
+ FileReaderRange: class to easily iterate over a group of files with the same TTrees
+ */
 class FileReaderRange {
     FileReader f;
 public:
@@ -68,7 +74,6 @@ public:
 
      struct Iterator
      {
-         
          Iterator(int i);
          Iterator (int i, FileReader& f);
          Iterator& operator++();
