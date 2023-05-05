@@ -64,6 +64,10 @@ public:
      bool inv = false);
 };
 
+/*
+ MyNotifyClass: helper class for FileReader to Notify when TChain switches
+ to a different file
+ */
 class MyNotifyClass : public TObject
 {
 public:
