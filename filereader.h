@@ -1,8 +1,12 @@
 #ifndef FILEREADERH
 #define FILEREADERH
 
+#include "TObject.h"
+#include "TFile.h"
+
 #include <vector>
 #include <string>
+#include <iostream>
 
 #include "event.h"
 #include "objects.h"
@@ -58,6 +62,18 @@ public:
      const std::vector<int>&& pdg_id = {},
      int* status_code = nullptr,
      bool inv = false);
+};
+
+class MyNotifyClass : public TObject
+{
+public:
+    MyNotifyClass(FileReader* f) : F{f} {}
+    virtual ~MyNotifyClass() {}
+    virtual Bool_t Notify();
+    void SetChain(TChain* chain) { fChain = chain;}
+private:
+    TChain* fChain;
+    FileReader* F;
 };
 
 /*

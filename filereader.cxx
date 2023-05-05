@@ -1,4 +1,5 @@
 #include "filereader.h"
+#include "TObject.h"
 
 //                ************************
 //                *      FileReader      *
@@ -15,7 +16,7 @@
 
 FileReader::FileReader(const std::vector<std::string>& files, const char* tree_name, Long64_t num_events, int skip_first_events) :
 
-__files{move(files)},
+__files{std::move(files)},
 __skip_first_events{skip_first_events},
 __current_index{skip_first_events},
 __chain{tree_name},
@@ -56,7 +57,6 @@ FileReader::FileReader(const FileReader& other)
     __current_event = other.__current_event;
     __event_filters = other.__event_filters;
     __has_event_info_chain = other.__has_event_info_chain;
-    
     __chain.Reset();
     __chain.Add(const_cast<TChain*>(&other.__chain)); //😬
     __event_info_chain.Reset();
@@ -219,6 +219,7 @@ void FileReader::__load_trigger_addresses()
 
 void FileReader::__load_photons()
 {
+//    std::cout << ((Photon::photon_pt) ? "not null" : "null") << '\n'; //ternary operator
     auto length = (*(Photon::photon_pt)).size();
     double pt, energy;
     int index;
@@ -588,7 +589,7 @@ FileReaderRange::Iterator::Iterator(int i, FileReader& f) : data{i}, F{f}
     F.__current_event.electrons.reserve(6);
     F.__current_event.muons.reserve(6);
     
-    //Decativate all branches
+    //Deactivate all branches
     F.__chain.SetBranchStatus("*",0);
     F.__event_info_chain.SetBranchStatus("*",0);
     
@@ -651,8 +652,14 @@ FileReaderRange::Iterator::Iterator(int i, FileReader& f) : data{i}, F{f}
     //GetAddresses
     if (F.__has_event_info_chain)
     {
+        MyNotifyClass* notifyEventInfo = new MyNotifyClass(&F);
+        notifyEventInfo->SetChain(&F.__event_info_chain);
+        F.__event_info_chain.SetNotify(notifyEventInfo);
         F.__event_info_chain.GetEntry(F.__current_index);
     }
+    MyNotifyClass* notifyChain = new MyNotifyClass(&F);
+    notifyChain->SetChain(&F.__chain);
+    F.__chain.SetNotify(notifyChain);
     F.__chain.GetEntry(F.__current_index);
     
     if (Event::cache_truth)
@@ -696,6 +703,7 @@ FileReaderRange::Iterator::Iterator(int i, FileReader& f) : data{i}, F{f}
  attribute, calls GetEntry to load the addresses for the next event, and
  finally loads the relevant objects into the FileReader's Event's vector attributes.
  */
+
 FileReaderRange::Iterator& FileReaderRange::Iterator::operator++()
 {
     F.__current_event.truth_particles.clear();
@@ -794,4 +802,131 @@ FileReaderRange::Iterator FileReaderRange::end()
 //    return Iterator(100);
 }
 
+//                ***************************
+//                *      MyNotifyClass      *
+//                ***************************
 
+/*
+ MyNotifyClass::Notify: Gets called when TChain switches to a new file, only when there is
+ more than one file does this get called
+ */
+
+Bool_t MyNotifyClass::Notify()
+{
+//        fChain->SetBranchStatus("*", 1);
+    Photon::SetPhoton(fChain);
+    Electron::SetElectron(fChain);
+    Muon::SetMuon(fChain);
+//        std::cout << "Switching to new file: " << fChain->GetCurrentFile()->GetName() << '\n';
+    
+    //Deactivate all branches
+    fChain->SetBranchStatus("*", 0);
+    
+    //SetAddresses
+    if (fChain->GetBranch("m_RunNumber")) fChain->SetBranchStatus("m_RunNumber",1);
+    if (fChain->GetBranch("m_RandomRunNumber")) fChain->SetBranchStatus("m_RandomRunNumber",1);
+    if (fChain->GetBranch("ei_event_number")) fChain->SetBranchStatus("ei_event_number",1);
+
+    if (fChain->GetBranch("m_RunNumber")) fChain->SetBranchAddress("m_RunNumber",&(F->__current_event.m_RunNumber));
+    if (fChain->GetBranch("m_RandomRunNumber")) fChain->SetBranchAddress("m_RandomRunNumber",&(F->__current_event.m_RandomRunNumber));
+    if (fChain->GetBranch("ei_event_number")) fChain->SetBranchAddress("ei_event_number",&(F->__current_event.ei_event_number));
+    
+    if (!Event::cache_truth)
+    {
+        if (fChain->GetBranch("mc_pdg_id"))
+            fChain->SetBranchStatus("mc_pdg_id",1);
+        if (fChain->GetBranch("mc_barcode"))
+            fChain->SetBranchStatus("mc_barcode",1);
+        if (fChain->GetBranch("mc_parent_barcode"))
+            fChain->SetBranchStatus("mc_parent_barcode",1);
+        if (fChain->GetBranch("mc_status"))
+            fChain->SetBranchStatus("mc_status",1);
+        
+        if (fChain->GetBranch("mc_pdg_id"))
+            fChain->SetBranchAddress("mc_pdg_id",&(F->__current_event.mc_pdg_id));
+        if (fChain->GetBranch("mc_barcode"))
+            fChain->SetBranchAddress("mc_barcode",&(F->__current_event.mc_barcode));
+        if (fChain->GetBranch("mc_parent_barcode"))
+            fChain->SetBranchAddress("mc_parent_barcode",&(F->__current_event.mc_parent_barcode));
+        if (fChain->GetBranch("mc_status"))
+            fChain->SetBranchAddress("mc_status",&(F->__current_event.mc_status));
+    }
+        
+    if (Event::cache_truth)
+    {
+        TruthParticle::SetTruthParticle(fChain);
+    }
+        
+    if (Event::load_reco)
+    {
+        if (Event::load_photons)
+        {
+            if (fChain->GetBranch("photon_syst_name"))
+                fChain->SetBranchStatus("photon_syst_name",1);
+            if (fChain->GetBranch("photon_syst_pt"))
+                fChain->SetBranchStatus("photon_syst_pt",1);
+            if (fChain->GetBranch("photon_syst_e"))
+                fChain->SetBranchStatus("photon_syst_e",1);
+            
+            if (fChain->GetBranch("photon_syst_name"))
+                fChain->SetBranchAddress("photon_syst_name",&(F->__current_event.photon_syst_name));
+            if (fChain->GetBranch("photon_syst_pt"))
+                fChain->SetBranchAddress("photon_syst_pt",&(F->__current_event.photon_syst_pt));
+            if (fChain->GetBranch("photon_syst_e"))
+                fChain->SetBranchAddress("photon_syst_e",&(F->__current_event.photon_syst_e));
+            
+            Photon::SetPhoton(fChain);
+        }
+        
+        if (Event::load_electrons)
+        {
+            if (fChain->GetBranch("electron_syst_name"))
+                fChain->SetBranchStatus("electron_syst_name",1);
+            if (fChain->GetBranch("electron_syst_pt"))
+                fChain->SetBranchStatus("electron_syst_pt",1);
+            if (fChain->GetBranch("electron_syst_e"))
+                fChain->SetBranchStatus("electron_syst_e",1);
+            
+            if (fChain->GetBranch("electron_syst_name"))
+                fChain->SetBranchAddress("electron_syst_name",&(F->__current_event.electron_syst_name));
+            if (fChain->GetBranch("electron_syst_pt"))
+                fChain->SetBranchAddress("electron_syst_pt",&(F->__current_event.electron_syst_pt));
+            if (fChain->GetBranch("electron_syst_e"))
+                fChain->SetBranchAddress("electron_syst_e",&(F->__current_event.electron_syst_e));
+                
+            Electron::SetElectron(fChain);
+        }
+        
+        if (Event::load_muons)
+        {
+            Muon::SetMuon(fChain);
+        }
+        
+        if (Event::load_clusters)
+        {
+//            F.__load_cluster_addresses();
+            Cluster::SetCluster(fChain);
+        }
+        
+        if (Event::load_tracks)
+        {
+            if (fChain->GetBranch("track_type"))
+            {
+                fChain->SetBranchStatus("track_type",1);
+                fChain->SetBranchAddress("track_type",&(F->__current_event.track_type));
+            }
+            Track::SetTrack(fChain);
+        }
+        
+        if (Event::load_triggers)
+        {
+            if (fChain->GetBranch("trigger_passed_triggers"))
+            {
+                fChain->SetBranchStatus("trigger_passed_triggers",1);
+                fChain->SetBranchAddress("trigger_passed_triggers",&(F->__current_event.trigger_passed_triggers));
+            }
+        }
+    }
+
+    return kTRUE; //Notified 😎
+}

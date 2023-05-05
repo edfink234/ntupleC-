@@ -235,27 +235,27 @@ std::vector<double>* TruthParticle::mc_mass = nullptr;
  */
 void TruthParticle::SetTruthParticle(TChain* chain)
 {
-    chain->SetBranchStatus("mc_pdg_id",1);
-    chain->SetBranchStatus("mc_barcode",1);
-    chain->SetBranchStatus("mc_parent_barcode",1);
-    chain->SetBranchStatus("mc_status",1);
-    chain->SetBranchStatus("mc_pt",1);
-    chain->SetBranchStatus("mc_charge",1);
-    chain->SetBranchStatus("mc_eta",1);
-    chain->SetBranchStatus("mc_phi",1);
-    chain->SetBranchStatus("mc_e",1);
-    chain->SetBranchStatus("mc_mass",1);
+    if (chain->GetBranch("mc_pdg_id")) chain->SetBranchStatus("mc_pdg_id",1);
+    if (chain->GetBranch("mc_barcode")) chain->SetBranchStatus("mc_barcode",1);
+    if (chain->GetBranch("mc_parent_barcode")) chain->SetBranchStatus("mc_parent_barcode",1);
+    if (chain->GetBranch("mc_status")) chain->SetBranchStatus("mc_status",1);
+    if (chain->GetBranch("mc_pt")) chain->SetBranchStatus("mc_pt",1);
+    if (chain->GetBranch("mc_charge")) chain->SetBranchStatus("mc_charge",1);
+    if (chain->GetBranch("mc_eta")) chain->SetBranchStatus("mc_eta",1);
+    if (chain->GetBranch("mc_phi")) chain->SetBranchStatus("mc_phi",1);
+    if (chain->GetBranch("mc_e")) chain->SetBranchStatus("mc_e",1);
+    if (chain->GetBranch("mc_mass")) chain->SetBranchStatus("mc_mass",1);
     
-    chain->SetBranchAddress("mc_pdg_id",&TruthParticle::mc_pdg_id);
-    chain->SetBranchAddress("mc_barcode",&TruthParticle::mc_barcode);
-    chain->SetBranchAddress("mc_parent_barcode",&TruthParticle::mc_parent_barcode);
-    chain->SetBranchAddress("mc_status",&TruthParticle::mc_status);
-    chain->SetBranchAddress("mc_pt",&TruthParticle::mc_pt);
-    chain->SetBranchAddress("mc_charge",&TruthParticle::mc_charge);
-    chain->SetBranchAddress("mc_eta",&TruthParticle::mc_eta);
-    chain->SetBranchAddress("mc_phi",&TruthParticle::mc_phi);
-    chain->SetBranchAddress("mc_e",&TruthParticle::mc_e);
-    chain->SetBranchAddress("mc_mass",&TruthParticle::mc_mass);
+    if (chain->GetBranch("mc_pdg_id")) chain->SetBranchAddress("mc_pdg_id",&TruthParticle::mc_pdg_id);
+    if (chain->GetBranch("mc_barcode")) chain->SetBranchAddress("mc_barcode",&TruthParticle::mc_barcode);
+    if (chain->GetBranch("mc_parent_barcode")) chain->SetBranchAddress("mc_parent_barcode",&TruthParticle::mc_parent_barcode);
+    if (chain->GetBranch("mc_status")) chain->SetBranchAddress("mc_status",&TruthParticle::mc_status);
+    if (chain->GetBranch("mc_pt")) chain->SetBranchAddress("mc_pt",&TruthParticle::mc_pt);
+    if (chain->GetBranch("mc_charge")) chain->SetBranchAddress("mc_charge",&TruthParticle::mc_charge);
+    if (chain->GetBranch("mc_eta"))  chain->SetBranchAddress("mc_eta",&TruthParticle::mc_eta);
+    if (chain->GetBranch("mc_phi")) chain->SetBranchAddress("mc_phi",&TruthParticle::mc_phi);
+    if (chain->GetBranch("mc_e")) chain->SetBranchAddress("mc_e",&TruthParticle::mc_e);
+    if (chain->GetBranch("mc_mass")) chain->SetBranchAddress("mc_mass",&TruthParticle::mc_mass);
 }
 
 //                *****************
@@ -398,27 +398,27 @@ std::vector<double>* Electron::electron_z0 = nullptr;
 
 void Electron::SetElectron(TChain* chain)
 {
-    chain->SetBranchStatus("electron_charge",1);
-    chain->SetBranchStatus("electron_pt",1);
-    chain->SetBranchStatus("electron_e",1);
-    chain->SetBranchStatus("electron_eta",1);
-    chain->SetBranchStatus("electron_phi",1);
-//    chain->SetBranchStatus("electron_id",1);
-    chain->SetBranchStatus("electron_isolation",1);
-    chain->SetBranchStatus("electron_d0",1);
-    chain->SetBranchStatus("electron_z0",1);
-    chain->SetBranchStatus("electron_id_medium",1);
+    if (chain->GetBranch("electron_charge"))  chain->SetBranchStatus("electron_charge",1);
+    if (chain->GetBranch("electron_pt"))  chain->SetBranchStatus("electron_pt",1);
+    if (chain->GetBranch("electron_e"))  chain->SetBranchStatus("electron_e",1);
+    if (chain->GetBranch("electron_eta"))  chain->SetBranchStatus("electron_eta",1);
+    if (chain->GetBranch("electron_phi"))  chain->SetBranchStatus("electron_phi",1);
+//    if (chain->GetBranch("electron_id"))  chain->SetBranchStatus("electron_id",1);
+    if (chain->GetBranch("electron_isolation"))  chain->SetBranchStatus("electron_isolation",1);
+    if (chain->GetBranch("electron_d0"))  chain->SetBranchStatus("electron_d0",1);
+    if (chain->GetBranch("electron_z0"))  chain->SetBranchStatus("electron_z0",1);
+//    if (chain->GetBranch("electron_id_medium"))  chain->SetBranchStatus("electron_id_medium",1);
 
-    chain->SetBranchAddress("electron_charge",&Electron::electron_charge);
-    chain->SetBranchAddress("electron_pt",&Electron::electron_pt);
-    chain->SetBranchAddress("electron_e",&Electron::electron_e);
-    chain->SetBranchAddress("electron_eta",&Electron::electron_eta);
-    chain->SetBranchAddress("electron_phi",&Electron::electron_phi);
-//    chain->SetBranchAddress("electron_id",&Electron::electron_id);
-    chain->SetBranchAddress("electron_isolation",&Electron::electron_isolation);
-    chain->SetBranchAddress("electron_d0",&Electron::electron_d0);
-    chain->SetBranchAddress("electron_z0",&Electron::electron_z0);
-    chain->SetBranchAddress("electron_id_medium",&Electron::electron_id_medium);
+    if (chain->GetBranch("electron_charge"))  chain->SetBranchAddress("electron_charge",&Electron::electron_charge);
+    if (chain->GetBranch("electron_pt"))  chain->SetBranchAddress("electron_pt",&Electron::electron_pt);
+    if (chain->GetBranch("electron_e"))  chain->SetBranchAddress("electron_e",&Electron::electron_e);
+    if (chain->GetBranch("electron_eta"))  chain->SetBranchAddress("electron_eta",&Electron::electron_eta);
+    if (chain->GetBranch("electron_phi"))  chain->SetBranchAddress("electron_phi",&Electron::electron_phi);
+//    if (chain->GetBranch("electron_id"))  chain->SetBranchAddress("electron_id",&Electron::electron_id);
+    if (chain->GetBranch("electron_isolation"))  chain->SetBranchAddress("electron_isolation",&Electron::electron_isolation);
+    if (chain->GetBranch("electron_d0"))  chain->SetBranchAddress("electron_d0",&Electron::electron_d0);
+    if (chain->GetBranch("electron_z0"))  chain->SetBranchAddress("electron_z0",&Electron::electron_z0);
+//    if (chain->GetBranch("electron_id_medium"))  chain->SetBranchAddress("electron_id_medium",&Electron::electron_id_medium);
 }
 
 //                *****************
@@ -531,17 +531,17 @@ std::vector<double>* Muon::muon_phi = nullptr;
 
 void Muon::SetMuon(TChain* chain)
 {
-    chain->SetBranchStatus("muon_charge",1);
-    chain->SetBranchStatus("muon_pt",1);
-    chain->SetBranchStatus("muon_e",1);
-    chain->SetBranchStatus("muon_eta",1);
-    chain->SetBranchStatus("muon_phi",1);
+    if (chain->GetBranch("muon_charge"))  chain->SetBranchStatus("muon_charge",1);
+    if (chain->GetBranch("muon_pt"))  chain->SetBranchStatus("muon_pt",1);
+    if (chain->GetBranch("muon_e"))  chain->SetBranchStatus("muon_e",1);
+    if (chain->GetBranch("muon_eta"))  chain->SetBranchStatus("muon_eta",1);
+    if (chain->GetBranch("muon_phi"))  chain->SetBranchStatus("muon_phi",1);
 
-    chain->SetBranchAddress("muon_charge",&Muon::muon_charge);
-    chain->SetBranchAddress("muon_pt",&Muon::muon_pt);
-    chain->SetBranchAddress("muon_e",&Muon::muon_e);
-    chain->SetBranchAddress("muon_eta",&Muon::muon_eta);
-    chain->SetBranchAddress("muon_phi",&Muon::muon_phi);
+    if (chain->GetBranch("muon_charge"))  chain->SetBranchAddress("muon_charge",&Muon::muon_charge);
+    if (chain->GetBranch("muon_pt"))  chain->SetBranchAddress("muon_pt",&Muon::muon_pt);
+    if (chain->GetBranch("muon_e"))  chain->SetBranchAddress("muon_e",&Muon::muon_e);
+    if (chain->GetBranch("muon_eta"))  chain->SetBranchAddress("muon_eta",&Muon::muon_eta);
+    if (chain->GetBranch("muon_phi"))  chain->SetBranchAddress("muon_phi",&Muon::muon_phi);
 }
 
 //                *****************
@@ -685,25 +685,25 @@ std::vector<int>* Photon::photon_id_nn = nullptr;
 
 void Photon::SetPhoton(TChain* chain)
 {
-    chain->SetBranchStatus("photon_pt",1);
-    chain->SetBranchStatus("photon_e",1);
-    chain->SetBranchStatus("photon_eta",1);
-    chain->SetBranchStatus("photon_phi",1);
-    chain->SetBranchStatus("photon_etcone40",1);
-    chain->SetBranchStatus("photon_id",1);
-    chain->SetBranchStatus("photon_id_loose",1);
-    chain->SetBranchStatus("photon_id_tight",1);
-    chain->SetBranchStatus("photon_cluster_eta_be_2",1);
+    if (chain->GetBranch("photon_pt")) chain->SetBranchStatus("photon_pt",1);
+    if (chain->GetBranch("photon_e")) chain->SetBranchStatus("photon_e",1);
+    if (chain->GetBranch("photon_eta")) chain->SetBranchStatus("photon_eta",1);
+    if (chain->GetBranch("photon_phi")) chain->SetBranchStatus("photon_phi",1);
+    if (chain->GetBranch("photon_etcone40")) chain->SetBranchStatus("photon_etcone40",1);
+    if (chain->GetBranch("photon_id")) chain->SetBranchStatus("photon_id",1);
+    if (chain->GetBranch("photon_id_loose")) chain->SetBranchStatus("photon_id_loose",1);
+    if (chain->GetBranch("photon_id_tight")) chain->SetBranchStatus("photon_id_tight",1);
+    if (chain->GetBranch("photon_cluster_eta_be_2")) chain->SetBranchStatus("photon_cluster_eta_be_2",1);
     
-    chain->SetBranchAddress("photon_pt",&Photon::photon_pt);
-    chain->SetBranchAddress("photon_e",&Photon::photon_e);
-    chain->SetBranchAddress("photon_eta",&Photon::photon_eta);
-    chain->SetBranchAddress("photon_phi",&Photon::photon_phi);
-    chain->SetBranchAddress("photon_etcone40",&Photon::photon_etcone40);
-    chain->SetBranchAddress("photon_id",&Photon::photon_id);
-    chain->SetBranchAddress("photon_id_loose",&Photon::photon_id_loose);
-    chain->SetBranchAddress("photon_id_tight",&Photon::photon_id_tight);
-    chain->SetBranchAddress("photon_cluster_eta_be_2",&Photon::photon_cluster_eta_be_2);
+    if (chain->GetBranch("photon_pt")) chain->SetBranchAddress("photon_pt",&Photon::photon_pt);
+    if (chain->GetBranch("photon_e")) chain->SetBranchAddress("photon_e",&Photon::photon_e);
+    if (chain->GetBranch("photon_eta")) chain->SetBranchAddress("photon_eta",&Photon::photon_eta);
+    if (chain->GetBranch("photon_phi")) chain->SetBranchAddress("photon_phi",&Photon::photon_phi);
+    if (chain->GetBranch("photon_etcone40")) chain->SetBranchAddress("photon_etcone40",&Photon::photon_etcone40);
+    if (chain->GetBranch("photon_id")) chain->SetBranchAddress("photon_id",&Photon::photon_id);
+    if (chain->GetBranch("photon_id_loose")) chain->SetBranchAddress("photon_id_loose",&Photon::photon_id_loose);
+    if (chain->GetBranch("photon_id_tight")) chain->SetBranchAddress("photon_id_tight",&Photon::photon_id_tight);
+    if (chain->GetBranch("photon_cluster_eta_be_2")) chain->SetBranchAddress("photon_cluster_eta_be_2",&Photon::photon_cluster_eta_be_2);
 //    chain->SetBranchAddress("photon_id_nn",&Photon::photon_id_nn);
 }
 
@@ -775,15 +775,15 @@ std::vector<double>* Cluster::cluster_e = nullptr;
 
 void Cluster::SetCluster(TChain* chain)
 {
-    chain->SetBranchStatus("cluster_pt",1);
-    chain->SetBranchStatus("cluster_eta",1);
-    chain->SetBranchStatus("cluster_phi",1);
-    chain->SetBranchStatus("cluster_e",1);
+    if (chain->GetBranch("cluster_pt"))  chain->SetBranchStatus("cluster_pt",1);
+    if (chain->GetBranch("cluster_eta"))  chain->SetBranchStatus("cluster_eta",1);
+    if (chain->GetBranch("cluster_phi"))  chain->SetBranchStatus("cluster_phi",1);
+    if (chain->GetBranch("cluster_e"))  chain->SetBranchStatus("cluster_e",1);
     
-    chain->SetBranchAddress("cluster_pt",&Cluster::cluster_pt);
-    chain->SetBranchAddress("cluster_eta",&Cluster::cluster_eta);
-    chain->SetBranchAddress("cluster_phi",&Cluster::cluster_phi);
-    chain->SetBranchAddress("cluster_e",&Cluster::cluster_e);
+    if (chain->GetBranch("cluster_pt"))  chain->SetBranchAddress("cluster_pt",&Cluster::cluster_pt);
+    if (chain->GetBranch("cluster_eta"))  chain->SetBranchAddress("cluster_eta",&Cluster::cluster_eta);
+    if (chain->GetBranch("cluster_phi"))  chain->SetBranchAddress("cluster_phi",&Cluster::cluster_phi);
+    if (chain->GetBranch("cluster_e"))  chain->SetBranchAddress("cluster_e",&Cluster::cluster_e);
 }
 
 //                *****************
@@ -883,19 +883,19 @@ std::vector<int>* Track::track_num_sct_hits = nullptr;
 
 void Track::SetTrack(TChain* chain)
 {
-    chain->SetBranchStatus("track_pt",1);
-    chain->SetBranchStatus("track_charge",1);
-    chain->SetBranchStatus("track_eta",1);
-    chain->SetBranchStatus("track_phi",1);
-//    chain->SetBranchStatus("track_e",1);
-    chain->SetBranchStatus("track_num_pixel_hits",1);
-    chain->SetBranchStatus("track_num_sct_hits",1);
+    if (chain->GetBranch("track_pt"))  chain->SetBranchStatus("track_pt",1);
+    if (chain->GetBranch("track_charge"))  chain->SetBranchStatus("track_charge",1);
+    if (chain->GetBranch("track_eta"))  chain->SetBranchStatus("track_eta",1);
+    if (chain->GetBranch("track_phi"))  chain->SetBranchStatus("track_phi",1);
+//    if (chain->GetBranch("track_e"))  chain->SetBranchStatus("track_e",1);
+    if (chain->GetBranch("track_num_pixel_hits"))  chain->SetBranchStatus("track_num_pixel_hits",1);
+    if (chain->GetBranch("track_num_sct_hits"))  chain->SetBranchStatus("track_num_sct_hits",1);
     
-    chain->SetBranchAddress("track_pt",&Track::track_pt);
-    chain->SetBranchAddress("track_charge",&Track::track_charge);
-    chain->SetBranchAddress("track_eta",&Track::track_eta);
-    chain->SetBranchAddress("track_phi",&Track::track_phi);
-//    chain->SetBranchAddress("track_e",&Track::track_e);
-    chain->SetBranchAddress("track_num_pixel_hits",&Track::track_num_pixel_hits);
-    chain->SetBranchAddress("track_num_sct_hits",&Track::track_num_sct_hits);
+    if (chain->GetBranch("track_pt"))  chain->SetBranchAddress("track_pt",&Track::track_pt);
+    if (chain->GetBranch("track_charge"))  chain->SetBranchAddress("track_charge",&Track::track_charge);
+    if (chain->GetBranch("track_eta"))  chain->SetBranchAddress("track_eta",&Track::track_eta);
+    if (chain->GetBranch("track_phi"))  chain->SetBranchAddress("track_phi",&Track::track_phi);
+//    if (chain->GetBranch("track_e"))  chain->SetBranchAddress("track_e",&Track::track_e);
+    if (chain->GetBranch("track_num_pixel_hits"))  chain->SetBranchAddress("track_num_pixel_hits",&Track::track_num_pixel_hits);
+    if (chain->GetBranch("track_num_sct_hits"))  chain->SetBranchAddress("track_num_sct_hits",&Track::track_num_sct_hits);
 }
